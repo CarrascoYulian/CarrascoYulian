@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Control LG</title>
+  <meta name="description" content="Control remoto para televisores LG webOS en tu red local.">
+  <meta name="theme-color" content="#111318">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Control LG">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Pantalla de configuración -->
+  <section id="setup" class="screen" hidden>
+    <header class="setup-head">
+      <img src="icons/icon.svg" alt="" width="56" height="56">
+      <h1>Control LG</h1>
+      <p class="muted">Conecta tu TV LG webOS que está en tu misma red Wi‑Fi.</p>
+    </header>
+
+    <form id="setup-form" class="card">
+      <label for="ip">Dirección IP de la TV</label>
+      <input id="ip" name="ip" inputmode="decimal" autocomplete="off" placeholder="192.168.1.50" required
+             pattern="^(\d{1,3}\.){3}\d{1,3}$">
+      <p class="hint">En la TV: <b>Configuración → General → Red → Wi‑Fi (o Ethernet) → Configuración avanzada</b>. También aparece en la app de tu router como «LG webOS TV».</p>
+
+      <ol class="steps">
+        <li>
+          <b>Acepta el certificado de la TV.</b> La TV usa un certificado propio; tu navegador debe confiar en él una vez.
+          <button type="button" id="open-cert" class="btn ghost">Abrir https://IP:3001</button>
+          <span class="hint">Verás una advertencia de seguridad: toca <i>Avanzado → Continuar</i>. Una página en blanco o un error 404 significa que funcionó. Luego vuelve aquí.</span>
+        </li>
+        <li>
+          <b>Conecta.</b> Si el navegador pide permiso para acceder a dispositivos de la red local, acéptalo. La TV te mostrará un aviso: acéptalo con el control físico.
+        </li>
+      </ol>
+
+      <button type="submit" class="btn primary" id="connect-btn">Conectar</button>
+      <p id="setup-status" class="status" role="status"></p>
+    </form>
+
+    <div id="saved" class="card" hidden>
+      <h2>TVs guardadas</h2>
+      <ul id="saved-list"></ul>
+    </div>
+  </section>
+
+  <!-- Control remoto -->
+  <section id="remote" class="screen" hidden>
+    <header class="topbar">
+      <button class="icon-btn" id="tv-name" aria-label="Cambiar de TV">
+        <span class="dot" id="conn-dot"></span><span id="tv-label">TV</span>
+      </button>
+      <span class="vol-pill" id="vol-pill" hidden></span>
+      <button class="icon-btn power" data-act="power" aria-label="Apagar">
+        <svg viewBox="0 0 24 24"><path d="M12 3v9M6.3 6.3a8 8 0 1 0 11.4 0"/></svg>
+      </button>
+    </header>
+
+    <div class="row quick">
+      <button class="pill" data-btn="HOME" aria-label="Inicio">
+        <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+      <button class="pill" data-panel="inputs">
+        <svg viewBox="0 0 24 24"><path d="M3 12h11M10 8l4 4-4 4M15 4h5v16h-5"/></svg>Entrada</button>
+      <button class="pill" data-btn="MENU">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Ajustes</button>
+    </div>
+
+    <div class="dpad" id="dpad">
+      <button class="dir up" data-btn="UP" aria-label="Arriba"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+      <button class="dir left" data-btn="LEFT" aria-label="Izquierda"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
+      <button class="ok" data-btn="ENTER" aria-label="OK">OK</button>
+      <button class="dir right" data-btn="RIGHT" aria-label="Derecha"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button class="dir down" data-btn="DOWN" aria-label="Abajo"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    </div>
+
+    <div class="row">
+      <button class="round" data-btn="BACK" aria-label="Atrás"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+      <button class="round" data-btn="INFO" aria-label="Información"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></button>
+      <button class="round" data-btn="EXIT" aria-label="Salir"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+
+    <div class="rockers">
+      <div class="rocker">
+        <button data-act="volUp" data-repeat aria-label="Subir volumen">+</button>
+        <span>VOL</span>
+        <button data-act="volDown" data-repeat aria-label="Bajar volumen">−</button>
+      </div>
+      <button class="round mute" data-act="mute" aria-label="Silenciar" id="mute-btn">
+        <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path class="wave" d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/><path class="x" d="M16 9l5 6M21 9l-5 6"/></svg>
+      </button>
+      <div class="rocker">
+        <button data-act="chUp" aria-label="Canal siguiente">
+          <svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button>
+        <span>CH</span>
+        <button data-act="chDown" aria-label="Canal anterior">
+          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+      </div>
+    </div>
+
+    <div class="row media">
+      <button class="round sm" data-act="rewind" aria-label="Retroceder"><svg viewBox="0 0 24 24"><path d="M11 6l-7 6 7 6zM20 6l-7 6 7 6z" class="fill"/></svg></button>
+      <button class="round sm" data-act="play" aria-label="Reproducir"><svg viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z" class="fill"/></svg></button>
+      <button class="round sm" data-act="pause" aria-label="Pausa"><svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z" class="fill"/></svg></button>
+      <button class="round sm" data-act="ff" aria-label="Adelantar"><svg viewBox="0 0 24 24"><path d="M4 6l7 6-7 6zM13 6l7 6-7 6z" class="fill"/></svg></button>
+    </div>
+
+    <nav class="tabbar">
+      <button data-panel="apps"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Apps</button>
+      <button data-panel="numpad"><svg viewBox="0 0 24 24"><path d="M5 5h.01M12 5h.01M19 5h.01M5 12h.01M12 12h.01M19 12h.01M5 19h.01M12 19h.01M19 19h.01" stroke-width="3.5"/></svg>Números</button>
+      <button data-panel="touchpad"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M4 15h16M12 15v6"/></svg>Touchpad</button>
+      <button data-panel="keyboard"><svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>Teclado</button>
+    </nav>
+  </section>
+
+  <!-- Paneles -->
+  <div class="sheet-backdrop" id="backdrop" hidden></div>
+
+  <aside class="sheet" id="panel-apps" hidden>
+    <div class="sheet-head"><h2>Aplicaciones</h2><button class="close" aria-label="Cerrar">✕</button></div>
+    <div class="apps-grid" id="apps-grid"><p class="muted">Cargando…</p></div>
+  </aside>
+
+  <aside class="sheet" id="panel-inputs" hidden>
+    <div class="sheet-head"><h2>Entradas</h2><button class="close" aria-label="Cerrar">✕</button></div>
+    <ul class="list" id="inputs-list"><li class="muted">Cargando…</li></ul>
+  </aside>
+
+  <aside class="sheet" id="panel-numpad" hidden>
+    <div class="sheet-head"><h2>Números</h2><button class="close" aria-label="Cerrar">✕</button></div>
+    <div class="numpad">
+      <button data-btn="1">1</button><button data-btn="2">2</button><button data-btn="3">3</button>
+      <button data-btn="4">4</button><button data-btn="5">5</button><button data-btn="6">6</button>
+      <button data-btn="7">7</button><button data-btn="8">8</button><button data-btn="9">9</button>
+      <button data-btn="DASH">‑</button><button data-btn="0">0</button><button data-btn="ENTER">OK</button>
+    </div>
+    <div class="colors">
+      <button data-btn="RED" class="c red" aria-label="Rojo"></button>
+      <button data-btn="GREEN" class="c green" aria-label="Verde"></button>
+      <button data-btn="YELLOW" class="c yellow" aria-label="Amarillo"></button>
+      <button data-btn="BLUE" class="c blue" aria-label="Azul"></button>
+    </div>
+  </aside>
+
+  <aside class="sheet" id="panel-touchpad" hidden>
+    <div class="sheet-head"><h2>Touchpad</h2><button class="close" aria-label="Cerrar">✕</button></div>
+    <div class="touchpad" id="touchpad"><span>Desliza para mover el puntero · toca para hacer clic · dos dedos para desplazarte</span></div>
+  </aside>
+
+  <aside class="sheet" id="panel-keyboard" hidden>
+    <div class="sheet-head"><h2>Teclado</h2><button class="close" aria-label="Cerrar">✕</button></div>
+    <p class="hint">Selecciona primero un campo de texto en la TV (por ejemplo, la búsqueda de YouTube).</p>
+    <form id="kb-form" class="kb">
+      <input id="kb-input" autocomplete="off" autocapitalize="off" placeholder="Escribe aquí…">
+      <button type="button" class="btn ghost" id="kb-del" aria-label="Borrar">⌫</button>
+      <button type="submit" class="btn primary">Enviar</button>
+    </form>
+  </aside>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
