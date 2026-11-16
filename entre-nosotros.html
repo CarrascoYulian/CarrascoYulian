@@ -1,0 +1,418 @@
+<title>Entre Nosotros</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;600;700&display=swap">
+<style>
+/* Layout: one phone column; setup screen first, then a tabbed game area with a live status pill for the partner. */
+:root {
+  --bg: #1c1326;
+  --card: #2a1d38;
+  --card2: #382849;
+  --fg: #fbf1e6;
+  --muted: #b9a7c9;
+  --me: #ff7a5c;
+  --them: #4fd8c4;
+  --gold: #ffd166;
+  --display: "Bricolage Grotesque", "Trebuchet MS", system-ui, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.45 var(--body);
+  padding-block: 18px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  -webkit-tap-highlight-color: transparent;
+}
+.wrap { max-width: 460px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1, h2 { font-family: var(--display); margin: 0; text-wrap: balance; line-height: 1.05; }
+h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -0.02em; }
+h1 .amp { color: var(--me); }
+h2 { font-size: 1.35rem; font-weight: 800; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+button { font: inherit; color: inherit; cursor: pointer; border: 0; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+.card { background: var(--card); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.steps { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: 6px; color: var(--muted); }
+.steps b { color: var(--fg); }
+label { display: flex; flex-direction: column; gap: 6px; font-weight: 700; font-size: 0.9rem; }
+input {
+  font: inherit; font-weight: 600; color: var(--fg); background: var(--bg);
+  border: 2px solid var(--card2); border-radius: 12px; padding: 12px 14px; width: 100%;
+}
+.btn {
+  background: var(--me); color: #2a0f08; font-weight: 800; border-radius: 14px;
+  padding: 14px 18px; min-height: 52px; font-size: 1.05rem;
+}
+.btn:active { transform: scale(0.98); }
+.btn.alt { background: var(--card2); color: var(--fg); }
+.btn[disabled] { opacity: 0.45; cursor: default; }
+
+.top { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.top h1 { font-size: 1.6rem; }
+.pill {
+  display: inline-flex; align-items: center; gap: 8px; background: var(--card);
+  border-radius: 999px; padding: 7px 13px; font-weight: 700; font-size: 0.85rem; max-width: 100%;
+}
+.pill i { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+.pill.on i { background: var(--them); box-shadow: 0 0 0 4px rgba(79, 216, 196, 0.25); }
+.pill span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--card); padding: 5px; border-radius: 16px; }
+.tab { background: transparent; border-radius: 12px; padding: 10px 4px; font-weight: 700; font-size: 0.82rem; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 56px; justify-content: center; }
+.tab em { font-style: normal; font-size: 1.3rem; line-height: 1; }
+.tab.on { background: var(--card2); color: var(--fg); }
+.hint { background: var(--card2); border-radius: 12px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; }
+.hint button { background: var(--gold); color: #2a1f00; font-weight: 800; border-radius: 10px; padding: 8px 12px; flex: none; }
+
+.score { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.score > div { background: var(--bg); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.score b { font-family: var(--display); font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.score span { font-size: 0.8rem; font-weight: 700; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.score .me b { color: var(--me); }
+.score .them b { color: var(--them); }
+.msg { text-align: center; font-family: var(--display); font-weight: 800; font-size: 1.3rem; min-height: 1.6em; text-wrap: balance; }
+.msg.me { color: var(--me); } .msg.them { color: var(--them); } .msg.gold { color: var(--gold); }
+
+.board { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.cell {
+  aspect-ratio: 1; background: var(--bg); border-radius: 16px; font-family: var(--display);
+  font-weight: 800; font-size: clamp(2.4rem, 16vw, 4rem); line-height: 1; display: grid; place-items: center; color: var(--fg);
+}
+.cell:not([disabled]):active { background: var(--card2); }
+.cell.me { color: var(--me); } .cell.them { color: var(--them); }
+.cell.win { background: var(--card2); box-shadow: inset 0 0 0 3px var(--gold); }
+.cell[disabled] { cursor: default; }
+
+.rps-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.rps-btn { background: var(--bg); border-radius: 18px; padding: 14px 4px; font-size: 2.6rem; line-height: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.rps-btn small { font-size: 0.78rem; font-weight: 700; color: var(--muted); }
+.rps-btn:not([disabled]):active { background: var(--card2); }
+.rps-btn[disabled] { opacity: 0.4; cursor: default; }
+.duel { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; background: var(--bg); border-radius: 16px; padding: 14px 8px; text-align: center; }
+.duel .big { font-size: 3.2rem; line-height: 1.1; }
+.duel small { display: block; font-weight: 700; color: var(--muted); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.duel .vs { font-family: var(--display); font-weight: 800; color: var(--muted); }
+
+.dots { display: flex; gap: 5px; }
+.dots i { flex: 1; height: 6px; border-radius: 3px; background: var(--bg); }
+.dots i.done { background: var(--them); } .dots i.cur { background: var(--gold); }
+.q-label { font-weight: 700; color: var(--gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.q-text { font-family: var(--display); font-weight: 800; font-size: 1.5rem; line-height: 1.15; text-wrap: balance; }
+.opts { display: flex; flex-direction: column; gap: 8px; }
+.opt { background: var(--bg); border-radius: 14px; padding: 14px 16px; text-align: left; font-weight: 600; min-height: 52px; }
+.opt:active { background: var(--card2); }
+.recap { display: flex; flex-direction: column; gap: 8px; }
+.recap > div { background: var(--bg); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 3px; }
+.recap b { font-size: 0.85rem; }
+.recap .me b { color: var(--me); } .recap .them b { color: var(--them); }
+.ok { color: var(--them); font-weight: 800; } .no { color: var(--me); font-weight: 800; }
+.wait { text-align: center; padding: 22px 8px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.wait .pulse { font-size: 2.4rem; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.18); } }
+code { background: var(--bg); padding: 2px 8px; border-radius: 8px; font-weight: 700; color: var(--gold); }
+@media (prefers-reduced-motion: reduce) { .wait .pulse { animation: none; } }
+</style>
+
+<div class="wrap">
+  <!-- Pantalla de entrada -->
+  <div id="setup" class="wrap">
+    <h1>Entre <span class="amp">&amp;</span> Nosotros</h1>
+    <p class="muted">Tres juegos para dos, cada quien en su celular, en vivo.</p>
+    <form class="card" id="form">
+      <ol class="steps">
+        <li><b>Los dos</b> abren este mismo enlace.</li>
+        <li>Escriben su nombre y el <b>mismo código</b>.</li>
+        <li>Tocan <b>Entrar</b> y listo.</li>
+      </ol>
+      <label for="name">Tu nombre
+        <input id="name" maxlength="16" autocomplete="off" placeholder="Ej: Valentina">
+      </label>
+      <label for="code">Código de ustedes
+        <input id="code" maxlength="20" autocomplete="off" autocapitalize="none" value="nosotros">
+      </label>
+      <button class="btn" type="submit">Entrar a jugar</button>
+    </form>
+    <p id="noroom" class="card" hidden>Este juego necesita que tú y tu pareja abran el enlace dentro de Claude con su cuenta, y que tengas compartido el acceso con ella o él. Pídele a quien creó el juego que lo comparta con tu pareja.</p>
+  </div>
+
+  <!-- Juego -->
+  <div id="game" class="wrap" hidden>
+    <div class="top">
+      <h1>Entre <span class="amp">&amp;</span> Nosotros</h1>
+      <div class="pill" id="status"><i></i><span>Conectando…</span></div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button class="tab" data-act="tab" data-v="ttt"><em>⭕</em>Tres en raya</button>
+      <button class="tab" data-act="tab" data-v="rps"><em>✊</em>Piedra, papel</button>
+      <button class="tab" data-act="tab" data-v="qz"><em>💞</em>¿Me conoces?</button>
+    </nav>
+    <div id="hint" class="hint" hidden></div>
+    <main id="main" class="card"></main>
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const uid = Math.random().toString(36).slice(2, 10);
+  const TABS = { ttt: "Tres en raya", rps: "Piedra, papel o tijera", qz: "¿Me conoces?" };
+
+  const Q = [
+    { q: "Mi plan perfecto para un sábado", o: ["Peli y manta en casa", "Salir a comer rico", "Aventura al aire libre", "Dormir todo el día"] },
+    { q: "Lo que más pediría a domicilio", o: ["Pizza", "Sushi", "Hamburguesa", "Tacos"] },
+    { q: "Lo que me da más pereza", o: ["Cocinar", "Lavar los platos", "Madrugar", "Hacer mandados"] },
+    { q: "Superpoder que elegiría", o: ["Volar", "Ser invisible", "Leer mentes", "Teletransportarme"] },
+    { q: "Mi forma favorita de recibir cariño", o: ["Abrazos", "Palabras bonitas", "Detalles sorpresa", "Tiempo juntos"] },
+    { q: "Mi viaje soñado", o: ["Playa", "Ciudad europea", "Montaña", "Crucero"] },
+    { q: "Si me gano la lotería, lo primero que hago", o: ["Comprar casa", "Viajar sin parar", "Ahorrar todo", "Fiestón enorme"] },
+    { q: "Mi miedo más tonto", o: ["Cucarachas", "Las alturas", "Quedarme sin celular", "Hablar en público"] },
+    { q: "Música para el carro", o: ["Reguetón", "Pop", "Rock", "Baladas"] },
+    { q: "Mi peor hábito", o: ["Llegar tarde", "Dejar todo regado", "Quejarme de todo", "Vivir pegado al celular"] }
+  ];
+  const N = Q.length;
+  const dashes = "-".repeat(N);
+
+  const S = {
+    name: "", code: "nosotros", tab: "ttt",
+    ttt: { r: 0, m: [], w: 0, sc: -1 },
+    rps: { h: "" },
+    qz: { a: dashes, g: dashes }, qi: 0, qiInit: false
+  };
+  let room = null, joined = false, conn = false;
+
+  try {
+    const n = localStorage.getItem("en-name"), c = localStorage.getItem("en-code");
+    if (n) $("#name").value = n;
+    if (c) $("#code").value = c;
+  } catch (e) {}
+
+  /* ---------- presencia ---------- */
+  function push() {
+    if (!room) return;
+    room.presence({
+      id: uid, n: S.name, tab: S.tab,
+      ttt: { r: S.ttt.r, m: S.ttt.m, w: S.ttt.w },
+      rps: { h: S.rps.h },
+      qz: { a: S.qz.a, g: S.qz.g }
+    }).catch(() => {});
+  }
+
+  function clean(p) {
+    const t = p.ttt || {}, q = p.qz || {}, rp = p.rps || {};
+    const str = (v, re, max) => (typeof v === "string" && v.length <= max && re.test(v) ? v : "");
+    const num = (v) => (Number.isInteger(v) && v >= 0 && v < 1e6 ? v : 0);
+    return {
+      id: String(p.id || ""),
+      n: String(p.n || "Tu pareja").slice(0, 16),
+      tab: TABS[p.tab] ? p.tab : "ttt",
+      r: num(t.r), w: num(t.w),
+      m: Array.isArray(t.m) ? t.m.filter((x) => Number.isInteger(x) && x >= 0 && x < 9).slice(0, 9) : [],
+      h: str(rp.h, /^[rps]*$/, 400),
+      a: str(q.a, /^[0-9-]*$/, N).padEnd(N, "-"),
+      g: str(q.g, /^[0-9-]*$/, N).padEnd(N, "-")
+    };
+  }
+
+  function partner() {
+    if (!room) return null;
+    const ps = room.peers().filter((p) => !p.sameTab && p.kind === "viewer" && p.presence && p.presence.id);
+    ps.sort((a, b) => (String(a.presence.id) < String(b.presence.id) ? -1 : 1));
+    return ps.length ? clean(ps[0].presence) : null;
+  }
+
+  /* ---------- tres en raya ---------- */
+  const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  function tttState(P) {
+    const t = S.ttt;
+    if (P.r !== t.r) return { sync: true };
+    const iFirst = uid < P.id;
+    const first = (t.r % 2 === 0) === iFirst ? "me" : "them";
+    const board = Array(9).fill(null);
+    t.m.forEach((c) => (board[c] = "me"));
+    P.m.forEach((c) => { if (!board[c]) board[c] = "them"; });
+    const nMe = t.m.length, nTh = P.m.length;
+    const myTurn = first === "me" ? nMe === nTh : nTh === nMe + 1;
+    let winner = null, line = null;
+    for (const who of ["me", "them"]) {
+      for (const l of LINES) if (l.every((i) => board[i] === who)) { winner = who; line = l; }
+    }
+    const draw = !winner && nMe + nTh >= 9;
+    return { board, first, myTurn, winner, line, draw, over: !!winner || draw };
+  }
+
+  function tttView(P) {
+    const t = S.ttt, st = tttState(P);
+    const mark = (o) => (o === st.first ? "✕" : "○");
+    let msg = "", cls = "";
+    if (st.sync) msg = "Sincronizando…";
+    else if (st.winner === "me") { msg = "¡Ganaste! 🎉"; cls = "me"; }
+    else if (st.winner === "them") { msg = "Ganó " + esc(P.n); cls = "them"; }
+    else if (st.draw) { msg = "Empate"; cls = "gold"; }
+    else if (st.myTurn) { msg = "Tu turno (" + mark("me") + ")"; cls = "me"; }
+    else { msg = "Turno de " + esc(P.n) + " (" + mark("them") + ")"; cls = "them"; }
+    const cells = (st.board || Array(9).fill(null)).map((o, i) => {
+      const live = !st.sync && !st.over && st.myTurn && !o;
+      const win = st.line && st.line.includes(i);
+      return '<button class="cell ' + (o || "") + (win ? " win" : "") + '" data-act="cell" data-i="' + i + '"' + (live ? "" : " disabled") + ' aria-label="Casilla ' + (i + 1) + '">' + (o ? mark(o) : "") + "</button>";
+    }).join("");
+    return '<div class="score"><div class="me"><b>' + t.w + "</b><span>Tú</span></div><div class=\"them\"><b>" + P.w + "</b><span>" + esc(P.n) + "</span></div></div>" +
+      '<div class="msg ' + cls + '">' + msg + "</div>" +
+      '<div class="board">' + cells + "</div>" +
+      '<button class="btn alt" data-act="tnext"' + (st.over ? "" : " disabled") + ">Otra ronda</button>";
+  }
+
+  /* ---------- piedra, papel o tijera ---------- */
+  const EM = { r: "✊", p: "✋", s: "✌️" };
+  const NAME = { r: "Piedra", p: "Papel", s: "Tijera" };
+  const res = (a, b) => (a === b ? 0 : (a === "r" && b === "s") || (a === "s" && b === "p") || (a === "p" && b === "r") ? 1 : -1);
+
+  function rpsView(P) {
+    const h = S.rps.h, ph = P.h, n = Math.min(h.length, ph.length);
+    let mw = 0, tw = 0;
+    for (let k = 0; k < n; k++) { const r = res(h[k], ph[k]); if (r > 0) mw++; else if (r < 0) tw++; }
+    const waiting = h.length > ph.length;
+    const can = h.length <= ph.length;
+    let duel = "";
+    if (n > 0) {
+      const a = h[n - 1], b = ph[n - 1], r = res(a, b);
+      const txt = r > 0 ? '<div class="msg me">¡Ganaste esta!</div>' : r < 0 ? '<div class="msg them">Ganó ' + esc(P.n) + "</div>" : '<div class="msg gold">Empate</div>';
+      duel = '<div class="duel"><div><div class="big">' + EM[a] + "</div><small>Tú</small></div><div class=\"vs\">vs</div><div><div class=\"big\">" + EM[b] + "</div><small>" + esc(P.n) + "</small></div></div>" + txt;
+    } else {
+      duel = '<div class="msg">Elijan a la vez</div>';
+    }
+    const status = waiting ? '<p class="muted" style="text-align:center">Elegiste ' + EM[h[h.length - 1]] + " · esperando a " + esc(P.n) + "…</p>" : '<p class="muted" style="text-align:center">' + (n > 0 ? "Siguiente ronda: elige" : "Elige tu jugada") + "</p>";
+    const btns = ["r", "p", "s"].map((k) => '<button class="rps-btn" data-act="rps" data-v="' + k + '"' + (can ? "" : " disabled") + ">" + EM[k] + "<small>" + NAME[k] + "</small></button>").join("");
+    return '<div class="score"><div class="me"><b>' + mw + "</b><span>Tú</span></div><div class=\"them\"><b>" + tw + "</b><span>" + esc(P.n) + "</span></div></div>" + duel + status + '<div class="rps-row">' + btns + "</div>";
+  }
+
+  /* ---------- ¿Me conoces? ---------- */
+  const at = (s, i) => s.charAt(i);
+  const setAt = (s, i, c) => s.slice(0, i) + c + s.slice(i + 1);
+  function firstOpen() {
+    for (let i = 0; i < N; i++) if (at(S.qz.a, i) === "-" || at(S.qz.g, i) === "-") return i;
+    return N;
+  }
+  function score(mineG, theirA) {
+    let c = 0, tot = 0;
+    for (let i = 0; i < N; i++) {
+      if (at(theirA, i) !== "-" && at(mineG, i) !== "-") { tot++; if (at(mineG, i) === at(theirA, i)) c++; }
+    }
+    return { c, tot };
+  }
+
+  function qzView(P) {
+    if (!S.qiInit) { S.qi = firstOpen(); S.qiInit = true; }
+    const i = S.qi;
+    const dots = '<div class="dots">' + Q.map((_, k) => '<i class="' + (k < i ? "done" : k === i ? "cur" : "") + '"></i>').join("") + "</div>";
+    if (i >= N) {
+      const mine = score(S.qz.g, P.a), theirs = score(P.g, S.qz.a);
+      const best = Math.max(mine.c, theirs.c);
+      const verdict = best >= 8 ? "Se conocen de memoria 💘" : best >= 5 ? "Nada mal, pero aún hay misterios" : "Toca conocerse más, ¡hay que salir a una cita!";
+      return dots + '<h2>Resultado final</h2><div class="score"><div class="me"><b>' + mine.c + "/" + N + "</b><span>Tú le atinaste</span></div><div class=\"them\"><b>" + theirs.c + "/" + N + "</b><span>" + esc(P.n) + " te atinó</span></div></div><div class=\"msg gold\">" + verdict + '</div><button class="btn alt" data-act="qreset">Jugar de nuevo</button>';
+    }
+    const q = Q[i], a = at(S.qz.a, i), g = at(S.qz.g, i);
+    const opts = (act) => '<div class="opts">' + q.o.map((o, k) => '<button class="opt" data-act="' + act + '" data-k="' + k + '">' + esc(o) + "</button>").join("") + "</div>";
+    if (a === "-") return dots + '<div class="q-label">Pregunta ' + (i + 1) + " de " + N + " · Sobre ti</div><div class=\"q-text\">" + esc(q.q) + "</div>" + opts("qa");
+    if (g === "-") return dots + '<div class="q-label">Pregunta ' + (i + 1) + " de " + N + " · Adivina</div><div class=\"q-text\">" + esc(q.q) + "</div><p class=\"muted\">¿Qué respondió <b>" + esc(P.n) + "</b>?</p>" + opts("qg");
+    const pa = at(P.a, i), pg = at(P.g, i);
+    if (pa === "-" || pg === "-") {
+      return dots + '<div class="wait"><div class="pulse">💭</div><b>Esperando a ' + esc(P.n) + "…</b><span class=\"muted\">Cuando termine esta pregunta verán las respuestas.</span></div>";
+    }
+    const okMe = g === pa, okTh = pg === a;
+    return dots + '<div class="q-text">' + esc(q.q) + '</div><div class="recap">' +
+      '<div class="me"><b>Tú</b><span>Respondiste: ' + esc(q.o[+a]) + '</span><span>Creíste que ' + esc(P.n) + " diría: " + esc(q.o[+g]) + " " + (okMe ? '<span class="ok">✓ ¡Le atinaste!</span>' : '<span class="no">✗</span>') + "</span></div>" +
+      '<div class="them"><b>' + esc(P.n) + "</b><span>Respondió: " + esc(q.o[+pa]) + "</span><span>Creyó que dirías: " + esc(q.o[+pg]) + " " + (okTh ? '<span class="ok">✓ ¡Te atinó!</span>' : '<span class="no">✗</span>') + "</span></div></div>" +
+      '<button class="btn" data-act="qnext">' + (i === N - 1 ? "Ver resultado" : "Siguiente pregunta") + "</button>";
+  }
+
+  /* ---------- pantalla ---------- */
+  function waitView() {
+    return '<div class="wait"><div class="pulse">💌</div><h2>Esperando a tu pareja</h2><p class="muted">Que abra este mismo enlace y escriba el código <code>' + esc(S.code) + "</code>.</p></div>";
+  }
+
+  function render() {
+    if (!joined) return;
+    const P = partner();
+    const pill = $("#status");
+    pill.className = "pill" + (P ? " on" : "");
+    pill.querySelector("span").textContent = !conn && !P ? "Conectando…" : P ? "Con " + P.n : "Esperando…";
+    document.querySelectorAll("#tabs .tab").forEach((b) => b.classList.toggle("on", b.dataset.v === S.tab));
+    const hint = $("#hint");
+    if (P && P.tab !== S.tab) {
+      hint.hidden = false;
+      hint.innerHTML = "<span>" + esc(P.n) + " está en «" + esc(TABS[P.tab]) + "»</span><button data-act=\"tab\" data-v=\"" + P.tab + "\">Ir allí</button>";
+    } else hint.hidden = true;
+    let html;
+    if (!P) html = waitView();
+    else if (S.tab === "ttt") html = tttView(P);
+    else if (S.tab === "rps") html = rpsView(P);
+    else html = qzView(P);
+    $("#main").innerHTML = html;
+  }
+
+  function update() {
+    const P = partner();
+    if (P) {
+      if (P.r > S.ttt.r) { S.ttt.r = P.r; S.ttt.m = []; push(); }
+      const st = tttState(P);
+      if (st.winner === "me" && S.ttt.sc !== S.ttt.r) { S.ttt.w++; S.ttt.sc = S.ttt.r; push(); }
+    }
+    render();
+  }
+
+  /* ---------- acciones ---------- */
+  document.addEventListener("click", (e) => {
+    const el = e.target.closest("[data-act]");
+    if (!el || el.disabled) return;
+    const act = el.dataset.act, P = partner();
+    if (act === "tab") { S.tab = el.dataset.v; push(); render(); return; }
+    if (!P) return;
+    if (act === "cell") {
+      const st = tttState(P), i = +el.dataset.i;
+      if (st.sync || st.over || !st.myTurn || st.board[i]) return;
+      S.ttt.m = S.ttt.m.concat(i);
+      push(); update();
+    } else if (act === "tnext") {
+      S.ttt.r += 1; S.ttt.m = []; push(); update();
+    } else if (act === "rps") {
+      if (S.rps.h.length > P.h.length) return;
+      S.rps.h += el.dataset.v; push(); render();
+    } else if (act === "qa") {
+      S.qz.a = setAt(S.qz.a, S.qi, el.dataset.k); push(); render();
+    } else if (act === "qg") {
+      S.qz.g = setAt(S.qz.g, S.qi, el.dataset.k); push(); render();
+    } else if (act === "qnext") {
+      S.qi += 1; render();
+    } else if (act === "qreset") {
+      S.qz = { a: dashes, g: dashes }; S.qi = 0; push(); render();
+    }
+  });
+
+  $("#form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    S.name = $("#name").value.trim().slice(0, 16) || "Jugador";
+    S.code = $("#code").value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20) || "nosotros";
+    try { localStorage.setItem("en-name", S.name); localStorage.setItem("en-code", S.code); } catch (er) {}
+    const ns = window.claude && window.claude.use ? await window.claude.use("room").catch(() => null) : null;
+    if (!ns) { $("#noroom").hidden = false; return; }
+    try { room = await ns.join("en-" + S.code); } catch (er) { room = ns; }
+    joined = true;
+    $("#setup").hidden = true;
+    $("#game").hidden = false;
+    conn = room.connected();
+    room.onConnection((c) => { conn = c; render(); });
+    room.onPeers(() => update());
+    push();
+    render();
+  });
+})();
+</script>
