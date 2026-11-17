@@ -7,6 +7,7 @@ function memoryStore() {
     async get(path) { return data.has(path) ? JSON.parse(data.get(path)) : null; },
     async put(path, obj) { data.set(path, JSON.stringify(obj)); },
     async list(prefix) { return [...data.keys()].filter(k => k.startsWith(prefix)).sort(); },
+    async del(path) { data.delete(path); },
   };
 }
 
@@ -24,6 +25,10 @@ function blobStore() {
       await put(path, JSON.stringify(obj), {
         access: 'private', allowOverwrite: true, addRandomSuffix: false, contentType: 'application/json',
       });
+    },
+    async del(path) {
+      const { del } = await sdk();
+      await del(path);
     },
     async list(prefix) {
       const { list } = await sdk();

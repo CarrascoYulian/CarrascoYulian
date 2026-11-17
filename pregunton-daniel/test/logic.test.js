@@ -89,6 +89,12 @@ const rs = await ok({ a: 'admin_reset', pin: '123456' }); assert.equal(rs.count,
 st = await ok({ a: 'state', pid: pidA });
 assert.equal(st.me.pts, 0); assert.deepEqual(st.me.items, {}); assert.equal(st.me.name, 'Ana b');
 
+// quitar jugador
+const rm = (await ok({ a: 'admin_players', pin: '123456' })).players.find(p => p.name === 'Beto');
+await ok({ a: 'admin_remove', pin: '123456', id: rm.id });
+await err({ a: 'admin_remove', pin: '123456', id: rm.id }, 404, 'no_player');
+assert.equal((await ok({ a: 'admin_players', pin: '123456' })).players.length, 1);
+
 // acciones inválidas
 await err({ a: 'nada' }, 400, 'bad_action');
 console.log('OK: todas las pruebas del servidor pasaron');

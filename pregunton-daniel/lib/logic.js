@@ -155,6 +155,15 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
       if (cache) cache.cfg = cfg;
       return { cfg };
     },
+    async admin_remove(b) {
+      checkAdmin(b);
+      const c = await loadAll(true);
+      const target = [...c.players.values()].find(p => pubId(p.pid) === String(b.id || ''));
+      if (!target) throw new HttpError(404, 'No se encontró ese jugador.', 'no_player');
+      await store.del('players/' + target.pid + '.json');
+      c.players.delete(target.pid);
+      return { ok: true };
+    },
     async admin_reset(b) {
       checkAdmin(b);
       const c = await loadAll(true);

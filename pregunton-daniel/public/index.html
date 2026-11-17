@@ -353,6 +353,7 @@ const state = { cfg: defaultCfg(), board: [], me: null, items: {}, ready:false, 
 let draft = { name:'', team:'', editing:false, err:'' };
 const openRows = new Set();
 let resetAsk = false;
+let delAsk = '';
 const sumPts = items => Object.values(items||{}).reduce((a,x)=>a+(x.pts||0),0);
 const countItems = items => Object.keys(items||{}).length;
 const myProfile = () => state.me ? { name: state.me.name, team: state.me.team } : null;
@@ -808,10 +809,10 @@ function renderPanelData(){
     <section class="card stack" style="gap:14px" aria-labelledby="hPl">
       <div class="row" style="justify-content:space-between"><h2 id="hPl">Quién respondió qué</h2><button class="btn ghost small" id="csvBtn" type="button">Descargar CSV</button></div>
       ${ranked.length ? `<div class="tablewrap"><table>
-        <thead><tr><th>Lugar</th><th>Jugador</th><th>Equipo</th><th class="num">Correctas</th><th class="num">Incorrectas</th><th class="num">Sin tiempo</th><th class="num">Puntos</th></tr></thead>
+        <thead><tr><th>Lugar</th><th>Jugador</th><th>Equipo</th><th class="num">Correctas</th><th class="num">Incorrectas</th><th class="num">Sin tiempo</th><th class="num">Puntos</th><th></th></tr></thead>
         <tbody>${ranked.map(p=>{ const o=openRows.has(p.id); return `
-          <tr class="pl"><td>${p.pts>0?ord(p.rank):'–'}</td><td><button class="xbtn" type="button" data-x="${esc(p.id)}" aria-expanded="${o}">${o?'▾':'▸'} ${esc(p.name)}</button></td><td>${esc(teamById(p.team).name)}</td><td class="num">${p.s.ok}</td><td class="num">${p.s.bad}</td><td class="num">${p.s.to}</td><td class="num"><b>${p.pts}</b></td></tr>
-          ${o ? `<tr><td colspan="7">${detailHtml(p.s.a)}</td></tr>`:''}`; }).join('')}
+          <tr class="pl"><td>${p.pts>0?ord(p.rank):'–'}</td><td><button class="xbtn" type="button" data-x="${esc(p.id)}" aria-expanded="${o}">${o?'▾':'▸'} ${esc(p.name)}</button></td><td>${esc(teamById(p.team).name)}</td><td class="num">${p.s.ok}</td><td class="num">${p.s.bad}</td><td class="num">${p.s.to}</td><td class="num"><b>${p.pts}</b></td><td><button class="btn ghost small" type="button" data-del="${esc(p.id)}">${delAsk===p.id?'¿Seguro?':'Quitar'}</button></td></tr>
+          ${o ? `<tr><td colspan="8">${detailHtml(p.s.a)}</td></tr>`:''}`; }).join('')}
         </tbody></table></div>` : '<div class="empty"><p>Todavía nadie ha respondido. Cuando los jóvenes jueguen, verás aquí sus aciertos y errores.</p></div>'}
       <p class="muted small">Solo tú ves esta tabla. En Posiciones el grupo ve únicamente lugares y puntos. Se actualiza cada pocos segundos.</p>
     </section>
@@ -819,6 +820,13 @@ function renderPanelData(){
       ${per.length ? `<div class="hard">${per.map(x=>`<div class="hrow"><b>Daniel ${x.q.c}:${x.q.v}</b><div class="meter" aria-hidden="true"><i style="width:${Math.round(x.pct*100)}%"></i></div><span class="muted">${x.ok} de ${x.n} acertaron</span></div>`).join('')}</div>` : '<p class="muted">Aparecerán cuando haya respuestas.</p>'}
     </section>`;
   $$('[data-x]', host).forEach(b => b.addEventListener('click', () => { const id=b.dataset.x; if (openRows.has(id)) openRows.delete(id); else openRows.add(id); renderPanelData(); }));
+  $$('[data-del]', host).forEach(b => b.addEventListener('click', async () => {
+    const id = b.dataset.del;
+    if (delAsk !== id) { delAsk = id; renderPanelData(); return; }
+    delAsk = '';
+    try { await api('admin_remove', { id }); toast('Jugador quitado.'); } catch(e){ toast('No se pudo quitar al jugador.'); }
+    await refreshAdmin();
+  }));
   const cb = $('#csvBtn'); if (cb) cb.addEventListener('click', exportCsv);
 }
 function detailHtml(a){
