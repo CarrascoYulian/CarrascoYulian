@@ -228,6 +228,16 @@ tr.pl>td{background:var(--night-2)}
   *{animation:none!important;transition:none!important}
 }
 .opt.picked{border-color:var(--gold);background:var(--night-3)}
+.whoami{font-family:var(--font-display);font-weight:800;font-size:1.6rem;color:var(--sand);margin:0 0 12px;line-height:1.15}
+.clues{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.clues li{position:relative;padding-left:30px;font-size:1.08rem;line-height:1.45;font-weight:700}
+.clues li::before{content:"";position:absolute;left:2px;top:.38em;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle,var(--night) 0 3px,var(--gold) 4px);box-shadow:0 0 0 2px var(--gold-deep)}
+.whois{border:1.5px dashed var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:4px}
+.whois b{font-family:var(--font-display);font-size:1.35rem;color:var(--gold);line-height:1.2}
+.drow{grid-template-columns:170px 120px minmax(0,1fr) 120px!important}
+.hrow{grid-template-columns:170px minmax(0,1fr) 120px!important}
+@media (max-width:760px){.drow{grid-template-columns:1fr 1fr!important}.hrow{grid-template-columns:110px minmax(0,1fr) 92px!important}}
+@media (max-width:640px){.nav a{font-size:.8rem;padding:10px 2px}}
 </style>
 </head>
 <body>
@@ -286,6 +296,7 @@ tr.pl>td{background:var(--night-2)}
     <nav class="nav" aria-label="Secciones">
       <a href="#inicio" data-r="inicio">Inicio</a>
       <a href="#jugar" data-r="jugar">Jugar</a>
+      <a href="#personajes" data-r="personajes">Personajes</a>
       <a href="#posiciones" data-r="posiciones">Posiciones</a>
       <a href="#panel" data-r="panel" id="navPanel">Panel</a>
     </nav>
@@ -297,6 +308,7 @@ tr.pl>td{background:var(--night-2)}
 <main class="wrap">
   <section class="view" id="v-inicio" hidden></section>
   <section class="view" id="v-jugar" hidden></section>
+  <section class="view" id="v-personajes" hidden></section>
   <section class="view" id="v-posiciones" hidden></section>
   <section class="view" id="v-panel" hidden></section>
 </main>
@@ -306,6 +318,7 @@ tr.pl>td{background:var(--night-2)}
 (function(){
 'use strict';
 const QUESTIONS = [{"id": "d1-7-1", "c": 1, "v": 7, "q": "¿qué nombre puso el jefe de los eunucos a Azarías?", "o": ["Abed-nego", "Sadrac", "Beltsasar", "Mesac"], "t": "A estos el jefe de los eunucos puso nombres: puso a Daniel, Beltsasar; a Ananías, Sadrac; a Misael, Mesac; y a Azarías, Abed-nego."}, {"id": "d1-8-2", "c": 1, "v": 8, "q": "¿qué propuso Daniel en su corazón?", "o": ["No contaminarse con la porción de la comida del rey", "Pedir al rey que lo dejara volver a Jerusalén", "Huir de Babilonia por la noche", "Ayunar cuarenta días en el palacio"], "t": "Y Daniel propuso en su corazón no contaminarse con la porción de la comida del rey, ni con el vino que él bebía; pidió, por tanto, al jefe de los eunucos que no se le obligase a contaminarse."}, {"id": "d1-12-3", "c": 1, "v": 12, "q": "¿por cuántos días pidió Daniel que se hiciera la prueba con sus siervos?", "o": ["Diez días", "Siete días", "Tres días", "Cuarenta días"], "t": "Te ruego que hagas la prueba con tus siervos por diez días, y nos den legumbres a comer, y agua a beber."}, {"id": "d1-17-4", "c": 1, "v": 17, "q": "¿en qué tuvo entendimiento Daniel?", "o": ["En los cantares del templo", "En toda visión y sueños", "En el arte de la guerra", "En el gobierno de las provincias"], "t": "A estos cuatro muchachos Dios les dio conocimiento e inteligencia en todas las letras y ciencias; y Daniel tuvo entendimiento en toda visión y sueños."}, {"id": "d1-20-5", "c": 1, "v": 20, "q": "¿cuántas veces mejores que todos los magos y astrólogos halló el rey a estos jóvenes?", "o": ["Diez veces mejores", "Siete veces mejores", "Cinco veces mejores", "Dos veces mejores"], "t": "En todo asunto de sabiduría e inteligencia que el rey les consultó, los halló diez veces mejores que todos los magos y astrólogos que había en todo su reino."}, {"id": "d2-1-6", "c": 2, "v": 1, "q": "¿en qué año del reinado de Nabucodonosor tuvo este rey sueños?", "o": ["En el primer año", "En el tercer año", "En el séptimo año", "En el segundo año"], "t": "En el segundo año del reinado de Nabucodonosor, tuvo Nabucodonosor sueños, y se perturbó su espíritu, y se le fue el sueño."}, {"id": "d2-17-7", "c": 2, "v": 17, "q": "¿a quiénes hizo saber Daniel lo que había, para que pidiesen misericordias del Dios del cielo?", "o": ["Joacim, Ciro y Darío", "Los magos, los astrólogos y los caldeos", "Arioc, Aspenaz y Melsar", "Ananías, Misael y Azarías"], "t": "Luego se fue Daniel a su casa e hizo saber lo que había a Ananías, Misael y Azarías, sus compañeros,"}, {"id": "d2-32-8", "c": 2, "v": 32, "q": "¿de qué material era la cabeza de la imagen?", "o": ["De plata", "De oro fino", "De hierro", "De bronce"], "t": "La cabeza de esta imagen era de oro fino; su pecho y sus brazos, de plata; su vientre y sus muslos, de bronce;"}, {"id": "d2-34-9", "c": 2, "v": 34, "q": "¿qué hirió a la imagen en sus pies de hierro y de barro cocido?", "o": ["Una espada de fuego", "Una piedra cortada, no con mano", "Un gran terremoto", "Un rayo del cielo"], "t": "Estabas mirando, hasta que una piedra fue cortada, no con mano, e hirió a la imagen en sus pies de hierro y de barro cocido, y los desmenuzó."}, {"id": "d2-48-10", "c": 2, "v": 48, "q": "¿de qué provincia hizo el rey gobernador a Daniel?", "o": ["Babilonia", "Susa", "Judea", "Media"], "t": "Entonces el rey engrandeció a Daniel, y le dio muchos honores y grandes dones, y le hizo gobernador de toda la provincia de Babilonia, y jefe supremo de todos los sabios de Babilonia."}, {"id": "d3-1-11", "c": 3, "v": 1, "q": "¿cuál era la altura de la estatua de oro que hizo el rey Nabucodonosor?", "o": ["Seis codos", "Cien codos", "Treinta codos", "Sesenta codos"], "t": "El rey Nabucodonosor hizo una estatua de oro cuya altura era de sesenta codos, y su anchura de seis codos; la levantó en el campo de Dura, en la provincia de Babilonia."}, {"id": "d3-18-12", "c": 3, "v": 18, "q": "¿cómo continúa lo que dijeron Sadrac, Mesac y Abed-nego: «Y si no, sepas, oh rey, que…»?", "o": ["nos postraremos ante tu estatua", "pediremos misericordia al rey", "no serviremos a tus dioses", "nuestro Dios no nos librará"], "t": "Y si no, sepas, oh rey, que no serviremos a tus dioses, ni tampoco adoraremos la estatua que has levantado."}, {"id": "d3-19-13", "c": 3, "v": 19, "q": "¿cuántas veces más de lo acostumbrado mandó Nabucodonosor que se calentase el horno?", "o": ["Diez veces más", "Tres veces más", "Siete veces más", "Dos veces más"], "t": "Entonces Nabucodonosor se llenó de ira, y se demudó el aspecto de su rostro contra Sadrac, Mesac y Abed-nego, y ordenó que el horno se calentase siete veces más de lo acostumbrado."}, {"id": "d3-25-14", "c": 3, "v": 25, "q": "¿cuántos varones vio el rey sueltos, que se paseaban en medio del fuego?", "o": ["Siete", "Dos", "Cuatro", "Tres"], "t": "Y él dijo: He aquí yo veo cuatro varones sueltos, que se pasean en medio del fuego sin sufrir ningún daño; y el aspecto del cuarto es semejante a hijo de los dioses."}, {"id": "d3-27-15", "c": 3, "v": 27, "q": "¿qué ni siquiera tenían estos varones al salir del horno?", "o": ["Rastro de ceniza", "Olor de fuego", "Un solo hilo suelto", "Señales de hollín"], "t": "Y se juntaron los sátrapas, los gobernadores, los capitanes y los consejeros del rey, para mirar a estos varones, cómo el fuego no había tenido poder alguno sobre sus cuerpos, ni aun el cabello de sus cabezas se había quemado; sus ropas estaban intactas, y ni siquiera olor de fuego tenían."}, {"id": "d4-10-16", "c": 4, "v": 10, "q": "¿qué le parecía ver a Nabucodonosor en medio de la tierra?", "o": ["Un río de fuego", "Una torre hasta el cielo", "Una montaña de oro", "Un árbol de gran altura"], "t": "Estas fueron las visiones de mi cabeza mientras estaba en mi cama: Me parecía ver en medio de la tierra un árbol, cuya altura era grande."}, {"id": "d4-16-17", "c": 4, "v": 16, "q": "¿cuántos tiempos pasarían sobre aquel cuyo corazón de hombre fuese cambiado por corazón de bestia?", "o": ["Tres tiempos", "Doce tiempos", "Cuarenta tiempos", "Siete tiempos"], "t": "Su corazón de hombre sea cambiado, y le sea dado corazón de bestia, y pasen sobre él siete tiempos."}, {"id": "d4-19-18", "c": 4, "v": 19, "q": "¿cuánto tiempo quedó atónito Daniel, cuyo nombre era Beltsasar?", "o": ["Casi una hora", "Tres días", "Siete días", "Toda la noche"], "t": "Entonces Daniel, cuyo nombre era Beltsasar, quedó atónito casi una hora, y sus pensamientos lo turbaban. El rey habló y dijo: Beltsasar, no te turben ni el sueño ni su interpretación. Beltsasar respondió y dijo: Señor mío, el sueño sea para tus enemigos, y su interpretación para los que mal te quieren."}, {"id": "d4-33-19", "c": 4, "v": 33, "q": "¿como qué creció el pelo de Nabucodonosor?", "o": ["Como crines de león", "Como plumas de águila", "Como lana limpia", "Como espinas del campo"], "t": "En la misma hora se cumplió la palabra sobre Nabucodonosor, y fue echado de entre los hombres; y comía hierba como los bueyes, y su cuerpo se mojaba con el rocío del cielo, hasta que su pelo creció como plumas de águila, y sus uñas como las de las aves."}, {"id": "d4-34-20", "c": 4, "v": 34, "q": "¿qué le fue devuelto a Nabucodonosor cuando alzó sus ojos al cielo al fin del tiempo?", "o": ["Su razón", "Su ejército", "Su corona", "Su palacio"], "t": "Mas al fin del tiempo yo Nabucodonosor alcé mis ojos al cielo, y mi razón me fue devuelta; y bendije al Altísimo, y alabé y glorifiqué al que vive para siempre, cuyo dominio es sempiterno, y su reino por todas las edades."}, {"id": "d5-1-21", "c": 5, "v": 1, "q": "¿a cuántos de sus príncipes hizo un gran banquete el rey Belsasar?", "o": ["A setenta", "A cien", "A mil", "A diez mil"], "t": "El rey Belsasar hizo un gran banquete a mil de sus príncipes, y en presencia de los mil bebía vino."}, {"id": "d5-5-22", "c": 5, "v": 5, "q": "¿qué aparecieron en aquella misma hora, escribiendo sobre lo encalado de la pared del palacio real?", "o": ["Los ojos de un león", "Los dedos de una mano de hombre", "Un ángel con una espada", "Una nube de fuego"], "t": "En aquella misma hora aparecieron los dedos de una mano de hombre, que escribía delante del candelero sobre lo encalado de la pared del palacio real, y el rey veía la mano que escribía."}, {"id": "d5-25-23", "c": 5, "v": 25, "q": "¿cuál fue la escritura que trazó la mano?", "o": ["MENE, MENE, TEKEL, UPARSIN", "TEKEL, TEKEL, MENE, PERES", "UPARSIN, TEKEL, MENE, MENE", "MENE, PERES, PERES, UPARSIN"], "t": "Y la escritura que trazó es: MENE, MENE, TEKEL, UPARSIN."}, {"id": "d5-27-24", "c": 5, "v": 27, "q": "¿qué significa TEKEL, según la interpretación de Daniel?", "o": ["Has sido medido en la ley, y fuiste hallado fiel", "Pesado has sido en balanza, y fuiste hallado falto", "Tu reino ha sido roto, y dado a los medos y a los persas", "Contó Dios tu reino, y le ha puesto fin"], "t": "TEKEL: Pesado has sido en balanza, y fuiste hallado falto."}, {"id": "d5-29-25", "c": 5, "v": 29, "q": "¿de qué mandó Belsasar vestir a Daniel?", "o": ["De seda azul", "De piel de león", "De púrpura", "De lino blanco"], "t": "Entonces mandó Belsasar vestir a Daniel de púrpura, y poner en su cuello un collar de oro, y proclamar que él era el tercer señor del reino."}, {"id": "d6-1-26", "c": 6, "v": 1, "q": "¿cuántos sátrapas constituyó Darío sobre el reino?", "o": ["Setenta", "Doce", "Mil", "Ciento veinte"], "t": "Pareció bien a Darío constituir sobre el reino ciento veinte sátrapas, que gobernasen en todo el reino."}, {"id": "d6-7-27", "c": 6, "v": 7, "q": "¿durante cuántos días no se podía pedir nada a ningún dios u hombre fuera del rey, so pena de ser echado al foso de los leones?", "o": ["Treinta días", "Sesenta días", "Siete días", "Cuarenta días"], "t": "Todos los gobernadores del reino, magistrados, sátrapas, príncipes y capitanes han acordado por consejo que promulgues un edicto real y lo confirmes, que cualquiera que en el espacio de treinta días demande petición de cualquier dios u hombre fuera de ti, oh rey, sea echado en el foso de los leones."}, {"id": "d6-10-28", "c": 6, "v": 10, "q": "¿hacia qué ciudad daban las ventanas abiertas de la cámara de Daniel cuando él oraba?", "o": ["Jerusalén", "Babilonia", "Susa", "Belén"], "t": "Cuando Daniel supo que el edicto había sido firmado, entró en su casa, y abiertas las ventanas de su cámara que daban hacia Jerusalén, se arrodillaba tres veces al día, y oraba y daba gracias delante de su Dios, como lo solía hacer antes."}, {"id": "d6-17-29", "c": 6, "v": 17, "q": "¿con qué selló el rey la piedra puesta sobre la puerta del foso?", "o": ["Con la firma de los sátrapas", "Con una cadena de bronce", "Con su anillo y con el anillo de sus príncipes", "Con cera y con su corona"], "t": "Y fue traída una piedra y puesta sobre la puerta del foso, la cual selló el rey con su anillo y con el anillo de sus príncipes, para que el acuerdo acerca de Daniel no se alterase."}, {"id": "d6-22-30", "c": 6, "v": 22, "q": "¿qué envió el Dios de Daniel, el cual cerró la boca de los leones?", "o": ["Un fuego del cielo", "Un profeta", "Una nube", "Su ángel"], "t": "Mi Dios envió su ángel, el cual cerró la boca de los leones, para que no me hiciesen daño, porque ante él fui hallado inocente; y aun delante de ti, oh rey, yo no he hecho nada malo."}, {"id": "d7-4-31", "c": 7, "v": 4, "q": "¿cómo era la primera bestia?", "o": ["Como macho cabrío, con un cuerno notable", "Como leopardo, con cuatro alas de ave", "Como león, y tenía alas de águila", "Como oso, con tres costillas entre los dientes"], "t": "La primera era como león, y tenía alas de águila. Yo estaba mirando hasta que sus alas fueron arrancadas, y fue levantada del suelo y se puso enhiesta sobre los pies a manera de hombre, y le fue dado corazón de hombre."}, {"id": "d7-5-32", "c": 7, "v": 5, "q": "¿a qué animal era semejante la segunda bestia?", "o": ["A un oso", "A un carnero", "A un león", "A un leopardo"], "t": "Y he aquí otra segunda bestia, semejante a un oso, la cual se alzaba de un costado más que del otro, y tenía en su boca tres costillas entre los dientes; y le fue dicho así: Levántate, devora mucha carne."}, {"id": "d7-7-33", "c": 7, "v": 7, "q": "¿cuántos cuernos tenía la cuarta bestia?", "o": ["Diez", "Cuatro", "Siete", "Doce"], "t": "Después de esto miraba yo en las visiones de la noche, y he aquí la cuarta bestia, espantosa y terrible y en gran manera fuerte, la cual tenía unos dientes grandes de hierro; devoraba y desmenuzaba, y las sobras hollaba con sus pies, y era muy diferente de todas las bestias que vi antes de ella, y tenía diez cuernos."}, {"id": "d7-9-34", "c": 7, "v": 9, "q": "¿cómo era el vestido del Anciano de días?", "o": ["Azul como el cielo", "Rojo como el fuego", "Púrpura como el oro", "Blanco como la nieve"], "t": "Estuve mirando hasta que fueron puestos tronos, y se sentó un Anciano de días, cuyo vestido era blanco como la nieve, y el pelo de su cabeza como lana limpia; su trono llama de fuego, y las ruedas del mismo, fuego ardiente."}, {"id": "d7-14-35", "c": 7, "v": 14, "q": "¿qué le fue dado al que venía como un hijo de hombre?", "o": ["Fuerza, riquezas y honra", "Dominio, gloria y reino", "Un libro sellado y una espada", "Una corona de oro y un cetro"], "t": "Y le fue dado dominio, gloria y reino, para que todos los pueblos, naciones y lenguas le sirvieran; su dominio es dominio eterno, que nunca pasará, y su reino uno que no será destruido."}, {"id": "d8-2-36", "c": 8, "v": 2, "q": "¿junto a qué río estaba Daniel cuando vio la visión?", "o": ["El río Hidekel", "El río Ulai", "El río Éufrates", "El río Jordán"], "t": "Vi en visión; y cuando la vi, yo estaba en Susa, que es la capital del reino en la provincia de Elam; vi, pues, en visión, estando junto al río Ulai."}, {"id": "d8-14-37", "c": 8, "v": 14, "q": "¿hasta cuántas tardes y mañanas dijo el santo que duraría esto, y luego el santuario sería purificado?", "o": ["Mil doscientas noventa", "Setenta", "Mil trescientas treinta y cinco", "Dos mil trescientas"], "t": "Y él dijo: Hasta dos mil trescientas tardes y mañanas; luego el santuario será purificado."}, {"id": "d8-16-38", "c": 8, "v": 16, "q": "¿a quién gritó la voz de hombre: «enseña a este la visión»?", "o": ["A Arioc", "A Gabriel", "A Belsasar", "A Miguel"], "t": "Y oí una voz de hombre entre las riberas del Ulai, que gritó y dijo: Gabriel, enseña a este la visión."}, {"id": "d8-20-39", "c": 8, "v": 20, "q": "¿a quiénes representaban los dos cuernos del carnero?", "o": ["A los reyes del sur y del norte", "A los reyes de Media y de Persia", "A los reyes de Egipto y de Babilonia", "A los reyes de Grecia"], "t": "En cuanto al carnero que viste, que tenía dos cuernos, estos son los reyes de Media y de Persia."}, {"id": "d8-21-40", "c": 8, "v": 21, "q": "¿a quién representaba el macho cabrío?", "o": ["Al rey de Persia", "Al rey de Egipto", "Al rey de Grecia", "Al rey de Babilonia"], "t": "El macho cabrío es el rey de Grecia, y el cuerno grande que tenía entre sus ojos es el rey primero."}, {"id": "d9-1-41", "c": 9, "v": 1, "q": "¿de quién era hijo Darío, que vino a ser rey sobre el reino de los caldeos?", "o": ["De Nabucodonosor", "De Belsasar", "De Asuero", "De Ciro"], "t": "En el año primero de Darío hijo de Asuero, de la nación de los medos, que vino a ser rey sobre el reino de los caldeos,"}, {"id": "d9-2-42", "c": 9, "v": 2, "q": "¿en cuántos años habían de cumplirse las desolaciones de Jerusalén, según lo que habló Jehová al profeta Jeremías?", "o": ["Setenta años", "Siete años", "Cien años", "Cuarenta años"], "t": "en el año primero de su reinado, yo Daniel miré atentamente en los libros el número de los años de que habló Jehová al profeta Jeremías, que habían de cumplirse las desolaciones de Jerusalén en setenta años."}, {"id": "d9-3-43", "c": 9, "v": 3, "q": "¿cómo buscó Daniel a Dios el Señor?", "o": ["Con ofrendas de incienso y de oro", "Con cantos y arpas en el palacio", "Con sacrificios en el templo", "En oración y ruego, en ayuno, cilicio y ceniza"], "t": "Y volví mi rostro a Dios el Señor, buscándole en oración y ruego, en ayuno, cilicio y ceniza."}, {"id": "d9-21-44", "c": 9, "v": 21, "q": "¿a qué hora vino el varón Gabriel a Daniel, volando con presteza?", "o": ["A la medianoche", "A la hora del sacrificio de la tarde", "Al mediodía", "Al amanecer"], "t": "aún estaba hablando en oración, cuando el varón Gabriel, a quien había visto en la visión al principio, volando con presteza, vino a mí como a la hora del sacrificio de la tarde."}, {"id": "d9-23-45", "c": 9, "v": 23, "q": "¿cómo le dijo Gabriel que era Daniel?", "o": ["Muy fiel", "Muy valiente", "Muy sabio", "Muy amado"], "t": "Al principio de tus ruegos fue dada la orden, y yo he venido para enseñártela, porque tú eres muy amado. Entiende, pues, la orden, y entiende la visión."}, {"id": "d10-2-46", "c": 10, "v": 2, "q": "¿por cuánto tiempo estuvo afligido Daniel en aquellos días?", "o": ["Setenta semanas", "Siete días", "Cuarenta días", "Tres semanas"], "t": "En aquellos días yo Daniel estuve afligido por espacio de tres semanas."}, {"id": "d10-4-47", "c": 10, "v": 4, "q": "¿a la orilla de qué río estaba Daniel el día veinticuatro del mes primero?", "o": ["El río Éufrates", "El río Jordán", "El gran río Hidekel", "El río Ulai"], "t": "Y el día veinticuatro del mes primero estaba yo a la orilla del gran río Hidekel."}, {"id": "d10-5-48", "c": 10, "v": 5, "q": "¿de qué estaba vestido el varón que Daniel vio?", "o": ["De púrpura", "De piel", "De escarlata", "De lino"], "t": "Y alcé mis ojos y miré, y he aquí un varón vestido de lino, y ceñidos sus lomos de oro de Ufaz."}, {"id": "d10-13-49", "c": 10, "v": 13, "q": "¿durante cuántos días se opuso el príncipe del reino de Persia al que hablaba con Daniel?", "o": ["Treinta días", "Veintiún días", "Siete días", "Cuarenta días"], "t": "Mas el príncipe del reino de Persia se me opuso durante veintiún días; pero he aquí Miguel, uno de los principales príncipes, vino para ayudarme, y quedé allí con los reyes de Persia."}, {"id": "d10-21-50", "c": 10, "v": 21, "q": "¿quién era el único que ayudaba al que hablaba con Daniel contra ellos?", "o": ["Darío", "Arioc", "Gabriel", "Miguel, vuestro príncipe"], "t": "Pero yo te declararé lo que está escrito en el libro de la verdad; y ninguno me ayuda contra ellos, sino Miguel vuestro príncipe."}, {"id": "d11-1-51", "c": 11, "v": 1, "q": "¿en qué año de Darío el medo dice que estuvo para animarlo y fortalecerlo?", "o": ["En el año primero", "En el año tercero", "En el año sesenta y dos", "En el año séptimo"], "t": "Y yo mismo, en el año primero de Darío el medo, estuve para animarlo y fortalecerlo."}, {"id": "d11-2-52", "c": 11, "v": 2, "q": "¿cuántos reyes aún habría en Persia, además del cuarto que se haría de grandes riquezas?", "o": ["Dos reyes", "Cuatro reyes", "Siete reyes", "Tres reyes"], "t": "Y ahora yo te mostraré la verdad. He aquí que aún habrá tres reyes en Persia, y el cuarto se hará de grandes riquezas más que todos ellos; y al hacerse fuerte con sus riquezas, levantará a todos contra el reino de Grecia."}, {"id": "d11-30-53", "c": 11, "v": 30, "q": "¿de dónde vendrían las naves contra él?", "o": ["De Sidón", "De Egipto", "De Quitim", "De Tarsis"], "t": "Porque vendrán contra él naves de Quitim, y él se contristará, y volverá, y se enojará contra el pacto santo, y hará según su voluntad; volverá, pues, y se entenderá con los que abandonen el santo pacto."}, {"id": "d11-32-54", "c": 11, "v": 32, "q": "¿qué hará el pueblo que conoce a su Dios?", "o": ["Pedirá paz al rey", "Se esforzará y actuará", "Huirá a los montes", "Callará y esperará"], "t": "Con lisonjas seducirá a los violadores del pacto; mas el pueblo que conoce a su Dios se esforzará y actuará."}, {"id": "d11-41-55", "c": 11, "v": 41, "q": "¿de quién serían la mayoría de los hijos que escaparían de su mano, junto con Edom y Moab?", "o": ["De Libia", "De Egipto", "De Etiopía", "De Amón"], "t": "Entrará a la tierra gloriosa, y muchas provincias caerán; mas estas escaparán de su mano: Edom y Moab, y la mayoría de los hijos de Amón."}, {"id": "d12-1-56", "c": 12, "v": 1, "q": "¿quién se levantaría, el gran príncipe que está de parte de los hijos del pueblo de Daniel?", "o": ["Gabriel", "Arioc", "Miguel", "Beltsasar"], "t": "En aquel tiempo se levantará Miguel, el gran príncipe que está de parte de los hijos de tu pueblo; y será tiempo de angustia, cual nunca fue desde que hubo gente hasta entonces; pero en aquel tiempo será libertado tu pueblo, todos los que se hallen escritos en el libro."}, {"id": "d12-2-57", "c": 12, "v": 2, "q": "¿para qué serán despertados unos de los que duermen en el polvo de la tierra, mientras otros lo serán para vergüenza y confusión perpetua?", "o": ["Para heredar la tierra de Judá", "Para vida eterna", "Para reinar en Babilonia", "Para el servicio del templo"], "t": "Y muchos de los que duermen en el polvo de la tierra serán despertados, unos para vida eterna, y otros para vergüenza y confusión perpetua."}, {"id": "d12-3-58", "c": 12, "v": 3, "q": "¿como qué resplandecerán los entendidos?", "o": ["Como el sol del mediodía", "Como el oro fino", "Como el resplandor del firmamento", "Como lámparas de bronce"], "t": "Los entendidos resplandecerán como el resplandor del firmamento; y los que enseñan la justicia a la multitud, como las estrellas a perpetua eternidad."}, {"id": "d12-4-59", "c": 12, "v": 4, "q": "¿qué le mandan a Daniel cerrar y sellar hasta el tiempo del fin?", "o": ["El decreto del rey", "Las palabras y el libro", "La puerta del foso", "El templo de Jerusalén"], "t": "Pero tú, Daniel, cierra las palabras y sella el libro hasta el tiempo del fin. Muchos correrán de aquí para allá, y la ciencia se aumentará."}, {"id": "d12-12-60", "c": 12, "v": 12, "q": "¿a cuántos días llegará el bienaventurado que espere?", "o": ["Mil doscientos noventa días", "Dos mil trescientos días", "Mil trescientos treinta y cinco días", "Setenta días"], "t": "Bienaventurado el que espere, y llegue a mil trescientos treinta y cinco días."}];
+const CARDS = [{"id": "p-daniel", "k": "p", "c": 0, "cl": ["Propuso en su corazón no contaminarse con la comida ni con el vino del rey.", "Tuvo entendimiento en toda visión y sueños.", "Tres veces al día se arrodillaba a orar con las ventanas abiertas hacia Jerusalén.", "Fue echado al foso de los leones, pero Dios cerró la boca de ellos."], "o": ["Arioc", "Daniel", "Sadrac", "Belsasar"]}, {"id": "p-sadrac", "k": "p", "c": 0, "cl": ["Su nombre hebreo era Ananías.", "Fue puesto con sus compañeros sobre los negocios de la provincia de Babilonia.", "Dijo al rey: «Y si no, sepas, oh rey, que no serviremos a tus dioses».", "Fue echado atado dentro de un horno de fuego ardiendo, y el rey lo engrandeció después."], "o": ["Daniel", "Abed-nego", "Sadrac", "Mesac"]}, {"id": "p-mesac", "k": "p", "c": 0, "cl": ["Su nombre hebreo era Misael.", "Fue acusado por varones caldeos de no adorar a los dioses del rey ni la estatua de oro.", "El horno fue calentado siete veces más de lo acostumbrado para echarlo dentro con sus compañeros.", "Salió del fuego sin que sus ropas estuvieran quemadas y sin olor de fuego."], "o": ["Arioc", "Mesac", "Sadrac", "Abed-nego"]}, {"id": "p-abed-nego", "k": "p", "c": 0, "cl": ["Su nombre hebreo era Azarías.", "Con sus compañeros era uno de los varones judíos puestos sobre los negocios de la provincia de Babilonia.", "El rey les dijo: «¿qué dios será aquel que os libre de mis manos?»", "Entregó su cuerpo antes que servir y adorar a otro dios que su Dios."], "o": ["Daniel", "Abed-nego", "Mesac", "Sadrac"]}, {"id": "p-nabucodonosor", "k": "p", "c": 0, "cl": ["Rey de Babilonia que vino a Jerusalén y la sitió.", "Hizo una estatua de oro de sesenta codos de altura en el campo de Dura.", "Fue echado de entre los hombres, comió hierba como los bueyes y su pelo creció como plumas de águila.", "Al fin alzó sus ojos al cielo, y su razón le fue devuelta."], "o": ["Ciro", "Belsasar", "Nabucodonosor", "Darío"]}, {"id": "p-joacim", "k": "p", "c": 0, "cl": ["Era rey de Judá.", "Un rey de Babilonia vino contra Jerusalén en el año tercero de su reinado.", "El Señor lo entregó en manos de aquel rey, junto con parte de los utensilios de la casa de Dios."], "o": ["Asuero", "Ciro", "Joacim", "Belsasar"]}, {"id": "p-aspenaz", "k": "p", "c": 0, "cl": ["Era jefe de los eunucos del rey de Babilonia.", "Recibió la orden de traer de los hijos de Israel muchachos en quienes no hubiese tacha alguna.", "Debía enseñarles las letras y la lengua de los caldeos.", "Temía que su cabeza fuera condenada ante el rey si los jóvenes se veían más pálidos."], "o": ["Aspenaz", "Arioc", "Belsasar", "Melsar"]}, {"id": "p-melsar", "k": "p", "c": 0, "cl": ["Estaba puesto por el jefe de los eunucos sobre Daniel y sus tres compañeros.", "Consintió en probar con ellos diez días.", "Se llevaba la porción de comida y el vino de ellos, y les daba legumbres."], "o": ["Arioc", "Aspenaz", "Gabriel", "Melsar"]}, {"id": "p-arioc", "k": "p", "c": 0, "cl": ["Era capitán de la guardia del rey.", "Había salido para matar a los sabios de Babilonia.", "Daniel le habló sabia y prudentemente y le preguntó por qué el edicto se publicaba tan apresuradamente.", "Llevó prontamente a Daniel ante el rey diciendo que había hallado un varón de los deportados de Judá."], "o": ["Aspenaz", "Melsar", "Arioc", "Darío"]}, {"id": "p-belsasar", "k": "p", "c": 0, "cl": ["Hizo un gran banquete a mil de sus príncipes y bebía vino en presencia de ellos.", "Mandó traer los vasos de oro y de plata que su padre había traído del templo de Jerusalén.", "Palideció y sus rodillas daban la una contra la otra cuando vio los dedos de una mano que escribía.", "Murió la misma noche en que apareció la escritura en la pared."], "o": ["Ciro", "Darío", "Belsasar", "Nabucodonosor"]}, {"id": "p-dario", "k": "p", "c": 0, "cl": ["Medo que tomó el reino a los sesenta y dos años.", "Constituyó ciento veinte sátrapas sobre el reino.", "Firmó un edicto que no podía ser revocado, conforme a la ley de Media y de Persia.", "Se acostó ayuno, y de madrugada fue apresuradamente al foso de los leones."], "o": ["Darío", "Ciro", "Belsasar", "Nabucodonosor"]}, {"id": "p-ciro", "k": "p", "c": 0, "cl": ["Daniel continuó hasta el año primero de este rey.", "Daniel prosperó durante su reinado, además del de Darío.", "Era rey de Persia.", "En el año tercero de su reinado le fue revelada una palabra a Daniel, llamado Beltsasar."], "o": ["Darío", "Belsasar", "Nabucodonosor", "Ciro"]}, {"id": "p-gabriel", "k": "p", "c": 0, "cl": ["Una voz gritó entre las riberas del Ulai: «…, enseña a este la visión».", "Vino a Daniel volando con presteza, como a la hora del sacrificio de la tarde.", "Dijo a Daniel: «He salido para darte sabiduría y entendimiento».", "Le hizo saber que Daniel era muy amado."], "o": ["Miguel", "Aspenaz", "Gabriel", "Arioc"]}, {"id": "p-miguel", "k": "p", "c": 0, "cl": ["Es uno de los principales príncipes.", "Vino para ayudar a un mensajero que se había enfrentado durante veintiún días al príncipe del reino de Persia.", "Es el único que ayuda contra ellos; el mensajero lo llama «vuestro príncipe».", "Se levantará como el gran príncipe a favor de los hijos del pueblo de Daniel, en un tiempo de angustia."], "o": ["Gabriel", "Arioc", "Miguel", "Melsar"]}, {"id": "p-anciano", "k": "p", "c": 0, "cl": ["Su vestido era blanco como la nieve.", "El pelo de su cabeza era como lana limpia.", "Su trono era llama de fuego y las ruedas del mismo, fuego ardiente.", "Un río de fuego salía de delante de él; millares de millares le servían."], "o": ["El varón vestido de lino", "El Anciano de días", "Gabriel", "Miguel"]}, {"id": "p-hijo", "k": "p", "c": 0, "cl": ["Venía con las nubes del cielo.", "Llegó hasta el Anciano de días, y le hicieron acercarse delante de él.", "Le fue dado dominio, gloria y reino, para que todos los pueblos, naciones y lenguas le sirvieran.", "Su dominio es eterno, que nunca pasará, y su reino no será destruido."], "o": ["Miguel", "Uno como un hijo de hombre", "El Anciano de días", "Gabriel"]}, {"id": "p-reina", "k": "p", "c": 0, "cl": ["Entró a la sala del banquete por las palabras del rey y de sus príncipes.", "Dijo al rey: «Vive para siempre; no te turben tus pensamientos, ni palidezca tu rostro».", "Recordó que en el reino había un hombre en quien moraba el espíritu de los dioses santos.", "Aconsejó que se llamara a Daniel para dar la interpretación."], "o": ["Belsasar", "La reina", "Gabriel", "Arioc"]}, {"id": "p-asuero", "k": "p", "c": 0, "cl": ["Su hijo vino a ser rey sobre el reino de los caldeos.", "Su hijo era de la nación de los medos.", "Se le nombra al principio del capítulo en que Daniel mira atentamente los libros y ora por su pueblo."], "o": ["Asuero", "Nabucodonosor", "Ciro", "Joacim"]}, {"id": "p-jeremias", "k": "p", "c": 0, "cl": ["Era profeta.", "Jehová le habló del número de los años que habían de cumplirse.", "Se habló por medio de él de las desolaciones de Jerusalén, que se cumplirían en setenta años."], "o": ["Moisés", "Jeremías", "Daniel", "Gabriel"]}, {"id": "p-moises", "k": "p", "c": 0, "cl": ["Es llamado siervo de Dios.", "En su ley está escrita la maldición y el juramento que cayeron sobre Israel.", "Conforme a lo escrito en su ley vino todo el mal sobre el pueblo."], "o": ["Jeremías", "Daniel", "Moisés", "Gabriel"]}, {"id": "p-vigilante", "k": "p", "c": 0, "cl": ["Descendía del cielo.", "Clamaba fuertemente: «Derribad el árbol, y cortad sus ramas».", "Ordenó dejar en la tierra la cepa de las raíces, con atadura de hierro y de bronce.", "Dijo que pasarían siete tiempos sobre aquel cuyo corazón de hombre sería cambiado por corazón de bestia."], "o": ["Miguel", "El Anciano de días", "Gabriel", "El vigilante y santo"]}, {"id": "p-varon", "k": "p", "c": 0, "cl": ["Tenía ceñidos sus lomos de oro de Ufaz.", "Su cuerpo era como de berilo y su rostro parecía un relámpago.", "Sus ojos eran como antorchas de fuego y sus brazos y sus pies como de bronce bruñido.", "Estaba sobre las aguas del río y alzó su diestra y su siniestra al cielo, y juró por el que vive por los siglos."], "o": ["El Anciano de días", "El varón vestido de lino", "Gabriel", "Miguel"]}, {"id": "p-pregonero", "k": "p", "c": 0, "cl": ["Anunciaba en alta voz.", "Mandó a pueblos, naciones y lenguas que se postraran al oír el son de la bocina, de la flauta, del tamboril, del arpa.", "Dijo que quien no se postrara y adorara sería echado dentro de un horno de fuego ardiendo."], "o": ["El pregonero", "Arioc", "Belsasar", "Aspenaz"]}];
 const CHAPTERS = 12;
 const PALETTE = ['#ebbb4d','#5aa0ff','#5cc593','#ee7258','#b995f2','#f08bb6','#5fd0d6','#f0a35a'];
 const TEAM_NAMES = ['Daniel','Sadrac','Mesac','Abed-nego'];
@@ -324,7 +337,8 @@ const ssSet = (k,v) => { try { sessionStorage.setItem(k, v); } catch(e){} };
 function hash(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
 function rng(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 function shuffle(arr, seed){ const a=arr.slice(), r=rng(seed); for(let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
-const qById = {}; QUESTIONS.forEach(q => qById[q.id]=q);
+const qById = {}; QUESTIONS.forEach(q => qById[q.id]=q); CARDS.forEach(q => qById[q.id]=q);
+const qLabel = q => q.k==='p' ? 'Tarjeta: '+((state.cardNames||{})[q.id]||'personaje') : 'Daniel '+q.c+':'+q.v;
 const LION = (cls='lion') => '<svg class="'+cls+'" aria-hidden="true" viewBox="0 0 120 126"><use href="#lion"/></svg>';
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>{t.hidden=true;}, 3600); }
 const safeColor = c => /^#[0-9a-f]{6}$/i.test(c||'') ? c : '#8a93a8';
@@ -335,7 +349,7 @@ let PID = lsGet('pd_pid', null);
 if (!PID) { const a = new Uint8Array(18); (window.crypto||{getRandomValues:x=>x.forEach((_,i)=>x[i]=Math.random()*256)}).getRandomValues(a); PID = Array.from(a, b=>b.toString(16).padStart(2,'0')).join(''); lsSet('pd_pid', PID); }
 
 /* ---------- configuración ---------- */
-function defaultCfg(){ return { open:true, from:1, to:CHAPTERS, secs:30, teams: TEAM_NAMES.map((n,i)=>({id:'t'+(i+1), name:n, color:PALETTE[i]})) }; }
+function defaultCfg(){ return { open:true, cards:true, from:1, to:CHAPTERS, secs:30, teams: TEAM_NAMES.map((n,i)=>({id:'t'+(i+1), name:n, color:PALETTE[i]})) }; }
 function normCfg(d){
   const base = defaultCfg(); d = d || {};
   let from = Math.min(CHAPTERS, Math.max(1, parseInt(d.from,10)||1));
@@ -343,13 +357,17 @@ function normCfg(d){
   if (from>to) { const t=from; from=to; to=t; }
   const secs = SECS_OPTIONS.includes(d.secs) ? d.secs : 30;
   const teams = Array.isArray(d.teams) && d.teams.length>=2 ? d.teams.slice(0,8).map((t,i)=>({ id:String(t.id||('t'+(i+1))), name:String(t.name||('Equipo '+(i+1))).slice(0,24), color:safeColor(t.color) })) : base.teams;
-  return { open: d.open!==false, from, to, secs, teams };
+  return { open: d.open!==false, cards: d.cards!==false, from, to, secs, teams };
 }
 const teamById = id => state.cfg.teams.find(t=>t.id===id) || { id:'', name:'Sin equipo', color:'#8a93a8' };
 const poolOf = cfg => QUESTIONS.filter(q => q.c>=cfg.from && q.c<=cfg.to);
+const isGame = r => r==='jugar' || r==='personajes';
+const deck = () => route.cur==='personajes' ? 'p' : 'q';
+const deckPool = () => deck()==='p' ? (state.cfg.cards ? CARDS : []) : poolOf(state.cfg);
+const gameRoot = () => $(route.cur==='personajes' ? '#v-personajes' : '#v-jugar');
 
 /* ---------- estado ---------- */
-const state = { cfg: defaultCfg(), board: [], me: null, items: {}, ready:false, err:'', isAdmin:false, pin: ssGet('pd_pin'), players: [], pinErr:'' };
+const state = { cfg: defaultCfg(), board: [], me: null, items: {}, ready:false, err:'', isAdmin:false, pin: ssGet('pd_pin'), players: [], cardNames:{}, pinErr:'' };
 let draft = { name:'', team:'', editing:false, err:'' };
 const openRows = new Set();
 let resetAsk = false;
@@ -384,7 +402,7 @@ async function refresh(){
 }
 async function refreshAdmin(){
   if (!state.isAdmin) return;
-  try { const j = await api('admin_players'); state.players = j.players || []; state.cfg = normCfg(j.cfg); state.err=''; updateBanner(); }
+  try { const j = await api('admin_players'); state.players = j.players || []; state.cardNames = j.cardNames || {}; state.cfg = normCfg(j.cfg); state.err=''; updateBanner(); }
   catch(e){ if (e.code==='bad_pin') { state.isAdmin=false; state.pin=''; ssSet('pd_pin',''); } else { state.err='No se pudo actualizar el panel.'; updateBanner(); } }
   if (route.cur==='panel') { renderPanelControls(); renderPanelData(); }
 }
@@ -393,20 +411,20 @@ function onData(){
   const r = route.cur;
   if (r==='inicio') renderInicio();
   else if (r==='posiciones') renderPosiciones();
-  else if (r==='jugar') { if (['idle','done','closed','noprofile','loading'].includes(G.phase)) renderGame(); else updateGameScore(); }
+  else if (isGame(r)) { if (['idle','done','closed','noprofile','loading'].includes(G.phase)) renderGame(); else updateGameScore(); }
 }
 
 /* ---------- rutas ---------- */
-const ROUTES = ['inicio','jugar','posiciones','panel'];
+const ROUTES = ['inicio','jugar','personajes','posiciones','panel'];
 function route(){
   let r = (location.hash||'').replace('#','');
   if (!ROUTES.includes(r)) r = 'inicio';
-  if (route.cur==='jugar' && r!=='jugar') stopTick();
+  if (isGame(route.cur) && r!==route.cur) stopTick();
   route.cur = r;
   ROUTES.forEach(x => { $('#v-'+x).hidden = x!==r; });
   $$('.nav a').forEach(a => { if (a.dataset.r===r) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
   if (r==='inicio') renderInicio();
-  if (r==='jugar') { G.phase = 'loading'; renderGame(); }
+  if (isGame(r)) { G.phase = 'loading'; renderGame(); }
   if (r==='posiciones') { renderPosiciones(); refresh(); }
   if (r==='panel') { renderPanelControls(); renderPanelData(); refreshAdmin(); }
   window.scrollTo(0,0);
@@ -439,6 +457,18 @@ function renderInicio(){
   if (draft.editing && !draft.name && me) draft.name = me.name;
   const tm = me ? teamById(me.team) : null;
   const factRange = cfg.from===cfg.to ? 'Daniel '+cfg.from : 'Daniel '+cfg.from+' al '+cfg.to;
+  const cdone = CARDS.filter(q => state.items[q.id]).length;
+  const cardsOn = cfg.open && cfg.cards;
+  const cardsHtml = joined ? `
+      <div class="card stack" style="gap:14px">
+        <div class="row" style="justify-content:space-between">
+          <div><div class="eyebrow">Otro juego</div><h2 style="color:var(--sand);margin-top:4px">Tarjetas de personajes</h2></div>
+          <span class="pill ${cardsOn?'':'off'}"><i class="dot"></i>${cardsOn?'Abierto':'Cerrado por ahora'}</span>
+        </div>
+        <p class="muted">Te mostramos las características de un personaje del libro de Daniel, sin decir quién es. Descúbrelo entre cuatro opciones. ${CARDS.length} tarjetas, ${cfg.secs} segundos cada una.</p>
+        <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="${CARDS.length}" aria-valuenow="${cdone}"><i style="width:${Math.round(cdone*100/CARDS.length)}%"></i></div>
+        <div class="row"><a class="btn" href="#personajes">${cdone>0&&cdone<CARDS.length?'Seguir con las tarjetas':cdone>=CARDS.length?'Ver mis tarjetas':'Jugar tarjetas'}</a><span class="muted small">${cdone} de ${CARDS.length} respondidas</span></div>
+      </div>` : '';
 
   let joinHtml;
   if (joined) {
@@ -491,6 +521,7 @@ function renderInicio(){
         <div class="arch" aria-hidden="true">${LION('lion')}<div class="base"></div></div>
       </div>
       ${joinHtml}
+      ${cardsHtml}
       <div>
         <h2 style="margin-bottom:14px">Cómo se juega</h2>
         <div class="rules">
@@ -525,13 +556,13 @@ function renderInicio(){
 /* ---------- JUEGO ---------- */
 const G = { phase:'loading', q:null, deadline:0, secs:30, token:null, tick:null, opts:[], last:null, pick:null, err:'' };
 function stopTick(){ if (G.tick){ clearInterval(G.tick); G.tick=null; } }
-function myOrder(){ return shuffle(poolOf(state.cfg), hash(PID)); }
+function myOrder(){ return shuffle(deckPool(), hash(PID+deck())); }
 function nextQuestion(){ return myOrder().find(q => !state.items[q.id]); }
 function updateGameScore(){ const el = $('#gScore'); if (el) el.textContent = sumPts(state.items); }
 const optsFor = q => shuffle(q.o, hash(PID+q.id));
 
 function renderGame(){
-  const root = $('#v-jugar'); stopTick();
+  const root = gameRoot(); stopTick();
   const me = myProfile(); const cfg = state.cfg;
   if (!state.ready) { G.phase='loading'; root.innerHTML = `<div class="game">${loadingHtml()}</div>`; return; }
   if (!me) {
@@ -546,11 +577,11 @@ function renderGame(){
     if (Date.now() >= G.deadline) { G.phase='question'; finalize(null, true); return; }
     G.phase='question'; renderQuestion(); startTick(); return;
   }
-  const pool = poolOf(cfg);
+  const pool = deckPool();
   const nxt = nextQuestion();
   if (G.phase==='feedback' && G.last) { renderFeedback(); return; }
   if (!nxt) { G.phase='done'; return renderDone(pool); }
-  if (!cfg.open) {
+  if (!cfg.open || (deck()==='p' && !cfg.cards)) {
     G.phase='closed';
     root.innerHTML = `<div class="game"><div class="card empty stack" style="justify-items:center"><div style="width:90px">${LION('lion')}</div><h2>El juego está cerrado por ahora</h2><p class="muted">La organizadora lo abrirá cuando sea la hora. Esta página se actualiza sola.</p><a class="btn ghost" href="#posiciones">Ver posiciones</a></div></div>`;
     return;
@@ -562,7 +593,7 @@ function renderGame(){
       <div class="card gold stack" style="justify-items:center;text-align:center;gap:16px">
         <div style="width:120px">${LION('lion')}</div>
         <h1 style="font-size:clamp(1.6rem,5vw,2.3rem)">${done? 'Sigamos, '+esc(me.name) : 'Listo, '+esc(me.name)}</h1>
-        <p class="lead" style="max-width:30em">Quedan <b>${pool.length-done}</b> preguntas. Cada una te da <b>${cfg.secs} segundos</b>. El reloj corre aunque cambies de pestaña, así que no hay tiempo para buscar en la Biblia.</p>
+        <p class="lead" style="max-width:30em">Quedan <b>${pool.length-done}</b> ${deck()==='p'?'tarjetas de personajes':'preguntas'}. Cada una te da <b>${cfg.secs} segundos</b>. El reloj corre aunque cambies de pestaña, así que no hay tiempo para buscar en la Biblia.</p>
         <p class="err" id="startErr" role="alert" ${G.err?'':'hidden'}>${esc(G.err)}</p>
         <button class="btn" id="goBtn" type="button" style="min-width:220px">${done?'Seguir':'Comenzar'}</button>
       </div>
@@ -584,16 +615,18 @@ async function beginQuestion(q){
   }
 }
 function renderQuestion(){
-  const root = $('#v-jugar'); const q = G.q; const pool = poolOf(state.cfg);
+  const root = gameRoot(); const q = G.q; const pool = q.k==='p' ? CARDS : poolOf(state.cfg);
   const doneNow = pool.filter(x=>state.items[x.id]).length;
   const total = Math.max(pool.length, doneNow+1);
   const idx = doneNow+1;
   root.innerHTML = `
     <div class="game">
-      <div class="gbar"><span class="chip">Pregunta ${idx} de ${total}</span><span class="chip">Tus puntos: <b id="gScore">${sumPts(state.items)}</b></span></div>
+      <div class="gbar"><span class="chip">${q.k==='p'?'Tarjeta':'Pregunta'} ${idx} de ${total}</span><span class="chip">Tus puntos: <b id="gScore">${sumPts(state.items)}</b></span></div>
       <div class="meter" aria-hidden="true"><i style="width:${Math.round((idx-1)*100/total)}%"></i></div>
       <div class="card gold qcard">
-        <div><span class="cite">Según la Reina Valera 1960, en el capítulo ${q.c}, versículo ${q.v},</span><p class="qtext">${esc(q.q)}</p></div>
+        ${q.k==='p'
+          ? `<div><span class="cite">Según la Reina Valera 1960, en el libro de Daniel, este personaje:</span><p class="whoami">¿Quién soy?</p><ul class="clues">${q.cl.map(c=>`<li>${esc(c)}</li>`).join('')}</ul></div>`
+          : `<div><span class="cite">Según la Reina Valera 1960, en el capítulo ${q.c}, versículo ${q.v},</span><p class="qtext">${esc(q.q)}</p></div>`}
         <div class="ring" id="ring" role="timer" aria-label="Tiempo restante"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="44"/><circle class="bar" id="ringBar" cx="50" cy="50" r="44"/></svg><b id="ringNum">${G.secs}</b></div>
       </div>
       <div class="opts" id="opts">${G.opts.map((o,i)=>`<button class="opt" type="button" data-i="${i}"><span class="ltr">${'ABCD'[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
@@ -634,7 +667,7 @@ async function finalize(pick, timedOut){
   }
   if (!j && lastErr && lastErr.code==='not_yet') { try { await sleep(1500); j = await api('timeout', { qid:G.q.id, token:G.token }); } catch(e){ lastErr = e; } }
   if (!j) {
-    const root = $('#v-jugar');
+    const root = gameRoot();
     root.innerHTML = `<div class="game"><div class="card empty stack" style="justify-items:center"><h2>No se pudo guardar tu respuesta</h2><p class="muted">${lastErr && lastErr.network ? 'Parece que no hay conexión.' : esc((lastErr&&lastErr.message)||'Error')}</p><button class="btn" id="retryBtn" type="button">Reintentar</button></div></div>`;
     $('#retryBtn').addEventListener('click', () => { G.phase='question'; finalize(pick, timedOut); });
     return;
@@ -643,23 +676,28 @@ async function finalize(pick, timedOut){
   applyMe(j.me);
   state.items[G.q.id] = j.item;
   G.phase = 'feedback';
-  G.last = { q:G.q, item:j.item, pick:j.item.to ? null : pick, opts:G.opts, correct:j.correct };
+  G.last = { q:G.q, item:j.item, pick:j.item.to ? null : pick, opts:G.opts, correct:j.correct, reveal:j.reveal };
   renderFeedback();
 }
 function renderFeedback(){
-  const root = $('#v-jugar'); const { q, item, pick, opts, correct } = G.last; const pool = poolOf(state.cfg);
+  const root = gameRoot(); const { q, item, pick, opts, correct, reveal } = G.last; const pool = q.k==='p' ? CARDS : poolOf(state.cfg);
+  const isCard = q.k==='p' && reveal;
   const left = pool.filter(x=>!state.items[x.id]).length;
   const title = item.ok ? '¡Correcto!' : item.to ? 'Se acabó el tiempo' : 'No fue esa';
   const sub = item.ok ? '+'+item.pts+' puntos' : 'Esta vez no sumas puntos';
   root.innerHTML = `
     <div class="game fade">
-      <div class="gbar"><span class="chip">Daniel ${q.c}:${q.v}</span><span class="chip">Tus puntos: <b id="gScore">${sumPts(state.items)}</b></span></div>
+      <div class="gbar"><span class="chip">${q.k==='p'?'Tarjeta de personaje':'Daniel '+q.c+':'+q.v}</span><span class="chip">Tus puntos: <b id="gScore">${sumPts(state.items)}</b></span></div>
       <div class="card gold stack" style="gap:16px">
         <div class="verdict ${item.ok?'ok':'bad'}">${LION('lion')}<div><h2>${title}</h2><p class="muted">${sub}</p></div></div>
         <div class="opts">${opts.map((o,i)=>`<div class="opt ${o===correct?'right':(o===pick?'wrong':'dim')}"><span class="ltr">${'ABCD'[i]}</span><span>${esc(o)}${o===correct?' <span class="sr">(respuesta correcta)</span>':''}${o===pick&&o!==correct?' <span class="sr">(tu respuesta)</span>':''}</span></div>`).join('')}</div>
-        <div class="verse"><span class="ref">Daniel ${q.c}:${q.v} · Reina-Valera 1960</span>«${esc(q.t)}»</div>
+        ${isCard
+          ? `<div class="whois"><span class="muted small">Era:</span><b>${esc(correct)}</b><p>${esc(reveal.d)}</p></div>
+             <div class="verse"><span class="ref">Daniel ${esc(reveal.kv.r)} · Reina-Valera 1960</span>«${esc(reveal.kv.t)}»</div>
+             <p class="muted small">Las pistas salen de: ${reveal.refs.map(r=>'Daniel '+esc(r)).join(' · ')}</p>`
+          : `<div class="verse"><span class="ref">Daniel ${q.c}:${q.v} · Reina-Valera 1960</span>«${esc(q.t)}»</div>`}
         <p class="err" id="startErr" role="alert" ${G.err?'':'hidden'}>${esc(G.err)}</p>
-        <div class="row"><button class="btn" id="nextBtn" type="button">${left>0?'Siguiente pregunta':'Ver mi resultado'}</button></div>
+        <div class="row"><button class="btn" id="nextBtn" type="button">${left>0?(q.k==='p'?'Siguiente tarjeta':'Siguiente pregunta'):'Ver mi resultado'}</button></div>
         <p class="credit">Reina-Valera 1960® © Sociedades Bíblicas en América Latina, 1960. Utilizado con permiso.</p>
       </div>
     </div>`;
@@ -670,14 +708,14 @@ function renderFeedback(){
   });
 }
 function renderDone(pool){
-  const root = $('#v-jugar'); const items = pool.map(q=>state.items[q.id]).filter(Boolean);
+  const root = gameRoot(); const items = pool.map(q=>state.items[q.id]).filter(Boolean);
   const ok = items.filter(x=>x.ok).length;
   const mine = state.me ? rankList(state.board.slice(),'pts').find(x=>x.id===state.me.id) : null;
   const place = mine ? `<p class="lead">Vas en el <b>${ord(mine.rank)} lugar</b> de ${state.board.length}.</p>` : '';
   root.innerHTML = `
     <div class="game fade"><div class="card gold stack" style="justify-items:center;text-align:center;gap:16px">
       <div style="width:130px">${LION('lion')}</div>
-      <h1 style="font-size:clamp(1.7rem,5vw,2.4rem)">¡Terminaste la ronda!</h1>
+      <h1 style="font-size:clamp(1.7rem,5vw,2.4rem)">${deck()==='p'?'¡Descubriste a todos los personajes!':'¡Terminaste la ronda!'}</h1>
       <div class="stat" style="justify-content:center"><div><b>${sumPts(state.items)}</b><span class="muted small">puntos</span></div><div><b>${ok}/${pool.length}</b><span class="muted small">correctas</span></div></div>
       ${place}
       <div class="row" style="justify-content:center"><a class="btn" href="#posiciones">Ver posiciones</a><a class="btn ghost" href="#inicio">Volver al inicio</a></div>
@@ -754,7 +792,8 @@ function renderPanelControls(){
   ctl.innerHTML = `
     <div class="row" style="justify-content:space-between"><h2>Controles</h2><span class="pill ${cfg.open?'':'off'}"><i class="dot"></i>${cfg.open?'Juego abierto':'Juego cerrado'}</span></div>
     <div class="ctrl">
-      <div style="display:grid;gap:8px;align-content:start"><b>Estado del juego</b><button class="btn ${cfg.open?'ghost':''}" id="tgOpen" type="button">${cfg.open?'Cerrar el juego':'Abrir el juego'}</button><span class="muted small">Si lo cierras, nadie puede empezar preguntas nuevas.</span></div>
+      <div style="display:grid;gap:8px;align-content:start"><b>Estado del juego</b><button class="btn ${cfg.open?'ghost':''}" id="tgOpen" type="button">${cfg.open?'Cerrar el juego':'Abrir el juego'}</button><span class="muted small">Si lo cierras, nadie puede empezar preguntas ni tarjetas nuevas.</span></div>
+      <div style="display:grid;gap:8px;align-content:start"><b>Tarjetas de personajes</b><button class="btn ${cfg.cards?'ghost':''}" id="tgCards" type="button">${cfg.cards?'Cerrar las tarjetas':'Abrir las tarjetas'}</button><span class="muted small">Se juegan aparte de las preguntas. Hay ${CARDS.length} tarjetas.</span></div>
       <label class="field" for="selFrom">Desde el capítulo<select id="selFrom">${chOpts(cfg.from)}</select></label>
       <label class="field" for="selTo">Hasta el capítulo<select id="selTo">${chOpts(cfg.to)}</select></label>
       <label class="field" for="selSecs">Segundos por pregunta<select id="selSecs">${SECS_OPTIONS.map(s=>`<option value="${s}" ${cfg.secs===s?'selected':''}>${s} segundos</option>`).join('')}</select></label>
@@ -774,6 +813,7 @@ function renderPanelControls(){
     catch(e){ toast('No se pudo guardar el cambio. Inténtalo otra vez.'); refreshAdmin(); }
   };
   $('#tgOpen').addEventListener('click', () => save({ open: !cfg.open }));
+  $('#tgCards').addEventListener('click', () => save({ cards: !cfg.cards }));
   $('#selFrom').addEventListener('change', e => { const v=+e.target.value; save({ from:v, to:Math.max(v, state.cfg.to) }); });
   $('#selTo').addEventListener('change', e => { const v=+e.target.value; save({ to:v, from:Math.min(v, state.cfg.from) }); });
   $('#selSecs').addEventListener('change', e => save({ secs:+e.target.value }));
@@ -797,7 +837,7 @@ function renderPanelData(){
   const totalAns = stats.reduce((x,s)=>x+s.n,0), totalOk = stats.reduce((x,s)=>x+s.ok,0);
   const pct = totalAns ? Math.round(totalOk*100/totalAns) : 0;
   const ranked = rankList(stats.map(s=>({id:s.a.id,name:s.a.name||'Jugador',team:s.a.team,pts:s.pts,s})),'pts');
-  const per = QUESTIONS.map(q => { let n=0, ok=0; answers.forEach(a=>{ const it=(a.items||{})[q.id]; if(it){ n++; if(it.ok) ok++; } }); return { q, n, ok, pct: n? ok/n : null }; }).filter(x=>x.n>0).sort((a,b)=> (a.pct-b.pct) || (b.n-a.n)).slice(0,8);
+  const per = QUESTIONS.concat(CARDS).map(q => { let n=0, ok=0; answers.forEach(a=>{ const it=(a.items||{})[q.id]; if(it){ n++; if(it.ok) ok++; } }); return { q, n, ok, pct: n? ok/n : null }; }).filter(x=>x.n>0).sort((a,b)=> (a.pct-b.pct) || (b.n-a.n)).slice(0,8);
   host.innerHTML = `
     <section class="card stack" style="gap:16px" aria-label="Resumen">
       <div class="tiles">
@@ -817,7 +857,7 @@ function renderPanelData(){
       <p class="muted small">Solo tú ves esta tabla. En Posiciones el grupo ve únicamente lugares y puntos. Se actualiza cada pocos segundos.</p>
     </section>
     <section class="card stack" style="gap:14px" aria-labelledby="hHard"><h2 id="hHard">Preguntas que más se fallan</h2>
-      ${per.length ? `<div class="hard">${per.map(x=>`<div class="hrow"><b>Daniel ${x.q.c}:${x.q.v}</b><div class="meter" aria-hidden="true"><i style="width:${Math.round(x.pct*100)}%"></i></div><span class="muted">${x.ok} de ${x.n} acertaron</span></div>`).join('')}</div>` : '<p class="muted">Aparecerán cuando haya respuestas.</p>'}
+      ${per.length ? `<div class="hard">${per.map(x=>`<div class="hrow"><b>${esc(qLabel(x.q))}</b><div class="meter" aria-hidden="true"><i style="width:${Math.round(x.pct*100)}%"></i></div><span class="muted">${x.ok} de ${x.n} acertaron</span></div>`).join('')}</div>` : '<p class="muted">Aparecerán cuando haya respuestas.</p>'}
     </section>`;
   $$('[data-x]', host).forEach(b => b.addEventListener('click', () => { const id=b.dataset.x; if (openRows.has(id)) openRows.delete(id); else openRows.add(id); renderPanelData(); }));
   $$('[data-del]', host).forEach(b => b.addEventListener('click', async () => {
@@ -830,18 +870,18 @@ function renderPanelData(){
   const cb = $('#csvBtn'); if (cb) cb.addEventListener('click', exportCsv);
 }
 function detailHtml(a){
-  const order = QUESTIONS.map(q=>q.id);
+  const order = QUESTIONS.concat(CARDS).map(q=>q.id);
   const ids = Object.keys(a.items||{}).sort((x,y)=>order.indexOf(x)-order.indexOf(y));
   if (!ids.length) return '<p class="muted small">Todavía no responde nada.</p>';
   return '<div class="detail">'+ids.map(id => { const it=a.items[id], q=qById[id]; if(!q) return '';
     const tag = it.ok ? '<span class="tag ok">✓ Correcta</span>' : it.to ? '<span class="tag to">⏱ Sin tiempo</span>' : '<span class="tag bad">✗ Incorrecta</span>';
-    return `<div class="drow"><b>Daniel ${q.c}:${q.v}</b>${tag}<span>${it.to?'No alcanzó a responder':'Respondió: '+esc(it.pick)}</span><span class="muted" style="text-align:right">${it.sec} s · ${it.pts} pts</span></div>`; }).join('')+'</div>';
+    return `<div class="drow"><b>${esc(qLabel(q))}</b>${tag}<span>${it.to?'No alcanzó a responder':'Respondió: '+esc(it.pick)}</span><span class="muted" style="text-align:right">${it.sec} s · ${it.pts} pts</span></div>`; }).join('')+'</div>';
 }
 function exportCsv(){
   const cell = v => { v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
   const lines = [['Jugador','Equipo','Pregunta','Resultado','Respuesta','Segundos','Puntos'].join(',')];
   state.players.forEach(a => Object.keys(a.items||{}).forEach(id => { const it=a.items[id], q=qById[id]; if(!q) return;
-    lines.push([a.name, teamById(a.team).name, 'Daniel '+q.c+':'+q.v, it.ok?'Correcta':it.to?'Sin tiempo':'Incorrecta', it.to?'':it.pick, it.sec, it.pts].map(cell).join(',')); }));
+    lines.push([a.name, teamById(a.team).name, qLabel(q), it.ok?'Correcta':it.to?'Sin tiempo':'Incorrecta', it.to?'':it.pick, it.sec, it.pts].map(cell).join(',')); }));
   try {
     const url = URL.createObjectURL(new Blob(['﻿'+lines.join('\n')], { type:'text/csv;charset=utf-8' }));
     const a = document.createElement('a'); a.href = url; a.download = 'resultados-pregunton-daniel.csv'; document.body.appendChild(a); a.click(); a.remove();

@@ -10,7 +10,7 @@ const CACHE_MS = 12000;     // el marcador se recalcula como máximo cada 12 s p
 const PID_RE = /^[A-Za-z0-9_-]{16,64}$/;
 
 export const defaultCfg = () => ({
-  open: true, from: 1, to: CHAPTERS, secs: 30,
+  open: true, cards: true, from: 1, to: CHAPTERS, secs: 30,
   teams: TEAM_NAMES.map((name, i) => ({ id: 't' + (i + 1), name, color: PALETTE[i] })),
 });
 
@@ -27,7 +27,7 @@ export function normCfg(d) {
         color: /^#[0-9a-f]{6}$/i.test(t.color || '') ? t.color : PALETTE[i % PALETTE.length],
       }))
     : defaultCfg().teams;
-  return { open: d.open !== false, from, to, secs, teams };
+  return { open: d.open !== false, cards: d.cards !== false, from, to, secs, teams };
 }
 
 const pubId = pid => crypto.createHash('sha256').update('pub:' + pid).digest('hex').slice(0, 12);
@@ -96,7 +96,8 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
     if (!pl) throw new HttpError(404, 'Primero entra al juego.', 'no_player');
     const key = ANSWERS[qid];
     if (!key) throw new HttpError(400, 'Pregunta desconocida.', 'bad_q');
-    if (pl.items && pl.items[qid]) return { item: pl.items[qid], correct: key.a, me: meView(pl), dup: true };
+    const reveal = key.k === 'p' ? { d: key.d, kv: key.kv, refs: key.refs } : undefined;
+    if (pl.items && pl.items[qid]) return { item: pl.items[qid], correct: key.a, reveal, me: meView(pl), dup: true };
     const t = readToken(tok, pid, qid);
     if (!t) throw new HttpError(400, 'La pregunta no se inició bien. Vuelve a empezarla.', 'bad_token');
     const elapsed = now() - t.t, limit = t.secs * 1000;
@@ -107,7 +108,7 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
     pl.items = Object.assign({}, pl.items, { [qid]: item });
     pl.pts = sumPts(pl.items); pl.n = Object.keys(pl.items).length; pl.t = now();
     await savePlayer(pl);
-    return { item, correct: key.a, me: meView(pl) };
+    return { item, correct: key.a, reveal, me: meView(pl) };
   }
 
   const actions = {
@@ -134,7 +135,9 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
       const cfg = await loadCfg();
       if (!cfg.open) throw new HttpError(409, 'El juego está cerrado por ahora.', 'closed');
       if (pl.items && pl.items[qid]) throw new HttpError(409, 'Esa pregunta ya la respondiste.', 'answered');
-      if (key.c < cfg.from || key.c > cfg.to) throw new HttpError(409, 'Esa pregunta no está en la ronda actual.', 'out_of_round');
+      if (key.k === 'p') {
+        if (!cfg.cards) throw new HttpError(409, 'Las tarjetas están cerradas por ahora.', 'closed');
+      } else if (key.c < cfg.from || key.c > cfg.to) throw new HttpError(409, 'Esa pregunta no está en la ronda actual.', 'out_of_round');
       const t = now();
       return { token: makeToken(pid, qid, t, cfg.secs), left: cfg.secs, secs: cfg.secs };
     },
@@ -146,7 +149,9 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
     async admin_players(b) {
       checkAdmin(b);
       const c = await loadAll(false);
-      return { now: now(), cfg: c.cfg, players: [...c.players.values()].map(p => ({ id: pubId(p.pid), name: p.name, team: p.team, pts: p.pts || 0, n: p.n || 0, items: p.items || {} })) };
+      const cardNames = {};
+      for (const [id, k] of Object.entries(ANSWERS)) if (k.k === 'p') cardNames[id] = k.a;
+      return { now: now(), cfg: c.cfg, cardNames, players: [...c.players.values()].map(p => ({ id: pubId(p.pid), name: p.name, team: p.team, pts: p.pts || 0, n: p.n || 0, items: p.items || {} })) };
     },
     async admin_cfg(b) {
       checkAdmin(b);

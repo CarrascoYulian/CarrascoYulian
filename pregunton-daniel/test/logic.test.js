@@ -89,6 +89,21 @@ const rs = await ok({ a: 'admin_reset', pin: '123456' }); assert.equal(rs.count,
 st = await ok({ a: 'state', pid: pidA });
 assert.equal(st.me.pts, 0); assert.deepEqual(st.me.items, {}); assert.equal(st.me.name, 'Ana b');
 
+// tarjetas de personajes: no dependen del rango de capítulos
+await ok({ a: 'admin_cfg', pin: '123456', cfg: { ...c, open: true } });
+const card = Object.keys(ANSWERS).find(k => ANSWERS[k].k === 'p');
+s = await ok({ a: 'start', pid: pidB, qid: card });
+clock += 4000;
+r = await ok({ a: 'answer', pid: pidB, qid: card, token: s.token, pick: ANSWERS[card].a });
+assert.equal(r.item.ok, 1); assert.equal(r.correct, ANSWERS[card].a);
+assert.ok(r.reveal && r.reveal.d && r.reveal.kv.t && r.reveal.refs.length >= 3, 'revela datos tras responder');
+const card2 = Object.keys(ANSWERS).filter(k => ANSWERS[k].k === 'p')[1];
+await ok({ a: 'admin_cfg', pin: '123456', cfg: { ...c, open: true, cards: false } });
+await err({ a: 'start', pid: pidB, qid: card2 }, 409, 'closed');
+const quizQ = qids.find(q => ANSWERS[q].c === 4 && !ANSWERS[q].k);
+await ok({ a: 'start', pid: pidB, qid: quizQ }); // las preguntas siguen abiertas
+assert.ok((await ok({ a: 'admin_players', pin: '123456' })).cardNames[card] === ANSWERS[card].a);
+
 // quitar jugador
 const rm = (await ok({ a: 'admin_players', pin: '123456' })).players.find(p => p.name === 'Beto');
 await ok({ a: 'admin_remove', pin: '123456', id: rm.id });
