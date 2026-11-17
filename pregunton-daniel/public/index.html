@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#081733">
+<title>Preguntón de Daniel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Concepto: la Puerta de Istar de Babilonia (ladrillo azul lapislázuli, leones y rosetas doradas) como fondo del foso de los leones. Un solo mundo nocturno, a propósito. */
+:root{
+  color-scheme: dark;
+  --night:#081733;
+  --night-2:#0e2549;
+  --night-3:#143162;
+  --lapis:#1d4f9f;
+  --gold:#ebbb4d;
+  --gold-deep:#b0791c;
+  --sand:#f5e9c9;
+  --sand-dim:#c4b894;
+  --ember:#ee7258;
+  --ok:#5cc593;
+  --line:rgba(235,187,77,.30);
+  --line-soft:rgba(245,233,201,.14);
+  --font-display:'Cinzel',Georgia,'Times New Roman',serif;
+  --font-body:'Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;padding-block:0 28px;
+  background:
+    radial-gradient(1200px 520px at 50% -140px, rgba(47,107,196,.38), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(255,255,255,.018) 0 1px, transparent 1px 38px),
+    var(--night);
+  color:var(--sand);
+  font-family:var(--font-body);font-size:16px;line-height:1.5;
+  min-height:100vh;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--night)}
+h1,h2,h3{font-family:var(--font-display);margin:0;font-weight:800;letter-spacing:.01em;text-wrap:balance;line-height:1.15}
+h1{font-size:clamp(2rem,7vw,3.5rem);color:var(--sand)}
+h2{font-size:1.3rem;color:var(--gold)}
+h3{font-size:1.05rem;font-weight:600;color:var(--sand)}
+p{margin:0}
+a{color:var(--gold)}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:8px}
+.wrap{max-width:1000px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.muted{color:var(--sand-dim)}
+.small{font-size:.875rem}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* barra superior */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--night);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;min-height:60px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--sand);font-family:var(--font-display);font-weight:800;font-size:1.05rem;white-space:nowrap}
+.brand svg{width:34px;height:34px;flex:none}
+.nav{display:flex;gap:4px;margin-left:auto}
+.nav a{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:10px;text-decoration:none;color:var(--sand-dim);font-weight:800;font-size:.95rem;min-height:44px}
+.nav a:hover{color:var(--sand);background:rgba(255,255,255,.05)}
+.nav a[aria-current="page"]{color:#1a1202;background:var(--gold)}
+.frieze{display:block;width:100%;height:30px}
+
+.banner{background:rgba(238,114,88,.14);border-bottom:1px solid rgba(238,114,88,.45);color:var(--sand)}
+.banner .wrap{padding-top:10px;padding-bottom:10px;font-size:.9rem}
+
+main{padding-top:28px}
+.view[hidden]{display:none!important}
+.stack{display:grid;gap:22px}
+.card{background:var(--night-2);border:1px solid var(--line-soft);border-radius:16px;padding:22px}
+.card.gold{border-color:var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);font-size:.85rem;font-weight:800;color:var(--sand)}
+.pill .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.pill.off .dot{background:var(--ember)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.eyebrow{font-family:var(--font-display);font-weight:600;font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold)}
+
+/* botones */
+.btn{appearance:none;border:0;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:12px 22px;border-radius:12px;font-weight:800;font-size:1rem;color:#1a1202;background:linear-gradient(#f6d06c,#dca836);box-shadow:0 3px 0 #85590f;text-decoration:none;transition:transform .08s}
+.btn:hover{filter:brightness(1.05)}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #85590f}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--sand);border:1.5px solid var(--line);box-shadow:none}
+.btn.ghost:hover{background:rgba(255,255,255,.06)}
+.btn.danger{background:linear-gradient(#f58f78,#e0563c);box-shadow:0 3px 0 #8d2a17;color:#2a0903}
+.btn.small{min-height:40px;padding:8px 14px;font-size:.9rem}
+
+/* portada */
+.hero{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:30px;align-items:end}
+.hero-text{display:grid;gap:16px;padding-bottom:10px}
+.hero-text .lead{font-size:1.1rem;max-width:34em;color:var(--sand)}
+.arch{position:relative;border:3px solid var(--gold);border-bottom:0;border-radius:130px 130px 0 0;background:
+  linear-gradient(180deg,rgba(29,79,159,.9),rgba(14,37,73,.95)),var(--night-2);
+  padding:34px 18px 0;height:300px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;overflow:hidden}
+.arch::after{content:"";position:absolute;inset:10px 10px 0;border:1.5px solid var(--line);border-bottom:0;border-radius:118px 118px 0 0;pointer-events:none}
+.arch .lion{width:190px;height:196px;margin-bottom:-6px;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45))}
+.arch .base{width:calc(100% + 36px);height:34px;margin:0 -18px;background:repeating-linear-gradient(90deg,var(--gold-deep) 0 22px,#8a5d10 22px 24px)}
+.facts{display:flex;flex-wrap:wrap;gap:10px}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rule{display:grid;gap:6px;padding-top:14px;border-top:3px solid var(--gold)}
+.rule strong{font-family:var(--font-display);font-size:1rem;font-weight:600}
+
+/* formularios */
+label.field{display:grid;gap:8px;font-weight:800}
+input[type=text],select{width:100%;min-height:48px;padding:10px 14px;border-radius:12px;background:var(--night);border:1.5px solid var(--line-soft);color:var(--sand);font-weight:700}
+input[type=text]::placeholder{color:#8e9bb7}
+input[type=text]:focus,select:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 3px rgba(235,187,77,.28)}
+.teams{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.team-opt{position:relative;display:block}
+.team-opt input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.team-face{display:flex;align-items:center;gap:10px;min-height:48px;padding:10px 14px;border-radius:12px;border:1.5px solid var(--line-soft);background:var(--night);font-weight:800}
+.team-opt input:checked + .team-face{border-color:var(--gold);background:var(--night-3);box-shadow:0 0 0 2px rgba(235,187,77,.35)}
+.team-opt input:focus-visible + .team-face{outline:3px solid var(--gold);outline-offset:3px}
+.dot{width:14px;height:14px;border-radius:50%;flex:none;background:var(--gold)}
+.err{color:var(--ember);font-weight:800;font-size:.9rem}
+.meter{height:10px;border-radius:999px;background:var(--night);border:1px solid var(--line-soft);overflow:hidden}
+.meter>i{display:block;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold));border-radius:999px}
+.stat{display:flex;flex-wrap:wrap;gap:22px}
+.stat div{display:grid;gap:2px}
+.stat b{font-family:var(--font-display);font-size:1.8rem;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.1}
+
+/* juego */
+.game{max-width:760px;margin:0 auto;display:grid;gap:18px}
+.gbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:var(--night-3);font-weight:800;font-size:.85rem}
+.qcard{display:grid;grid-template-columns:minmax(0,1fr) 92px;gap:18px;align-items:start}
+.cite{display:block;font-family:var(--font-display);font-weight:600;color:var(--gold);font-size:.98rem;margin-bottom:8px}
+.qtext{font-size:1.2rem;line-height:1.5;font-weight:700}
+.ring{position:relative;width:92px;height:92px;flex:none}
+.ring svg{width:92px;height:92px;transform:rotate(-90deg)}
+.ring .track{stroke:var(--night);fill:none;stroke-width:9}
+.ring .bar{stroke:var(--gold);fill:none;stroke-width:9;stroke-linecap:round;stroke-dasharray:276.46;stroke-dashoffset:0}
+.ring.low .bar{stroke:var(--ember)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--font-display);font-size:1.7rem;font-variant-numeric:tabular-nums}
+.ring.low b{color:var(--ember);animation:pulse .9s ease-in-out infinite}
+@keyframes pulse{50%{transform:scale(1.14)}}
+.opts{display:grid;gap:10px}
+.opt{appearance:none;cursor:pointer;text-align:left;display:grid;grid-template-columns:40px minmax(0,1fr);gap:14px;align-items:center;min-height:60px;padding:10px 16px 10px 10px;border-radius:14px;border:2px solid var(--line-soft);background:var(--night-2);font-weight:700;font-size:1.05rem;line-height:1.35}
+.opt .ltr{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--night-3);border:1.5px solid var(--line);font-family:var(--font-display);font-weight:800;color:var(--gold)}
+button.opt:hover:not([disabled]){border-color:var(--gold);background:var(--night-3)}
+.opt[disabled]{cursor:default}
+.opt.right{border-color:var(--ok);background:rgba(92,197,147,.16)}
+.opt.right .ltr{background:var(--ok);color:#06231a;border-color:var(--ok)}
+.opt.wrong{border-color:var(--ember);background:rgba(238,114,88,.16)}
+.opt.wrong .ltr{background:var(--ember);color:#2a0903;border-color:var(--ember)}
+.opt.dim{opacity:.55}
+.verdict{display:flex;align-items:center;gap:14px}
+.verdict .lion{width:56px;height:58px;flex:none}
+.verdict h2{font-size:1.5rem}
+.verdict.ok h2{color:var(--ok)}
+.verdict.bad h2{color:var(--ember)}
+.verse{border-left:4px solid var(--gold);padding:4px 0 4px 16px;font-size:1.05rem}
+.verse .ref{font-family:var(--font-display);font-weight:600;color:var(--gold);font-size:.9rem;display:block;margin-bottom:4px}
+.fade{animation:rise .28s ease-out both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.credit{font-size:.78rem;color:var(--sand-dim)}
+
+/* posiciones */
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:6px 0 4px}
+.pod{flex:1;max-width:190px;min-width:0;display:grid;gap:8px;text-align:center}
+.pod .nm{font-weight:800;overflow-wrap:anywhere;line-height:1.2}
+.pod .pt{font-variant-numeric:tabular-nums;color:var(--gold);font-weight:800}
+.pod .col{border:2px solid var(--gold);border-bottom:0;border-radius:90px 90px 0 0;background:linear-gradient(180deg,var(--lapis),var(--night-2));display:flex;justify-content:center;padding-top:14px;height:var(--h)}
+.pod .col b{font-family:var(--font-display);font-size:2rem;color:var(--gold);line-height:1}
+.pod.first .col{--h:170px}.pod.second .col{--h:128px}.pod.third .col{--h:100px}
+.ranks{display:grid;gap:8px;margin-top:6px}
+.rrow{display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 14px;border-radius:12px;background:var(--night);border:1.5px solid transparent}
+.rrow.me{border-color:var(--gold);background:var(--night-3)}
+.rrow .pos{font-weight:800;color:var(--gold);font-size:1.05rem}
+.rrow .who{display:grid;min-width:0}
+.rrow .who span{overflow-wrap:anywhere;font-weight:800}
+.rrow .pts{font-variant-numeric:tabular-nums;font-weight:800}
+.trow{display:grid;gap:8px;padding:12px 14px;border-radius:12px;background:var(--night);border:1.5px solid transparent}
+.trow.me{border-color:var(--gold)}
+.trow .head{display:flex;align-items:center;gap:12px}
+.trow .head .pos{font-weight:800;color:var(--gold);min-width:46px}
+.trow .head .tn{flex:1;min-width:0;font-weight:800;overflow-wrap:anywhere}
+.trow .bar{height:10px;border-radius:999px;background:var(--night-2);overflow:hidden}
+.trow .bar i{display:block;height:100%;border-radius:999px}
+.empty{padding:26px;text-align:center;border:1.5px dashed var(--line);border-radius:14px}
+
+/* panel */
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tile{padding:16px;border-radius:14px;background:var(--night);border:1px solid var(--line-soft);display:grid;gap:2px}
+.tile b{font-family:var(--font-display);font-size:1.9rem;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.1}
+.tablewrap{overflow-x:auto;border:1px solid var(--line-soft);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line-soft);vertical-align:top}
+th{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);background:var(--night)}
+td.num,th.num{text-align:right}
+tr.pl>td{background:var(--night-2)}
+.xbtn{appearance:none;background:transparent;border:0;cursor:pointer;font-weight:800;text-align:left;padding:6px 0;min-height:36px;color:var(--sand);display:inline-flex;gap:8px;align-items:center}
+.detail{display:grid;gap:6px;padding:6px 0}
+.drow{display:grid;grid-template-columns:100px 120px minmax(0,1fr) 120px;gap:10px;font-size:.92rem;padding:6px 10px;border-radius:8px;background:var(--night)}
+.tag{font-weight:800}
+.tag.ok{color:var(--ok)}.tag.bad{color:var(--ember)}.tag.to{color:var(--gold)}
+.ctrl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.tlist{display:grid;gap:8px}
+.tline{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:center}
+.hard{display:grid;gap:8px}
+.hrow{display:grid;grid-template-columns:110px minmax(0,1fr) 120px;gap:12px;align-items:center;font-size:.92rem}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--night-3);border:1.5px solid var(--gold);color:var(--sand);padding:12px 18px;border-radius:12px;font-weight:800;max-width:min(92vw,520px)}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr}
+  .arch{height:250px;max-width:320px;margin:0 auto;width:100%;order:-1}
+  .arch .lion{width:150px;height:155px}
+  .rules,.grid2,.tiles{grid-template-columns:1fr}
+  .qcard{grid-template-columns:1fr}
+  .qcard .ring{order:-1;margin:0 auto}
+  .drow{grid-template-columns:1fr 1fr}
+  .hrow{grid-template-columns:90px minmax(0,1fr) 92px}
+  main{padding-bottom:84px}
+}
+@media (max-width:640px){
+  .top .wrap{min-height:54px}
+  .nav{position:fixed;left:0;right:0;bottom:0;margin:0;z-index:25;justify-content:space-around;background:rgba(8,23,51,.97);border-top:1px solid var(--line);padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+  .nav a{flex:1;justify-content:center;padding:10px 4px;font-size:.88rem}
+  .brand{font-size:.98rem}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+.opt.picked{border-color:var(--gold);background:var(--night-3)}
+</style>
+</head>
+<body>
+<!-- símbolos reutilizables: león de la Puerta de Istar y roseta -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="lion" viewBox="0 0 120 126">
+      <g fill="#b0791c">
+        <ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(0 60 63)"/><ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(30 60 63)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(60 60 63)"/><ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(90 60 63)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(120 60 63)"/><ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(150 60 63)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(180 60 63)"/><ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(210 60 63)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(240 60 63)"/><ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(270 60 63)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(300 60 63)"/><ellipse cx="60" cy="24" rx="11" ry="21" transform="rotate(330 60 63)"/>
+      </g>
+      <g fill="#ebbb4d">
+        <ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(15 60 63)"/><ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(45 60 63)"/>
+        <ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(75 60 63)"/><ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(105 60 63)"/>
+        <ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(135 60 63)"/><ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(165 60 63)"/>
+        <ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(195 60 63)"/><ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(225 60 63)"/>
+        <ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(255 60 63)"/><ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(285 60 63)"/>
+        <ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(315 60 63)"/><ellipse cx="60" cy="31" rx="9" ry="16" transform="rotate(345 60 63)"/>
+      </g>
+      <circle cx="37" cy="42" r="10" fill="#d89a2b"/><circle cx="83" cy="42" r="10" fill="#d89a2b"/>
+      <circle cx="37" cy="42" r="5" fill="#7a4d0e"/><circle cx="83" cy="42" r="5" fill="#7a4d0e"/>
+      <circle cx="60" cy="66" r="33" fill="#f6d172"/>
+      <ellipse cx="60" cy="82" rx="16" ry="12" fill="#fcecb8"/>
+      <ellipse cx="47" cy="62" rx="4.2" ry="5.2" fill="#081733"/><ellipse cx="73" cy="62" rx="4.2" ry="5.2" fill="#081733"/>
+      <circle cx="48.4" cy="60.2" r="1.3" fill="#fcecb8"/><circle cx="74.4" cy="60.2" r="1.3" fill="#fcecb8"/>
+      <path d="M38 52 L54 58 M82 52 L66 58" stroke="#7a4d0e" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+      <path d="M51 73 h18 l-9 9z" fill="#7a4d0e" stroke="#7a4d0e" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M60 82 v5 M60 87 q-7 6 -13 1 M60 87 q7 6 13 1" stroke="#7a4d0e" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+      <g fill="#b0791c"><circle cx="49" cy="80" r="1.4"/><circle cx="53" cy="84" r="1.4"/><circle cx="71" cy="80" r="1.4"/><circle cx="67" cy="84" r="1.4"/></g>
+    </symbol>
+    <symbol id="rosette" viewBox="-12 -12 24 24">
+      <g fill="#ebbb4d">
+        <ellipse cx="0" cy="-7" rx="3.2" ry="5" /><ellipse cx="0" cy="-7" rx="3.2" ry="5" transform="rotate(45)"/>
+        <ellipse cx="0" cy="-7" rx="3.2" ry="5" transform="rotate(90)"/><ellipse cx="0" cy="-7" rx="3.2" ry="5" transform="rotate(135)"/>
+        <ellipse cx="0" cy="-7" rx="3.2" ry="5" transform="rotate(180)"/><ellipse cx="0" cy="-7" rx="3.2" ry="5" transform="rotate(225)"/>
+        <ellipse cx="0" cy="-7" rx="3.2" ry="5" transform="rotate(270)"/><ellipse cx="0" cy="-7" rx="3.2" ry="5" transform="rotate(315)"/>
+      </g>
+      <circle r="3.4" fill="#081733"/><circle r="1.6" fill="#ebbb4d"/>
+    </symbol>
+    <pattern id="friezePat" width="120" height="30" patternUnits="userSpaceOnUse">
+      <rect width="120" height="30" fill="#1d4f9f"/>
+      <rect y="0" width="120" height="3" fill="#ebbb4d"/><rect y="27" width="120" height="3" fill="#ebbb4d"/>
+      <use href="#rosette" x="14" y="3" width="24" height="24"/>
+      <use href="#lion" x="74" y="3.5" width="23" height="24"/>
+    </pattern>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#inicio"><svg aria-hidden="true"><use href="#lion"/></svg><span>Preguntón de Daniel</span></a>
+    <nav class="nav" aria-label="Secciones">
+      <a href="#inicio" data-r="inicio">Inicio</a>
+      <a href="#jugar" data-r="jugar">Jugar</a>
+      <a href="#posiciones" data-r="posiciones">Posiciones</a>
+      <a href="#panel" data-r="panel" id="navPanel">Panel</a>
+    </nav>
+  </div>
+  <svg class="frieze" aria-hidden="true" focusable="false"><rect width="100%" height="30" fill="url(#friezePat)"/></svg>
+</header>
+<div class="banner" id="banner" hidden><div class="wrap" id="bannerText"></div></div>
+
+<main class="wrap">
+  <section class="view" id="v-inicio" hidden></section>
+  <section class="view" id="v-jugar" hidden></section>
+  <section class="view" id="v-posiciones" hidden></section>
+  <section class="view" id="v-panel" hidden></section>
+</main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+'use strict';
+const QUESTIONS = [{"id": "d1-7-1", "c": 1, "v": 7, "q": "¿qué nombre puso el jefe de los eunucos a Azarías?", "o": ["Abed-nego", "Sadrac", "Beltsasar", "Mesac"], "t": "A estos el jefe de los eunucos puso nombres: puso a Daniel, Beltsasar; a Ananías, Sadrac; a Misael, Mesac; y a Azarías, Abed-nego."}, {"id": "d1-8-2", "c": 1, "v": 8, "q": "¿qué propuso Daniel en su corazón?", "o": ["No contaminarse con la porción de la comida del rey", "Pedir al rey que lo dejara volver a Jerusalén", "Huir de Babilonia por la noche", "Ayunar cuarenta días en el palacio"], "t": "Y Daniel propuso en su corazón no contaminarse con la porción de la comida del rey, ni con el vino que él bebía; pidió, por tanto, al jefe de los eunucos que no se le obligase a contaminarse."}, {"id": "d1-12-3", "c": 1, "v": 12, "q": "¿por cuántos días pidió Daniel que se hiciera la prueba con sus siervos?", "o": ["Diez días", "Siete días", "Tres días", "Cuarenta días"], "t": "Te ruego que hagas la prueba con tus siervos por diez días, y nos den legumbres a comer, y agua a beber."}, {"id": "d1-17-4", "c": 1, "v": 17, "q": "¿en qué tuvo entendimiento Daniel?", "o": ["En los cantares del templo", "En toda visión y sueños", "En el arte de la guerra", "En el gobierno de las provincias"], "t": "A estos cuatro muchachos Dios les dio conocimiento e inteligencia en todas las letras y ciencias; y Daniel tuvo entendimiento en toda visión y sueños."}, {"id": "d1-20-5", "c": 1, "v": 20, "q": "¿cuántas veces mejores que todos los magos y astrólogos halló el rey a estos jóvenes?", "o": ["Diez veces mejores", "Siete veces mejores", "Cinco veces mejores", "Dos veces mejores"], "t": "En todo asunto de sabiduría e inteligencia que el rey les consultó, los halló diez veces mejores que todos los magos y astrólogos que había en todo su reino."}, {"id": "d2-1-6", "c": 2, "v": 1, "q": "¿en qué año del reinado de Nabucodonosor tuvo este rey sueños?", "o": ["En el primer año", "En el tercer año", "En el séptimo año", "En el segundo año"], "t": "En el segundo año del reinado de Nabucodonosor, tuvo Nabucodonosor sueños, y se perturbó su espíritu, y se le fue el sueño."}, {"id": "d2-17-7", "c": 2, "v": 17, "q": "¿a quiénes hizo saber Daniel lo que había, para que pidiesen misericordias del Dios del cielo?", "o": ["Joacim, Ciro y Darío", "Los magos, los astrólogos y los caldeos", "Arioc, Aspenaz y Melsar", "Ananías, Misael y Azarías"], "t": "Luego se fue Daniel a su casa e hizo saber lo que había a Ananías, Misael y Azarías, sus compañeros,"}, {"id": "d2-32-8", "c": 2, "v": 32, "q": "¿de qué material era la cabeza de la imagen?", "o": ["De plata", "De oro fino", "De hierro", "De bronce"], "t": "La cabeza de esta imagen era de oro fino; su pecho y sus brazos, de plata; su vientre y sus muslos, de bronce;"}, {"id": "d2-34-9", "c": 2, "v": 34, "q": "¿qué hirió a la imagen en sus pies de hierro y de barro cocido?", "o": ["Una espada de fuego", "Una piedra cortada, no con mano", "Un gran terremoto", "Un rayo del cielo"], "t": "Estabas mirando, hasta que una piedra fue cortada, no con mano, e hirió a la imagen en sus pies de hierro y de barro cocido, y los desmenuzó."}, {"id": "d2-48-10", "c": 2, "v": 48, "q": "¿de qué provincia hizo el rey gobernador a Daniel?", "o": ["Babilonia", "Susa", "Judea", "Media"], "t": "Entonces el rey engrandeció a Daniel, y le dio muchos honores y grandes dones, y le hizo gobernador de toda la provincia de Babilonia, y jefe supremo de todos los sabios de Babilonia."}, {"id": "d3-1-11", "c": 3, "v": 1, "q": "¿cuál era la altura de la estatua de oro que hizo el rey Nabucodonosor?", "o": ["Seis codos", "Cien codos", "Treinta codos", "Sesenta codos"], "t": "El rey Nabucodonosor hizo una estatua de oro cuya altura era de sesenta codos, y su anchura de seis codos; la levantó en el campo de Dura, en la provincia de Babilonia."}, {"id": "d3-18-12", "c": 3, "v": 18, "q": "¿cómo continúa lo que dijeron Sadrac, Mesac y Abed-nego: «Y si no, sepas, oh rey, que…»?", "o": ["nos postraremos ante tu estatua", "pediremos misericordia al rey", "no serviremos a tus dioses", "nuestro Dios no nos librará"], "t": "Y si no, sepas, oh rey, que no serviremos a tus dioses, ni tampoco adoraremos la estatua que has levantado."}, {"id": "d3-19-13", "c": 3, "v": 19, "q": "¿cuántas veces más de lo acostumbrado mandó Nabucodonosor que se calentase el horno?", "o": ["Diez veces más", "Tres veces más", "Siete veces más", "Dos veces más"], "t": "Entonces Nabucodonosor se llenó de ira, y se demudó el aspecto de su rostro contra Sadrac, Mesac y Abed-nego, y ordenó que el horno se calentase siete veces más de lo acostumbrado."}, {"id": "d3-25-14", "c": 3, "v": 25, "q": "¿cuántos varones vio el rey sueltos, que se paseaban en medio del fuego?", "o": ["Siete", "Dos", "Cuatro", "Tres"], "t": "Y él dijo: He aquí yo veo cuatro varones sueltos, que se pasean en medio del fuego sin sufrir ningún daño; y el aspecto del cuarto es semejante a hijo de los dioses."}, {"id": "d3-27-15", "c": 3, "v": 27, "q": "¿qué ni siquiera tenían estos varones al salir del horno?", "o": ["Rastro de ceniza", "Olor de fuego", "Un solo hilo suelto", "Señales de hollín"], "t": "Y se juntaron los sátrapas, los gobernadores, los capitanes y los consejeros del rey, para mirar a estos varones, cómo el fuego no había tenido poder alguno sobre sus cuerpos, ni aun el cabello de sus cabezas se había quemado; sus ropas estaban intactas, y ni siquiera olor de fuego tenían."}, {"id": "d4-10-16", "c": 4, "v": 10, "q": "¿qué le parecía ver a Nabucodonosor en medio de la tierra?", "o": ["Un río de fuego", "Una torre hasta el cielo", "Una montaña de oro", "Un árbol de gran altura"], "t": "Estas fueron las visiones de mi cabeza mientras estaba en mi cama: Me parecía ver en medio de la tierra un árbol, cuya altura era grande."}, {"id": "d4-16-17", "c": 4, "v": 16, "q": "¿cuántos tiempos pasarían sobre aquel cuyo corazón de hombre fuese cambiado por corazón de bestia?", "o": ["Tres tiempos", "Doce tiempos", "Cuarenta tiempos", "Siete tiempos"], "t": "Su corazón de hombre sea cambiado, y le sea dado corazón de bestia, y pasen sobre él siete tiempos."}, {"id": "d4-19-18", "c": 4, "v": 19, "q": "¿cuánto tiempo quedó atónito Daniel, cuyo nombre era Beltsasar?", "o": ["Casi una hora", "Tres días", "Siete días", "Toda la noche"], "t": "Entonces Daniel, cuyo nombre era Beltsasar, quedó atónito casi una hora, y sus pensamientos lo turbaban. El rey habló y dijo: Beltsasar, no te turben ni el sueño ni su interpretación. Beltsasar respondió y dijo: Señor mío, el sueño sea para tus enemigos, y su interpretación para los que mal te quieren."}, {"id": "d4-33-19", "c": 4, "v": 33, "q": "¿como qué creció el pelo de Nabucodonosor?", "o": ["Como crines de león", "Como plumas de águila", "Como lana limpia", "Como espinas del campo"], "t": "En la misma hora se cumplió la palabra sobre Nabucodonosor, y fue echado de entre los hombres; y comía hierba como los bueyes, y su cuerpo se mojaba con el rocío del cielo, hasta que su pelo creció como plumas de águila, y sus uñas como las de las aves."}, {"id": "d4-34-20", "c": 4, "v": 34, "q": "¿qué le fue devuelto a Nabucodonosor cuando alzó sus ojos al cielo al fin del tiempo?", "o": ["Su razón", "Su ejército", "Su corona", "Su palacio"], "t": "Mas al fin del tiempo yo Nabucodonosor alcé mis ojos al cielo, y mi razón me fue devuelta; y bendije al Altísimo, y alabé y glorifiqué al que vive para siempre, cuyo dominio es sempiterno, y su reino por todas las edades."}, {"id": "d5-1-21", "c": 5, "v": 1, "q": "¿a cuántos de sus príncipes hizo un gran banquete el rey Belsasar?", "o": ["A setenta", "A cien", "A mil", "A diez mil"], "t": "El rey Belsasar hizo un gran banquete a mil de sus príncipes, y en presencia de los mil bebía vino."}, {"id": "d5-5-22", "c": 5, "v": 5, "q": "¿qué aparecieron en aquella misma hora, escribiendo sobre lo encalado de la pared del palacio real?", "o": ["Los ojos de un león", "Los dedos de una mano de hombre", "Un ángel con una espada", "Una nube de fuego"], "t": "En aquella misma hora aparecieron los dedos de una mano de hombre, que escribía delante del candelero sobre lo encalado de la pared del palacio real, y el rey veía la mano que escribía."}, {"id": "d5-25-23", "c": 5, "v": 25, "q": "¿cuál fue la escritura que trazó la mano?", "o": ["MENE, MENE, TEKEL, UPARSIN", "TEKEL, TEKEL, MENE, PERES", "UPARSIN, TEKEL, MENE, MENE", "MENE, PERES, PERES, UPARSIN"], "t": "Y la escritura que trazó es: MENE, MENE, TEKEL, UPARSIN."}, {"id": "d5-27-24", "c": 5, "v": 27, "q": "¿qué significa TEKEL, según la interpretación de Daniel?", "o": ["Has sido medido en la ley, y fuiste hallado fiel", "Pesado has sido en balanza, y fuiste hallado falto", "Tu reino ha sido roto, y dado a los medos y a los persas", "Contó Dios tu reino, y le ha puesto fin"], "t": "TEKEL: Pesado has sido en balanza, y fuiste hallado falto."}, {"id": "d5-29-25", "c": 5, "v": 29, "q": "¿de qué mandó Belsasar vestir a Daniel?", "o": ["De seda azul", "De piel de león", "De púrpura", "De lino blanco"], "t": "Entonces mandó Belsasar vestir a Daniel de púrpura, y poner en su cuello un collar de oro, y proclamar que él era el tercer señor del reino."}, {"id": "d6-1-26", "c": 6, "v": 1, "q": "¿cuántos sátrapas constituyó Darío sobre el reino?", "o": ["Setenta", "Doce", "Mil", "Ciento veinte"], "t": "Pareció bien a Darío constituir sobre el reino ciento veinte sátrapas, que gobernasen en todo el reino."}, {"id": "d6-7-27", "c": 6, "v": 7, "q": "¿durante cuántos días no se podía pedir nada a ningún dios u hombre fuera del rey, so pena de ser echado al foso de los leones?", "o": ["Treinta días", "Sesenta días", "Siete días", "Cuarenta días"], "t": "Todos los gobernadores del reino, magistrados, sátrapas, príncipes y capitanes han acordado por consejo que promulgues un edicto real y lo confirmes, que cualquiera que en el espacio de treinta días demande petición de cualquier dios u hombre fuera de ti, oh rey, sea echado en el foso de los leones."}, {"id": "d6-10-28", "c": 6, "v": 10, "q": "¿hacia qué ciudad daban las ventanas abiertas de la cámara de Daniel cuando él oraba?", "o": ["Jerusalén", "Babilonia", "Susa", "Belén"], "t": "Cuando Daniel supo que el edicto había sido firmado, entró en su casa, y abiertas las ventanas de su cámara que daban hacia Jerusalén, se arrodillaba tres veces al día, y oraba y daba gracias delante de su Dios, como lo solía hacer antes."}, {"id": "d6-17-29", "c": 6, "v": 17, "q": "¿con qué selló el rey la piedra puesta sobre la puerta del foso?", "o": ["Con la firma de los sátrapas", "Con una cadena de bronce", "Con su anillo y con el anillo de sus príncipes", "Con cera y con su corona"], "t": "Y fue traída una piedra y puesta sobre la puerta del foso, la cual selló el rey con su anillo y con el anillo de sus príncipes, para que el acuerdo acerca de Daniel no se alterase."}, {"id": "d6-22-30", "c": 6, "v": 22, "q": "¿qué envió el Dios de Daniel, el cual cerró la boca de los leones?", "o": ["Un fuego del cielo", "Un profeta", "Una nube", "Su ángel"], "t": "Mi Dios envió su ángel, el cual cerró la boca de los leones, para que no me hiciesen daño, porque ante él fui hallado inocente; y aun delante de ti, oh rey, yo no he hecho nada malo."}, {"id": "d7-4-31", "c": 7, "v": 4, "q": "¿cómo era la primera bestia?", "o": ["Como macho cabrío, con un cuerno notable", "Como leopardo, con cuatro alas de ave", "Como león, y tenía alas de águila", "Como oso, con tres costillas entre los dientes"], "t": "La primera era como león, y tenía alas de águila. Yo estaba mirando hasta que sus alas fueron arrancadas, y fue levantada del suelo y se puso enhiesta sobre los pies a manera de hombre, y le fue dado corazón de hombre."}, {"id": "d7-5-32", "c": 7, "v": 5, "q": "¿a qué animal era semejante la segunda bestia?", "o": ["A un oso", "A un carnero", "A un león", "A un leopardo"], "t": "Y he aquí otra segunda bestia, semejante a un oso, la cual se alzaba de un costado más que del otro, y tenía en su boca tres costillas entre los dientes; y le fue dicho así: Levántate, devora mucha carne."}, {"id": "d7-7-33", "c": 7, "v": 7, "q": "¿cuántos cuernos tenía la cuarta bestia?", "o": ["Diez", "Cuatro", "Siete", "Doce"], "t": "Después de esto miraba yo en las visiones de la noche, y he aquí la cuarta bestia, espantosa y terrible y en gran manera fuerte, la cual tenía unos dientes grandes de hierro; devoraba y desmenuzaba, y las sobras hollaba con sus pies, y era muy diferente de todas las bestias que vi antes de ella, y tenía diez cuernos."}, {"id": "d7-9-34", "c": 7, "v": 9, "q": "¿cómo era el vestido del Anciano de días?", "o": ["Azul como el cielo", "Rojo como el fuego", "Púrpura como el oro", "Blanco como la nieve"], "t": "Estuve mirando hasta que fueron puestos tronos, y se sentó un Anciano de días, cuyo vestido era blanco como la nieve, y el pelo de su cabeza como lana limpia; su trono llama de fuego, y las ruedas del mismo, fuego ardiente."}, {"id": "d7-14-35", "c": 7, "v": 14, "q": "¿qué le fue dado al que venía como un hijo de hombre?", "o": ["Fuerza, riquezas y honra", "Dominio, gloria y reino", "Un libro sellado y una espada", "Una corona de oro y un cetro"], "t": "Y le fue dado dominio, gloria y reino, para que todos los pueblos, naciones y lenguas le sirvieran; su dominio es dominio eterno, que nunca pasará, y su reino uno que no será destruido."}, {"id": "d8-2-36", "c": 8, "v": 2, "q": "¿junto a qué río estaba Daniel cuando vio la visión?", "o": ["El río Hidekel", "El río Ulai", "El río Éufrates", "El río Jordán"], "t": "Vi en visión; y cuando la vi, yo estaba en Susa, que es la capital del reino en la provincia de Elam; vi, pues, en visión, estando junto al río Ulai."}, {"id": "d8-14-37", "c": 8, "v": 14, "q": "¿hasta cuántas tardes y mañanas dijo el santo que duraría esto, y luego el santuario sería purificado?", "o": ["Mil doscientas noventa", "Setenta", "Mil trescientas treinta y cinco", "Dos mil trescientas"], "t": "Y él dijo: Hasta dos mil trescientas tardes y mañanas; luego el santuario será purificado."}, {"id": "d8-16-38", "c": 8, "v": 16, "q": "¿a quién gritó la voz de hombre: «enseña a este la visión»?", "o": ["A Arioc", "A Gabriel", "A Belsasar", "A Miguel"], "t": "Y oí una voz de hombre entre las riberas del Ulai, que gritó y dijo: Gabriel, enseña a este la visión."}, {"id": "d8-20-39", "c": 8, "v": 20, "q": "¿a quiénes representaban los dos cuernos del carnero?", "o": ["A los reyes del sur y del norte", "A los reyes de Media y de Persia", "A los reyes de Egipto y de Babilonia", "A los reyes de Grecia"], "t": "En cuanto al carnero que viste, que tenía dos cuernos, estos son los reyes de Media y de Persia."}, {"id": "d8-21-40", "c": 8, "v": 21, "q": "¿a quién representaba el macho cabrío?", "o": ["Al rey de Persia", "Al rey de Egipto", "Al rey de Grecia", "Al rey de Babilonia"], "t": "El macho cabrío es el rey de Grecia, y el cuerno grande que tenía entre sus ojos es el rey primero."}, {"id": "d9-1-41", "c": 9, "v": 1, "q": "¿de quién era hijo Darío, que vino a ser rey sobre el reino de los caldeos?", "o": ["De Nabucodonosor", "De Belsasar", "De Asuero", "De Ciro"], "t": "En el año primero de Darío hijo de Asuero, de la nación de los medos, que vino a ser rey sobre el reino de los caldeos,"}, {"id": "d9-2-42", "c": 9, "v": 2, "q": "¿en cuántos años habían de cumplirse las desolaciones de Jerusalén, según lo que habló Jehová al profeta Jeremías?", "o": ["Setenta años", "Siete años", "Cien años", "Cuarenta años"], "t": "en el año primero de su reinado, yo Daniel miré atentamente en los libros el número de los años de que habló Jehová al profeta Jeremías, que habían de cumplirse las desolaciones de Jerusalén en setenta años."}, {"id": "d9-3-43", "c": 9, "v": 3, "q": "¿cómo buscó Daniel a Dios el Señor?", "o": ["Con ofrendas de incienso y de oro", "Con cantos y arpas en el palacio", "Con sacrificios en el templo", "En oración y ruego, en ayuno, cilicio y ceniza"], "t": "Y volví mi rostro a Dios el Señor, buscándole en oración y ruego, en ayuno, cilicio y ceniza."}, {"id": "d9-21-44", "c": 9, "v": 21, "q": "¿a qué hora vino el varón Gabriel a Daniel, volando con presteza?", "o": ["A la medianoche", "A la hora del sacrificio de la tarde", "Al mediodía", "Al amanecer"], "t": "aún estaba hablando en oración, cuando el varón Gabriel, a quien había visto en la visión al principio, volando con presteza, vino a mí como a la hora del sacrificio de la tarde."}, {"id": "d9-23-45", "c": 9, "v": 23, "q": "¿cómo le dijo Gabriel que era Daniel?", "o": ["Muy fiel", "Muy valiente", "Muy sabio", "Muy amado"], "t": "Al principio de tus ruegos fue dada la orden, y yo he venido para enseñártela, porque tú eres muy amado. Entiende, pues, la orden, y entiende la visión."}, {"id": "d10-2-46", "c": 10, "v": 2, "q": "¿por cuánto tiempo estuvo afligido Daniel en aquellos días?", "o": ["Setenta semanas", "Siete días", "Cuarenta días", "Tres semanas"], "t": "En aquellos días yo Daniel estuve afligido por espacio de tres semanas."}, {"id": "d10-4-47", "c": 10, "v": 4, "q": "¿a la orilla de qué río estaba Daniel el día veinticuatro del mes primero?", "o": ["El río Éufrates", "El río Jordán", "El gran río Hidekel", "El río Ulai"], "t": "Y el día veinticuatro del mes primero estaba yo a la orilla del gran río Hidekel."}, {"id": "d10-5-48", "c": 10, "v": 5, "q": "¿de qué estaba vestido el varón que Daniel vio?", "o": ["De púrpura", "De piel", "De escarlata", "De lino"], "t": "Y alcé mis ojos y miré, y he aquí un varón vestido de lino, y ceñidos sus lomos de oro de Ufaz."}, {"id": "d10-13-49", "c": 10, "v": 13, "q": "¿durante cuántos días se opuso el príncipe del reino de Persia al que hablaba con Daniel?", "o": ["Treinta días", "Veintiún días", "Siete días", "Cuarenta días"], "t": "Mas el príncipe del reino de Persia se me opuso durante veintiún días; pero he aquí Miguel, uno de los principales príncipes, vino para ayudarme, y quedé allí con los reyes de Persia."}, {"id": "d10-21-50", "c": 10, "v": 21, "q": "¿quién era el único que ayudaba al que hablaba con Daniel contra ellos?", "o": ["Darío", "Arioc", "Gabriel", "Miguel, vuestro príncipe"], "t": "Pero yo te declararé lo que está escrito en el libro de la verdad; y ninguno me ayuda contra ellos, sino Miguel vuestro príncipe."}, {"id": "d11-1-51", "c": 11, "v": 1, "q": "¿en qué año de Darío el medo dice que estuvo para animarlo y fortalecerlo?", "o": ["En el año primero", "En el año tercero", "En el año sesenta y dos", "En el año séptimo"], "t": "Y yo mismo, en el año primero de Darío el medo, estuve para animarlo y fortalecerlo."}, {"id": "d11-2-52", "c": 11, "v": 2, "q": "¿cuántos reyes aún habría en Persia, además del cuarto que se haría de grandes riquezas?", "o": ["Dos reyes", "Cuatro reyes", "Siete reyes", "Tres reyes"], "t": "Y ahora yo te mostraré la verdad. He aquí que aún habrá tres reyes en Persia, y el cuarto se hará de grandes riquezas más que todos ellos; y al hacerse fuerte con sus riquezas, levantará a todos contra el reino de Grecia."}, {"id": "d11-30-53", "c": 11, "v": 30, "q": "¿de dónde vendrían las naves contra él?", "o": ["De Sidón", "De Egipto", "De Quitim", "De Tarsis"], "t": "Porque vendrán contra él naves de Quitim, y él se contristará, y volverá, y se enojará contra el pacto santo, y hará según su voluntad; volverá, pues, y se entenderá con los que abandonen el santo pacto."}, {"id": "d11-32-54", "c": 11, "v": 32, "q": "¿qué hará el pueblo que conoce a su Dios?", "o": ["Pedirá paz al rey", "Se esforzará y actuará", "Huirá a los montes", "Callará y esperará"], "t": "Con lisonjas seducirá a los violadores del pacto; mas el pueblo que conoce a su Dios se esforzará y actuará."}, {"id": "d11-41-55", "c": 11, "v": 41, "q": "¿de quién serían la mayoría de los hijos que escaparían de su mano, junto con Edom y Moab?", "o": ["De Libia", "De Egipto", "De Etiopía", "De Amón"], "t": "Entrará a la tierra gloriosa, y muchas provincias caerán; mas estas escaparán de su mano: Edom y Moab, y la mayoría de los hijos de Amón."}, {"id": "d12-1-56", "c": 12, "v": 1, "q": "¿quién se levantaría, el gran príncipe que está de parte de los hijos del pueblo de Daniel?", "o": ["Gabriel", "Arioc", "Miguel", "Beltsasar"], "t": "En aquel tiempo se levantará Miguel, el gran príncipe que está de parte de los hijos de tu pueblo; y será tiempo de angustia, cual nunca fue desde que hubo gente hasta entonces; pero en aquel tiempo será libertado tu pueblo, todos los que se hallen escritos en el libro."}, {"id": "d12-2-57", "c": 12, "v": 2, "q": "¿para qué serán despertados unos de los que duermen en el polvo de la tierra, mientras otros lo serán para vergüenza y confusión perpetua?", "o": ["Para heredar la tierra de Judá", "Para vida eterna", "Para reinar en Babilonia", "Para el servicio del templo"], "t": "Y muchos de los que duermen en el polvo de la tierra serán despertados, unos para vida eterna, y otros para vergüenza y confusión perpetua."}, {"id": "d12-3-58", "c": 12, "v": 3, "q": "¿como qué resplandecerán los entendidos?", "o": ["Como el sol del mediodía", "Como el oro fino", "Como el resplandor del firmamento", "Como lámparas de bronce"], "t": "Los entendidos resplandecerán como el resplandor del firmamento; y los que enseñan la justicia a la multitud, como las estrellas a perpetua eternidad."}, {"id": "d12-4-59", "c": 12, "v": 4, "q": "¿qué le mandan a Daniel cerrar y sellar hasta el tiempo del fin?", "o": ["El decreto del rey", "Las palabras y el libro", "La puerta del foso", "El templo de Jerusalén"], "t": "Pero tú, Daniel, cierra las palabras y sella el libro hasta el tiempo del fin. Muchos correrán de aquí para allá, y la ciencia se aumentará."}, {"id": "d12-12-60", "c": 12, "v": 12, "q": "¿a cuántos días llegará el bienaventurado que espere?", "o": ["Mil doscientos noventa días", "Dos mil trescientos días", "Mil trescientos treinta y cinco días", "Setenta días"], "t": "Bienaventurado el que espere, y llegue a mil trescientos treinta y cinco días."}];
+const CHAPTERS = 12;
+const PALETTE = ['#ebbb4d','#5aa0ff','#5cc593','#ee7258','#b995f2','#f08bb6','#5fd0d6','#f0a35a'];
+const TEAM_NAMES = ['Daniel','Sadrac','Mesac','Abed-nego'];
+const SECS_OPTIONS = [20,30,45,60];
+const POLL_MS = 15000;
+
+/* ---------- utilidades ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ord = n => (n===1||n===3) ? n+'.er' : n+'.º';
+const lsGet = (k,d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch(e){ return d; } };
+const lsSet = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+const ssGet = k => { try { return sessionStorage.getItem(k) || ''; } catch(e){ return ''; } };
+const ssSet = (k,v) => { try { sessionStorage.setItem(k, v); } catch(e){} };
+function hash(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+function rng(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function shuffle(arr, seed){ const a=arr.slice(), r=rng(seed); for(let i=a.length-1;i>0;i--){ const j=Math.floor(r()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const qById = {}; QUESTIONS.forEach(q => qById[q.id]=q);
+const LION = (cls='lion') => '<svg class="'+cls+'" aria-hidden="true" viewBox="0 0 120 126"><use href="#lion"/></svg>';
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>{t.hidden=true;}, 3600); }
+const safeColor = c => /^#[0-9a-f]{6}$/i.test(c||'') ? c : '#8a93a8';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+/* identificador privado de este navegador (no se muestra a nadie) */
+let PID = lsGet('pd_pid', null);
+if (!PID) { const a = new Uint8Array(18); (window.crypto||{getRandomValues:x=>x.forEach((_,i)=>x[i]=Math.random()*256)}).getRandomValues(a); PID = Array.from(a, b=>b.toString(16).padStart(2,'0')).join(''); lsSet('pd_pid', PID); }
+
+/* ---------- configuración ---------- */
+function defaultCfg(){ return { open:true, from:1, to:CHAPTERS, secs:30, teams: TEAM_NAMES.map((n,i)=>({id:'t'+(i+1), name:n, color:PALETTE[i]})) }; }
+function normCfg(d){
+  const base = defaultCfg(); d = d || {};
+  let from = Math.min(CHAPTERS, Math.max(1, parseInt(d.from,10)||1));
+  let to = Math.min(CHAPTERS, Math.max(1, parseInt(d.to,10)||CHAPTERS));
+  if (from>to) { const t=from; from=to; to=t; }
+  const secs = SECS_OPTIONS.includes(d.secs) ? d.secs : 30;
+  const teams = Array.isArray(d.teams) && d.teams.length>=2 ? d.teams.slice(0,8).map((t,i)=>({ id:String(t.id||('t'+(i+1))), name:String(t.name||('Equipo '+(i+1))).slice(0,24), color:safeColor(t.color) })) : base.teams;
+  return { open: d.open!==false, from, to, secs, teams };
+}
+const teamById = id => state.cfg.teams.find(t=>t.id===id) || { id:'', name:'Sin equipo', color:'#8a93a8' };
+const poolOf = cfg => QUESTIONS.filter(q => q.c>=cfg.from && q.c<=cfg.to);
+
+/* ---------- estado ---------- */
+const state = { cfg: defaultCfg(), board: [], me: null, items: {}, ready:false, err:'', isAdmin:false, pin: ssGet('pd_pin'), players: [], pinErr:'' };
+let draft = { name:'', team:'', editing:false, err:'' };
+const openRows = new Set();
+let resetAsk = false;
+const sumPts = items => Object.values(items||{}).reduce((a,x)=>a+(x.pts||0),0);
+const countItems = items => Object.keys(items||{}).length;
+const myProfile = () => state.me ? { name: state.me.name, team: state.me.team } : null;
+
+/* ---------- servidor ---------- */
+async function api(a, extra){
+  const body = Object.assign({ a, pid: PID }, a.startsWith('admin_') ? { pin: state.pin } : {}, extra||{});
+  let r;
+  try { r = await fetch('/api/game', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) }); }
+  catch(e){ const err = new Error('network'); err.network = true; throw err; }
+  let j = null; try { j = await r.json(); } catch(e){}
+  if (!r.ok) { const err = new Error((j && j.error) || 'Error del servidor'); err.status = r.status; err.code = j && j.code; throw err; }
+  return j;
+}
+function applyMe(me){
+  if (!me) return;
+  if (!state.me || (me.t||0) >= (state.me.t||0)) { state.me = me; state.items = me.items || {}; }
+}
+function applyState(j){
+  state.cfg = normCfg(j.cfg); state.board = j.board || [];
+  if (j.me) applyMe(j.me); else if (!state.me) { state.items = {}; }
+  state.ready = true; state.err = ''; updateBanner();
+}
+async function refresh(){
+  try { applyState(await api('state')); }
+  catch(e){ state.ready = true; state.err = e.network ? 'No hay conexión con el servidor. Revisa tu internet; se reintentará solo.' : 'El servidor no respondió bien. Se reintentará solo.'; updateBanner(); }
+  onData();
+}
+async function refreshAdmin(){
+  if (!state.isAdmin) return;
+  try { const j = await api('admin_players'); state.players = j.players || []; state.cfg = normCfg(j.cfg); state.err=''; updateBanner(); }
+  catch(e){ if (e.code==='bad_pin') { state.isAdmin=false; state.pin=''; ssSet('pd_pin',''); } else { state.err='No se pudo actualizar el panel.'; updateBanner(); } }
+  if (route.cur==='panel') { renderPanelControls(); renderPanelData(); }
+}
+function updateBanner(){ $('#bannerText').textContent = state.err; $('#banner').hidden = !state.err; }
+function onData(){
+  const r = route.cur;
+  if (r==='inicio') renderInicio();
+  else if (r==='posiciones') renderPosiciones();
+  else if (r==='jugar') { if (['idle','done','closed','noprofile','loading'].includes(G.phase)) renderGame(); else updateGameScore(); }
+}
+
+/* ---------- rutas ---------- */
+const ROUTES = ['inicio','jugar','posiciones','panel'];
+function route(){
+  let r = (location.hash||'').replace('#','');
+  if (!ROUTES.includes(r)) r = 'inicio';
+  if (route.cur==='jugar' && r!=='jugar') stopTick();
+  route.cur = r;
+  ROUTES.forEach(x => { $('#v-'+x).hidden = x!==r; });
+  $$('.nav a').forEach(a => { if (a.dataset.r===r) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+  if (r==='inicio') renderInicio();
+  if (r==='jugar') { G.phase = 'loading'; renderGame(); }
+  if (r==='posiciones') { renderPosiciones(); refresh(); }
+  if (r==='panel') { renderPanelControls(); renderPanelData(); refreshAdmin(); }
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange', route);
+setInterval(() => { if (document.hidden) return; if (['inicio','posiciones'].includes(route.cur)) refresh(); else if (route.cur==='panel') refreshAdmin(); }, POLL_MS);
+
+/* ---------- ranking ---------- */
+function rankList(list, key){
+  const sorted = list.slice().sort((a,b)=> (b[key]-a[key]) || String(a.name||'').localeCompare(String(b.name||''),'es'));
+  let rank=0, last=null;
+  return sorted.map((x,i)=>{ if (last===null || x[key]!==last){ rank=i+1; last=x[key]; } return Object.assign({}, x, {rank}); });
+}
+function teamTotals(){
+  const m = {}; state.cfg.teams.forEach(t => m[t.id]={ id:t.id, name:t.name, color:t.color, pts:0, count:0 });
+  state.board.forEach(s => { const t = m[s.team]; if (t){ t.pts += (s.pts||0); t.count++; } });
+  return Object.values(m);
+}
+const loadingHtml = () => `<div class="card empty stack" style="justify-items:center"><div style="width:90px">${LION('lion')}</div><h2>Entrando al foso…</h2><p class="muted">${state.err?esc(state.err):'Un momento, cargando.'}</p></div>`;
+
+/* ---------- INICIO ---------- */
+function renderInicio(){
+  const root = $('#v-inicio'); const cfg = state.cfg;
+  if (!state.ready) { root.innerHTML = loadingHtml(); return; }
+  const hadFocus = document.activeElement && document.activeElement.id==='nameInput';
+  const me = myProfile(); const pool = poolOf(cfg);
+  const done = pool.filter(q => state.items[q.id]).length;
+  const joined = !!me && !draft.editing;
+  if (!draft.team) draft.team = (me && me.team) || '';
+  if (draft.editing && !draft.name && me) draft.name = me.name;
+  const tm = me ? teamById(me.team) : null;
+  const factRange = cfg.from===cfg.to ? 'Daniel '+cfg.from : 'Daniel '+cfg.from+' al '+cfg.to;
+
+  let joinHtml;
+  if (joined) {
+    joinHtml = `
+      <div class="card gold stack" style="gap:16px">
+        <div class="row" style="justify-content:space-between">
+          <div><div class="eyebrow">Tu lugar en el foso</div><h2 style="color:var(--sand);margin-top:4px">${esc(me.name)}</h2></div>
+          <span class="pill"><i class="dot" style="background:${safeColor(tm.color)}"></i>Equipo ${esc(tm.name)}</span>
+        </div>
+        <div class="stat"><div><b id="myPts">${sumPts(state.items)}</b><span class="muted small">puntos</span></div><div><b>${done}/${pool.length}</b><span class="muted small">preguntas respondidas</span></div></div>
+        <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="${pool.length}" aria-valuenow="${done}"><i style="width:${pool.length?Math.round(done*100/pool.length):0}%"></i></div>
+        <div class="row">
+          <a class="btn" href="#jugar">${done>0 && done<pool.length ? 'Seguir jugando' : done>=pool.length && pool.length ? 'Ver mi resultado' : 'Empezar a jugar'}</a>
+          <a class="btn ghost" href="#posiciones">Ver posiciones</a>
+          <button class="btn ghost small" id="editMe" type="button">Cambiar nombre o equipo</button>
+        </div>
+        <p class="muted small">Juega siempre desde este mismo teléfono o navegador y no borres sus datos de navegación: así se guarda quién eres.</p>
+      </div>`;
+  } else {
+    joinHtml = `
+      <form class="card gold stack" id="joinForm" style="gap:18px" novalidate>
+        <div><div class="eyebrow">${draft.editing?'Tus datos':'Entra al foso'}</div><h2 style="color:var(--sand);margin-top:4px">${draft.editing?'Cambiar nombre o equipo':'¿Cómo te llamas y con quién juegas?'}</h2></div>
+        <label class="field" for="nameInput">Tu nombre o apodo
+          <input type="text" id="nameInput" maxlength="24" autocomplete="nickname" placeholder="Por ejemplo: Ana" value="${esc(draft.name)}">
+        </label>
+        <fieldset style="border:0;padding:0;margin:0;display:grid;gap:8px">
+          <legend style="font-weight:800;padding:0 0 8px">Tu equipo</legend>
+          <div class="teams">${cfg.teams.map(t=>`
+            <label class="team-opt"><input type="radio" name="team" value="${esc(t.id)}" ${draft.team===t.id?'checked':''}><span class="team-face"><i class="dot" style="background:${safeColor(t.color)}"></i>${esc(t.name)}</span></label>`).join('')}
+          </div>
+        </fieldset>
+        ${draft.err?`<p class="err" role="alert">${esc(draft.err)}</p>`:''}
+        <div class="row"><button class="btn" type="submit">${draft.editing?'Guardar cambios':'Entrar al foso'}</button>${draft.editing?'<button class="btn ghost" type="button" id="cancelEdit">Cancelar</button>':''}</div>
+      </form>`;
+  }
+
+  root.innerHTML = `
+    <div class="stack" style="gap:30px">
+      <div class="hero">
+        <div class="hero-text">
+          <span class="eyebrow">Reina Valera 1960 · ${esc(factRange)}</span>
+          <h1>Preguntón de Daniel</h1>
+          <p class="lead">Responde con lo que ya guardaste en el corazón. Cada pregunta cita el capítulo y el versículo, y el reloj no espera: ${cfg.secs} segundos y sigue la siguiente.</p>
+          <div class="facts">
+            <span class="pill ${cfg.open?'':'off'}"><i class="dot"></i>${cfg.open?'Juego abierto':'Juego cerrado por ahora'}</span>
+            <span class="pill">${pool.length} preguntas</span>
+            <span class="pill">${cfg.secs} segundos cada una</span>
+          </div>
+        </div>
+        <div class="arch" aria-hidden="true">${LION('lion')}<div class="base"></div></div>
+      </div>
+      ${joinHtml}
+      <div>
+        <h2 style="margin-bottom:14px">Cómo se juega</h2>
+        <div class="rules">
+          <div class="rule"><strong>El reloj no se detiene</strong><p class="muted">Tienes ${cfg.secs} segundos por pregunta. Si cambias de pestaña o recargas la página, el tiempo sigue corriendo.</p></div>
+          <div class="rule"><strong>Puntos por acertar</strong><p class="muted">100 puntos por cada respuesta correcta, y hasta 50 más si contestas rápido.</p></div>
+          <div class="rule"><strong>Un marcador amable</strong><p class="muted">Todos ven los lugares y los puntos de cada equipo. Nadie ve qué preguntas falló otra persona.</p></div>
+        </div>
+      </div>
+      <p class="credit">Reina-Valera 1960® © Sociedades Bíblicas en América Latina, 1960. Renovado © Sociedades Bíblicas Unidas, 1988. Utilizado con permiso.</p>
+    </div>`;
+
+  const form = $('#joinForm');
+  if (form) {
+    const ni = $('#nameInput');
+    ni.addEventListener('input', () => { draft.name = ni.value; draft.err=''; });
+    $$('input[name=team]', form).forEach(r => r.addEventListener('change', () => { draft.team = r.value; draft.err=''; }));
+    form.addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const name = draft.name.trim().replace(/\s+/g,' ');
+      if (name.length<2) { draft.err='Escribe tu nombre o apodo (mínimo 2 letras).'; return renderInicio(); }
+      if (!draft.team || !state.cfg.teams.some(t=>t.id===draft.team)) { draft.err='Elige tu equipo.'; return renderInicio(); }
+      const btn = form.querySelector('button[type=submit]'); btn.disabled = true;
+      try { state.me = null; const j = await api('join', { name, team: draft.team }); state.me = null; applyState(j); draft = { name:'', team:'', editing:false, err:'' }; toast('¡Listo! Ya estás en el marcador.'); renderInicio(); }
+      catch(e){ draft.err = e.network ? 'No hay conexión con el servidor. Inténtalo de nuevo.' : e.message; renderInicio(); }
+    });
+    const c = $('#cancelEdit'); if (c) c.addEventListener('click', () => { draft = { name:'', team:'', editing:false, err:'' }; renderInicio(); });
+    if (hadFocus) { ni.focus(); try{ ni.setSelectionRange(ni.value.length, ni.value.length); }catch(e){} }
+  }
+  const em = $('#editMe'); if (em) em.addEventListener('click', () => { draft = { name:me.name, team:me.team, editing:true, err:'' }; renderInicio(); setTimeout(()=>{const n=$('#nameInput'); if(n) n.focus();},0); });
+}
+
+/* ---------- JUEGO ---------- */
+const G = { phase:'loading', q:null, deadline:0, secs:30, token:null, tick:null, opts:[], last:null, pick:null, err:'' };
+function stopTick(){ if (G.tick){ clearInterval(G.tick); G.tick=null; } }
+function myOrder(){ return shuffle(poolOf(state.cfg), hash(PID)); }
+function nextQuestion(){ return myOrder().find(q => !state.items[q.id]); }
+function updateGameScore(){ const el = $('#gScore'); if (el) el.textContent = sumPts(state.items); }
+const optsFor = q => shuffle(q.o, hash(PID+q.id));
+
+function renderGame(){
+  const root = $('#v-jugar'); stopTick();
+  const me = myProfile(); const cfg = state.cfg;
+  if (!state.ready) { G.phase='loading'; root.innerHTML = `<div class="game">${loadingHtml()}</div>`; return; }
+  if (!me) {
+    G.phase='noprofile';
+    root.innerHTML = `<div class="game"><div class="card empty stack" style="justify-items:center"><div style="width:90px">${LION('lion')}</div><h2>Primero dinos quién eres</h2><p class="muted">Escribe tu nombre y elige tu equipo para empezar.</p><a class="btn" href="#inicio">Ir al inicio</a></div></div>`;
+    return;
+  }
+  // ¿había una pregunta en curso? (por ejemplo, si recargaste la página)
+  const cur = lsGet('pd_cur', null);
+  if (G.phase!=='question' && G.phase!=='feedback' && G.phase!=='sending' && cur && cur.pid===PID && !state.items[cur.q] && qById[cur.q]) {
+    G.q = qById[cur.q]; G.deadline = cur.deadline; G.secs = cur.secs; G.token = cur.token; G.opts = optsFor(G.q); G.pick = null;
+    if (Date.now() >= G.deadline) { G.phase='question'; finalize(null, true); return; }
+    G.phase='question'; renderQuestion(); startTick(); return;
+  }
+  const pool = poolOf(cfg);
+  const nxt = nextQuestion();
+  if (G.phase==='feedback' && G.last) { renderFeedback(); return; }
+  if (!nxt) { G.phase='done'; return renderDone(pool); }
+  if (!cfg.open) {
+    G.phase='closed';
+    root.innerHTML = `<div class="game"><div class="card empty stack" style="justify-items:center"><div style="width:90px">${LION('lion')}</div><h2>El juego está cerrado por ahora</h2><p class="muted">La organizadora lo abrirá cuando sea la hora. Esta página se actualiza sola.</p><a class="btn ghost" href="#posiciones">Ver posiciones</a></div></div>`;
+    return;
+  }
+  G.phase='idle';
+  const done = pool.filter(q=>state.items[q.id]).length;
+  root.innerHTML = `
+    <div class="game fade">
+      <div class="card gold stack" style="justify-items:center;text-align:center;gap:16px">
+        <div style="width:120px">${LION('lion')}</div>
+        <h1 style="font-size:clamp(1.6rem,5vw,2.3rem)">${done? 'Sigamos, '+esc(me.name) : 'Listo, '+esc(me.name)}</h1>
+        <p class="lead" style="max-width:30em">Quedan <b>${pool.length-done}</b> preguntas. Cada una te da <b>${cfg.secs} segundos</b>. El reloj corre aunque cambies de pestaña, así que no hay tiempo para buscar en la Biblia.</p>
+        <p class="err" id="startErr" role="alert" ${G.err?'':'hidden'}>${esc(G.err)}</p>
+        <button class="btn" id="goBtn" type="button" style="min-width:220px">${done?'Seguir':'Comenzar'}</button>
+      </div>
+    </div>`;
+  $('#goBtn').addEventListener('click', () => beginQuestion(nxt));
+}
+async function beginQuestion(q){
+  const btn = $('#goBtn') || $('#nextBtn'); if (btn) btn.disabled = true;
+  try {
+    const j = await api('start', { qid:q.id });
+    G.q = q; G.secs = j.secs; G.token = j.token; G.deadline = Date.now() + j.left*1000; G.opts = optsFor(q); G.pick = null; G.last = null; G.err=''; G.phase='question';
+    lsSet('pd_cur', { pid:PID, q:q.id, token:j.token, deadline:G.deadline, secs:G.secs });
+    renderQuestion(); startTick();
+  } catch(e){
+    if (btn) btn.disabled = false;
+    G.err = e.network ? 'No hay conexión con el servidor. Inténtalo de nuevo.' : e.message;
+    if (e.code==='answered' || e.code==='closed' || e.code==='out_of_round') { await refresh(); G.phase='idle'; }
+    if (G.phase==='feedback') { toast(G.err); } else renderGame();
+  }
+}
+function renderQuestion(){
+  const root = $('#v-jugar'); const q = G.q; const pool = poolOf(state.cfg);
+  const doneNow = pool.filter(x=>state.items[x.id]).length;
+  const total = Math.max(pool.length, doneNow+1);
+  const idx = doneNow+1;
+  root.innerHTML = `
+    <div class="game">
+      <div class="gbar"><span class="chip">Pregunta ${idx} de ${total}</span><span class="chip">Tus puntos: <b id="gScore">${sumPts(state.items)}</b></span></div>
+      <div class="meter" aria-hidden="true"><i style="width:${Math.round((idx-1)*100/total)}%"></i></div>
+      <div class="card gold qcard">
+        <div><span class="cite">Según la Reina Valera 1960, en el capítulo ${q.c}, versículo ${q.v},</span><p class="qtext">${esc(q.q)}</p></div>
+        <div class="ring" id="ring" role="timer" aria-label="Tiempo restante"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="44"/><circle class="bar" id="ringBar" cx="50" cy="50" r="44"/></svg><b id="ringNum">${G.secs}</b></div>
+      </div>
+      <div class="opts" id="opts">${G.opts.map((o,i)=>`<button class="opt" type="button" data-i="${i}"><span class="ltr">${'ABCD'[i]}</span><span>${esc(o)}</span></button>`).join('')}</div>
+      <p class="muted small" id="qHint">Atajos: toca una respuesta o pulsa 1, 2, 3, 4.</p>
+    </div>`;
+  $$('.opt', root).forEach(b => b.addEventListener('click', () => finalize(G.opts[+b.dataset.i], false)));
+  updateTick();
+}
+function startTick(){ stopTick(); G.tick = setInterval(updateTick, 200); }
+function updateTick(){
+  if (G.phase!=='question') return;
+  const left = (G.deadline - Date.now())/1000;
+  if (left <= 0) { finalize(null, true); return; }
+  const ring=$('#ring'), bar=$('#ringBar'), num=$('#ringNum'); if(!ring) return;
+  const frac = Math.max(0, Math.min(1, left/G.secs));
+  bar.style.strokeDashoffset = String(276.46*(1-frac));
+  num.textContent = String(Math.ceil(left));
+  ring.classList.toggle('low', left<=8);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) updateTick(); });
+document.addEventListener('keydown', ev => {
+  if (route.cur!=='jugar') return;
+  if (G.phase==='question') { const i = ['1','2','3','4'].indexOf(ev.key); if (i>-1 && G.opts[i]) finalize(G.opts[i], false); }
+  else if (G.phase==='feedback' && ev.key==='Enter') { const b=$('#nextBtn'); if (b && document.activeElement!==b) b.click(); }
+});
+
+async function finalize(pick, timedOut){
+  if (G.phase!=='question' && G.phase!=='sending') return;
+  stopTick();
+  if (Date.now() >= G.deadline) { timedOut = true; pick = null; }
+  G.phase = 'sending'; G.pick = pick;
+  $$('.opt').forEach(b => { b.disabled = true; if (G.opts[+b.dataset.i]===pick) b.classList.add('picked'); });
+  const hint = $('#qHint'); if (hint) hint.textContent = 'Revisando tu respuesta…';
+  let j = null, lastErr = null;
+  for (let i=0;i<3 && !j;i++) {
+    try { j = await api(timedOut ? 'timeout' : 'answer', { qid:G.q.id, token:G.token, pick }); }
+    catch(e){ lastErr = e; if (!e.network) break; if (e.code==='not_yet') { await sleep(1200); } else await sleep(900); }
+  }
+  if (!j && lastErr && lastErr.code==='not_yet') { try { await sleep(1500); j = await api('timeout', { qid:G.q.id, token:G.token }); } catch(e){ lastErr = e; } }
+  if (!j) {
+    const root = $('#v-jugar');
+    root.innerHTML = `<div class="game"><div class="card empty stack" style="justify-items:center"><h2>No se pudo guardar tu respuesta</h2><p class="muted">${lastErr && lastErr.network ? 'Parece que no hay conexión.' : esc((lastErr&&lastErr.message)||'Error')}</p><button class="btn" id="retryBtn" type="button">Reintentar</button></div></div>`;
+    $('#retryBtn').addEventListener('click', () => { G.phase='question'; finalize(pick, timedOut); });
+    return;
+  }
+  lsSet('pd_cur', null);
+  applyMe(j.me);
+  state.items[G.q.id] = j.item;
+  G.phase = 'feedback';
+  G.last = { q:G.q, item:j.item, pick:j.item.to ? null : pick, opts:G.opts, correct:j.correct };
+  renderFeedback();
+}
+function renderFeedback(){
+  const root = $('#v-jugar'); const { q, item, pick, opts, correct } = G.last; const pool = poolOf(state.cfg);
+  const left = pool.filter(x=>!state.items[x.id]).length;
+  const title = item.ok ? '¡Correcto!' : item.to ? 'Se acabó el tiempo' : 'No fue esa';
+  const sub = item.ok ? '+'+item.pts+' puntos' : 'Esta vez no sumas puntos';
+  root.innerHTML = `
+    <div class="game fade">
+      <div class="gbar"><span class="chip">Daniel ${q.c}:${q.v}</span><span class="chip">Tus puntos: <b id="gScore">${sumPts(state.items)}</b></span></div>
+      <div class="card gold stack" style="gap:16px">
+        <div class="verdict ${item.ok?'ok':'bad'}">${LION('lion')}<div><h2>${title}</h2><p class="muted">${sub}</p></div></div>
+        <div class="opts">${opts.map((o,i)=>`<div class="opt ${o===correct?'right':(o===pick?'wrong':'dim')}"><span class="ltr">${'ABCD'[i]}</span><span>${esc(o)}${o===correct?' <span class="sr">(respuesta correcta)</span>':''}${o===pick&&o!==correct?' <span class="sr">(tu respuesta)</span>':''}</span></div>`).join('')}</div>
+        <div class="verse"><span class="ref">Daniel ${q.c}:${q.v} · Reina-Valera 1960</span>«${esc(q.t)}»</div>
+        <p class="err" id="startErr" role="alert" ${G.err?'':'hidden'}>${esc(G.err)}</p>
+        <div class="row"><button class="btn" id="nextBtn" type="button">${left>0?'Siguiente pregunta':'Ver mi resultado'}</button></div>
+        <p class="credit">Reina-Valera 1960® © Sociedades Bíblicas en América Latina, 1960. Utilizado con permiso.</p>
+      </div>
+    </div>`;
+  const nb = $('#nextBtn'); nb.focus({preventScroll:true});
+  nb.addEventListener('click', () => {
+    const nxt = nextQuestion();
+    if (nxt && state.cfg.open) { G.err=''; beginQuestion(nxt); } else { G.last=null; G.phase='idle'; refresh(); renderGame(); }
+  });
+}
+function renderDone(pool){
+  const root = $('#v-jugar'); const items = pool.map(q=>state.items[q.id]).filter(Boolean);
+  const ok = items.filter(x=>x.ok).length;
+  const mine = state.me ? rankList(state.board.slice(),'pts').find(x=>x.id===state.me.id) : null;
+  const place = mine ? `<p class="lead">Vas en el <b>${ord(mine.rank)} lugar</b> de ${state.board.length}.</p>` : '';
+  root.innerHTML = `
+    <div class="game fade"><div class="card gold stack" style="justify-items:center;text-align:center;gap:16px">
+      <div style="width:130px">${LION('lion')}</div>
+      <h1 style="font-size:clamp(1.7rem,5vw,2.4rem)">¡Terminaste la ronda!</h1>
+      <div class="stat" style="justify-content:center"><div><b>${sumPts(state.items)}</b><span class="muted small">puntos</span></div><div><b>${ok}/${pool.length}</b><span class="muted small">correctas</span></div></div>
+      ${place}
+      <div class="row" style="justify-content:center"><a class="btn" href="#posiciones">Ver posiciones</a><a class="btn ghost" href="#inicio">Volver al inicio</a></div>
+      <p class="muted small">Si la organizadora abre otra ronda, aparecerán nuevas preguntas aquí.</p>
+    </div></div>`;
+}
+
+/* ---------- POSICIONES ---------- */
+function renderPosiciones(){
+  const root = $('#v-posiciones');
+  if (!state.ready) { root.innerHTML = loadingHtml(); return; }
+  const teams = rankList(teamTotals(), 'pts');
+  const maxT = Math.max(1, ...teams.map(t=>t.pts));
+  const people = rankList(state.board.map(s=>({id:s.id,name:s.name||'Jugador',team:s.team,pts:s.pts||0})), 'pts');
+  const myId = state.me && state.me.id;
+  const me = people.find(p=>p.id===myId);
+  const shown = (state.isAdmin ? people : people.slice(0,10));
+  const pod = people.filter(p=>p.pts>0).slice(0,3);
+  const podOrder = [pod[1], pod[0], pod[2]].filter(Boolean);
+  const cls = p => p===pod[0] ? 'first' : p===pod[1] ? 'second' : 'third';
+
+  const teamHtml = teams.map(t => `
+    <div class="trow ${me && me.team===t.id ? 'me':''}">
+      <div class="head"><span class="pos">${t.pts>0?ord(t.rank):'–'}</span><i class="dot" style="background:${safeColor(t.color)}"></i><span class="tn">${esc(t.name)}</span><b style="font-variant-numeric:tabular-nums">${t.pts} pts</b></div>
+      <div class="bar" aria-hidden="true"><i style="width:${Math.round(t.pts*100/maxT)}%;background:${safeColor(t.color)}"></i></div>
+      <span class="muted small">${t.count} ${t.count===1?'jugador':'jugadores'}</span>
+    </div>`).join('');
+  const podHtml = pod.length ? `<div class="podium" role="img" aria-label="Los tres primeros lugares">${podOrder.map(p=>`
+      <div class="pod ${cls(p)}"><div class="nm">${esc(p.name)}</div><div class="pt">${p.pts} pts</div><div class="col"><b>${p.rank}</b></div></div>`).join('')}</div>` : '';
+  let rows = shown.map(p => `
+    <div class="rrow ${p.id===myId?'me':''}"><span class="pos">${p.pts>0?ord(p.rank):'–'}</span><div class="who"><span>${esc(p.name)}${p.id===myId?' (tú)':''}</span><span class="muted small" style="font-weight:600"><i class="dot" style="display:inline-block;width:9px;height:9px;margin-right:6px;background:${safeColor(teamById(p.team).color)}"></i>${esc(teamById(p.team).name)}</span></div><span class="pts">${p.pts}</span></div>`).join('');
+  if (me && !shown.some(p=>p.id===me.id)) {
+    rows += `<p class="muted small" style="text-align:center">· · ·</p><div class="rrow me"><span class="pos">${me.pts>0?ord(me.rank):'–'}</span><div class="who"><span>${esc(me.name)} (tú)</span></div><span class="pts">${me.pts}</span></div>`;
+  }
+  root.innerHTML = `
+    <div class="stack" style="gap:26px">
+      <div class="row" style="justify-content:space-between;align-items:end">
+        <div style="display:grid;gap:6px"><span class="eyebrow">Marcador</span><h1 style="font-size:clamp(1.8rem,5.5vw,2.8rem)">Posiciones</h1></div>
+        <span class="pill ${state.err?'off':''}"><i class="dot"></i>${state.err?'Sin conexión':'Se actualiza solo'}</span>
+      </div>
+      <div class="grid2" style="align-items:start">
+        <section class="card stack" style="gap:14px" aria-labelledby="hEq"><h2 id="hEq">Equipos</h2>${teamHtml}</section>
+        <section class="card stack" style="gap:10px" aria-labelledby="hIn"><h2 id="hIn">Jugadores</h2>
+          ${people.length ? podHtml + `<div class="ranks">${rows}</div>${state.isAdmin||people.length<=10?'':'<p class="muted small">Se muestran los 10 primeros lugares y tu posición.</p>'}` : '<div class="empty"><p>Aún no hay jugadores. Cuando alguien entre al foso, aparecerá aquí.</p></div>'}
+        </section>
+      </div>
+      <p class="muted small">Aquí solo se ven lugares y puntos. Nadie ve qué preguntas falló otra persona. El marcador se actualiza cada pocos segundos.</p>
+    </div>`;
+}
+
+/* ---------- PANEL DE LA ORGANIZADORA ---------- */
+function playerStats(a){
+  const it = Object.values(a.items||{});
+  const ok = it.filter(x=>x.ok).length, to = it.filter(x=>x.to).length;
+  return { n:it.length, ok, to, bad: it.length-ok-to, pts: sumPts(a.items) };
+}
+function renderPanelControls(){
+  const root = $('#v-panel');
+  if (!state.isAdmin) {
+    root.innerHTML = `<div class="card gold stack" style="max-width:480px;margin:0 auto;gap:16px"><div style="width:80px">${LION('lion')}</div><div><div class="eyebrow">Organizadora</div><h2 style="color:var(--sand);margin-top:4px">Entra al panel</h2></div>
+      <form id="pinForm" class="stack" style="gap:14px" novalidate><label class="field" for="pinInput">Clave de la organizadora<input type="password" id="pinInput" autocomplete="current-password" inputmode="numeric" placeholder="Tu clave"></label>
+      ${state.pinErr?`<p class="err" role="alert">${esc(state.pinErr)}</p>`:''}<div class="row"><button class="btn" type="submit">Entrar</button><a class="btn ghost" href="#inicio">Volver</a></div></form></div>`;
+    const f = $('#pinForm'); f.addEventListener('submit', async ev => {
+      ev.preventDefault(); state.pin = $('#pinInput').value.trim(); state.pinErr='';
+      try { await api('admin_check'); state.isAdmin = true; ssSet('pd_pin', state.pin); await refreshAdmin(); renderPanelControls(); renderPanelData(); }
+      catch(e){ state.isAdmin=false; state.pinErr = e.network ? 'No hay conexión con el servidor.' : (e.code==='no_pin' ? 'El panel todavía no tiene clave configurada.' : 'Clave incorrecta.'); renderPanelControls(); }
+    });
+    return;
+  }
+  if (!$('#panelCtl')) root.innerHTML = '<div class="stack" style="gap:26px"><div style="display:grid;gap:6px"><span class="eyebrow">Organizadora</span><h1 style="font-size:clamp(1.8rem,5.5vw,2.8rem)">Panel del juego</h1></div><section class="card stack" id="panelCtl" style="gap:20px"></section><div id="panelData" class="stack" style="gap:26px"></div></div>';
+  const ctl = $('#panelCtl'); if (ctl.contains(document.activeElement) && document.activeElement.tagName==='INPUT') return;
+  const cfg = state.cfg;
+  const chOpts = sel => Array.from({length:CHAPTERS},(_,i)=>`<option value="${i+1}" ${sel===i+1?'selected':''}>Daniel ${i+1}</option>`).join('');
+  ctl.innerHTML = `
+    <div class="row" style="justify-content:space-between"><h2>Controles</h2><span class="pill ${cfg.open?'':'off'}"><i class="dot"></i>${cfg.open?'Juego abierto':'Juego cerrado'}</span></div>
+    <div class="ctrl">
+      <div style="display:grid;gap:8px;align-content:start"><b>Estado del juego</b><button class="btn ${cfg.open?'ghost':''}" id="tgOpen" type="button">${cfg.open?'Cerrar el juego':'Abrir el juego'}</button><span class="muted small">Si lo cierras, nadie puede empezar preguntas nuevas.</span></div>
+      <label class="field" for="selFrom">Desde el capítulo<select id="selFrom">${chOpts(cfg.from)}</select></label>
+      <label class="field" for="selTo">Hasta el capítulo<select id="selTo">${chOpts(cfg.to)}</select></label>
+      <label class="field" for="selSecs">Segundos por pregunta<select id="selSecs">${SECS_OPTIONS.map(s=>`<option value="${s}" ${cfg.secs===s?'selected':''}>${s} segundos</option>`).join('')}</select></label>
+    </div>
+    <p class="muted small">Con el rango de capítulos puedes armar rondas (por ejemplo, Daniel 1 al 4 hoy y el resto mañana). Las preguntas ya respondidas no se repiten. Hay ${poolOf(cfg).length} preguntas en el rango actual.</p>
+    <div class="stack" style="gap:10px"><b>Equipos</b>
+      <div class="tlist">${cfg.teams.map((t,i)=>`<div class="tline"><i class="dot" style="background:${safeColor(t.color)}"></i><input type="text" id="tn${i}" data-i="${i}" maxlength="24" value="${esc(t.name)}" aria-label="Nombre del equipo ${i+1}"><button class="btn ghost small" type="button" data-rm="${i}" ${cfg.teams.length<=2?'disabled':''}>Quitar</button></div>`).join('')}</div>
+      <div class="row"><button class="btn ghost small" id="addTeam" type="button" ${cfg.teams.length>=8?'disabled':''}>Agregar equipo</button><span class="muted small">Entre 2 y 8 equipos. Cambiar un nombre no mueve a nadie de equipo.</span></div>
+    </div>
+    <div class="stack" style="gap:10px;border-top:1px solid var(--line-soft);padding-top:16px"><b>Empezar de nuevo</b>
+      <p class="muted small">Pone en cero los puntos y las respuestas de todos. Los jugadores y sus equipos se quedan.</p>
+      <div class="row">${resetAsk ? '<button class="btn danger small" id="resetYes" type="button">Sí, reiniciar todo</button><button class="btn ghost small" id="resetNo" type="button">Cancelar</button>' : '<button class="btn ghost small" id="resetAsk" type="button">Reiniciar puntajes</button>'}</div>
+    </div>`;
+  const save = async patch => {
+    const next = normCfg(Object.assign({}, state.cfg, patch)); state.cfg = next; renderPanelControls(); renderPanelData();
+    try { const j = await api('admin_cfg', { cfg: next }); state.cfg = normCfg(j.cfg); renderPanelControls(); }
+    catch(e){ toast('No se pudo guardar el cambio. Inténtalo otra vez.'); refreshAdmin(); }
+  };
+  $('#tgOpen').addEventListener('click', () => save({ open: !cfg.open }));
+  $('#selFrom').addEventListener('change', e => { const v=+e.target.value; save({ from:v, to:Math.max(v, state.cfg.to) }); });
+  $('#selTo').addEventListener('change', e => { const v=+e.target.value; save({ to:v, from:Math.min(v, state.cfg.from) }); });
+  $('#selSecs').addEventListener('change', e => save({ secs:+e.target.value }));
+  $$('input[data-i]', ctl).forEach(inp => inp.addEventListener('change', () => {
+    const teams = state.cfg.teams.map(t=>Object.assign({},t)); const i=+inp.dataset.i; teams[i].name = inp.value.trim().slice(0,24) || teams[i].name; save({ teams });
+  }));
+  $$('[data-rm]', ctl).forEach(b => b.addEventListener('click', () => { const teams = state.cfg.teams.filter((_,i)=>i!==+b.dataset.rm); save({ teams }); }));
+  $('#addTeam').addEventListener('click', () => {
+    const teams = state.cfg.teams.map(t=>Object.assign({},t)); let n=teams.length+1; while (teams.some(t=>t.id==='t'+n)) n++;
+    teams.push({ id:'t'+n, name:'Equipo '+(teams.length+1), color:PALETTE[teams.length%PALETTE.length] }); save({ teams });
+  });
+  const ra=$('#resetAsk'); if (ra) ra.addEventListener('click', () => { resetAsk=true; renderPanelControls(); });
+  const rn=$('#resetNo'); if (rn) rn.addEventListener('click', () => { resetAsk=false; renderPanelControls(); });
+  const ry=$('#resetYes'); if (ry) ry.addEventListener('click', async () => { resetAsk=false; renderPanelControls(); try { await api('admin_reset'); toast('Puntajes reiniciados.'); await refreshAdmin(); } catch(e){ toast('No se pudo reiniciar. Inténtalo otra vez.'); } });
+}
+function renderPanelData(){
+  if (!state.isAdmin) return;
+  const host = $('#panelData'); if (!host) return;
+  const answers = state.players.slice();
+  const stats = answers.map(a => Object.assign({a}, playerStats(a)));
+  const totalAns = stats.reduce((x,s)=>x+s.n,0), totalOk = stats.reduce((x,s)=>x+s.ok,0);
+  const pct = totalAns ? Math.round(totalOk*100/totalAns) : 0;
+  const ranked = rankList(stats.map(s=>({id:s.a.id,name:s.a.name||'Jugador',team:s.a.team,pts:s.pts,s})),'pts');
+  const per = QUESTIONS.map(q => { let n=0, ok=0; answers.forEach(a=>{ const it=(a.items||{})[q.id]; if(it){ n++; if(it.ok) ok++; } }); return { q, n, ok, pct: n? ok/n : null }; }).filter(x=>x.n>0).sort((a,b)=> (a.pct-b.pct) || (b.n-a.n)).slice(0,8);
+  host.innerHTML = `
+    <section class="card stack" style="gap:16px" aria-label="Resumen">
+      <div class="tiles">
+        <div class="tile"><b>${answers.length}</b><span class="muted small">jugadores</span></div>
+        <div class="tile"><b>${totalAns}</b><span class="muted small">respuestas registradas</span></div>
+        <div class="tile"><b>${pct}%</b><span class="muted small">de aciertos del grupo</span></div>
+      </div>
+    </section>
+    <section class="card stack" style="gap:14px" aria-labelledby="hPl">
+      <div class="row" style="justify-content:space-between"><h2 id="hPl">Quién respondió qué</h2><button class="btn ghost small" id="csvBtn" type="button">Descargar CSV</button></div>
+      ${ranked.length ? `<div class="tablewrap"><table>
+        <thead><tr><th>Lugar</th><th>Jugador</th><th>Equipo</th><th class="num">Correctas</th><th class="num">Incorrectas</th><th class="num">Sin tiempo</th><th class="num">Puntos</th></tr></thead>
+        <tbody>${ranked.map(p=>{ const o=openRows.has(p.id); return `
+          <tr class="pl"><td>${p.pts>0?ord(p.rank):'–'}</td><td><button class="xbtn" type="button" data-x="${esc(p.id)}" aria-expanded="${o}">${o?'▾':'▸'} ${esc(p.name)}</button></td><td>${esc(teamById(p.team).name)}</td><td class="num">${p.s.ok}</td><td class="num">${p.s.bad}</td><td class="num">${p.s.to}</td><td class="num"><b>${p.pts}</b></td></tr>
+          ${o ? `<tr><td colspan="7">${detailHtml(p.s.a)}</td></tr>`:''}`; }).join('')}
+        </tbody></table></div>` : '<div class="empty"><p>Todavía nadie ha respondido. Cuando los jóvenes jueguen, verás aquí sus aciertos y errores.</p></div>'}
+      <p class="muted small">Solo tú ves esta tabla. En Posiciones el grupo ve únicamente lugares y puntos. Se actualiza cada pocos segundos.</p>
+    </section>
+    <section class="card stack" style="gap:14px" aria-labelledby="hHard"><h2 id="hHard">Preguntas que más se fallan</h2>
+      ${per.length ? `<div class="hard">${per.map(x=>`<div class="hrow"><b>Daniel ${x.q.c}:${x.q.v}</b><div class="meter" aria-hidden="true"><i style="width:${Math.round(x.pct*100)}%"></i></div><span class="muted">${x.ok} de ${x.n} acertaron</span></div>`).join('')}</div>` : '<p class="muted">Aparecerán cuando haya respuestas.</p>'}
+    </section>`;
+  $$('[data-x]', host).forEach(b => b.addEventListener('click', () => { const id=b.dataset.x; if (openRows.has(id)) openRows.delete(id); else openRows.add(id); renderPanelData(); }));
+  const cb = $('#csvBtn'); if (cb) cb.addEventListener('click', exportCsv);
+}
+function detailHtml(a){
+  const order = QUESTIONS.map(q=>q.id);
+  const ids = Object.keys(a.items||{}).sort((x,y)=>order.indexOf(x)-order.indexOf(y));
+  if (!ids.length) return '<p class="muted small">Todavía no responde nada.</p>';
+  return '<div class="detail">'+ids.map(id => { const it=a.items[id], q=qById[id]; if(!q) return '';
+    const tag = it.ok ? '<span class="tag ok">✓ Correcta</span>' : it.to ? '<span class="tag to">⏱ Sin tiempo</span>' : '<span class="tag bad">✗ Incorrecta</span>';
+    return `<div class="drow"><b>Daniel ${q.c}:${q.v}</b>${tag}<span>${it.to?'No alcanzó a responder':'Respondió: '+esc(it.pick)}</span><span class="muted" style="text-align:right">${it.sec} s · ${it.pts} pts</span></div>`; }).join('')+'</div>';
+}
+function exportCsv(){
+  const cell = v => { v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const lines = [['Jugador','Equipo','Pregunta','Resultado','Respuesta','Segundos','Puntos'].join(',')];
+  state.players.forEach(a => Object.keys(a.items||{}).forEach(id => { const it=a.items[id], q=qById[id]; if(!q) return;
+    lines.push([a.name, teamById(a.team).name, 'Daniel '+q.c+':'+q.v, it.ok?'Correcta':it.to?'Sin tiempo':'Incorrecta', it.to?'':it.pick, it.sec, it.pts].map(cell).join(',')); }));
+  try {
+    const url = URL.createObjectURL(new Blob(['﻿'+lines.join('\n')], { type:'text/csv;charset=utf-8' }));
+    const a = document.createElement('a'); a.href = url; a.download = 'resultados-pregunton-daniel.csv'; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000); toast('Archivo descargado.');
+  } catch(e){ toast('No se pudo descargar el archivo.'); }
+}
+
+/* ---------- arranque ---------- */
+route();
+(async function(){ if (state.pin) { try { await api('admin_check'); state.isAdmin = true; } catch(e){ if (e.code==='bad_pin') { state.pin=''; ssSet('pd_pin',''); } } } await refresh(); if (route.cur==='panel') { await refreshAdmin(); renderPanelControls(); renderPanelData(); } })();
+})();
+</script>
+</body>
+</html>
