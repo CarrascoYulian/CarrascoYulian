@@ -3,9 +3,10 @@ import { ANSWERS } from './answers.js';
 
 export const CHAPTERS = 12;
 export const SECS_OPTIONS = [20, 30, 45, 60];
-const PALETTE = ['#ebbb4d', '#5aa0ff', '#5cc593', '#ee7258', '#b995f2', '#f08bb6', '#5fd0d6', '#f0a35a'];
-// Cinco equipos. Los nombres y colores definitivos se cambian desde el Panel de la organizadora.
-const TEAM_NAMES = ['Equipo 1', 'Equipo 2', 'Equipo 3', 'Equipo 4', 'Equipo 5'];
+// Azul, rojo, amarillo, verde, naranja, morado, rosa, turquesa.
+const PALETTE = ['#4f9bff', '#e5484d', '#f5d33a', '#3fbf7f', '#f28c28', '#b995f2', '#f08bb6', '#5fd0d6'];
+// Cinco equipos, en el orden de la organizadora. Se pueden cambiar desde el Panel.
+const TEAM_NAMES = ['Daniel', 'Sadrac', 'Mesac', 'Abed-Nego', 'Miguel'];
 const BASE = { medio: 100, alto: 150 };   // puntos base por nivel; la rapidez suma hasta la mitad más
 const GRACE_MS = 2000;      // margen por la demora de la red
 const CACHE_MS = 12000;     // el marcador se recalcula como máximo cada 12 s por instancia
