@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createGame } from '../lib/logic.js';
+import { createGame, ptsFor } from '../lib/logic.js';
 import { getStore } from '../lib/store.js';
 import { ANSWERS } from '../lib/answers.js';
 
@@ -25,10 +25,13 @@ await ok({ a: 'join', pid: pidB, name: 'Beto', team: 't2' });
 let s = await ok({ a: 'start', pid: pidA, qid: q1 });
 clock += 5000;
 let r = await ok({ a: 'answer', pid: pidA, qid: q1, token: s.token, pick: ANSWERS[q1].a });
-assert.equal(r.item.ok, 1); assert.equal(r.item.pts, 100 + Math.round(50 * 25 / 30)); assert.equal(r.correct, ANSWERS[q1].a);
+const pts1 = ptsFor(25000, 30, ANSWERS[q1].lv);
+assert.equal(r.item.ok, 1); assert.equal(r.item.pts, pts1); assert.equal(r.correct, ANSWERS[q1].a);
+assert.equal(ptsFor(25000, 30, 'alto'), 150 + Math.round(75 * 25 / 30));
+assert.ok(ptsFor(25000, 30, 'alto') > ptsFor(25000, 30, 'medio'));
 // repetir la misma respuesta no suma otra vez
 r = await ok({ a: 'answer', pid: pidA, qid: q1, token: s.token, pick: ANSWERS[q1].a });
-assert.equal(r.dup, true); assert.equal(r.me.pts, 142);
+assert.equal(r.dup, true); assert.equal(r.me.pts, pts1);
 await err({ a: 'start', pid: pidA, qid: q1 }, 409, 'answered');
 
 // respuesta incorrecta
@@ -61,7 +64,7 @@ await err({ a: 'answer', pid: pidB, qid: qids[6], token: sB.token, pick: 'x' }, 
 clock += 20_000; game._cacheReset();
 st = await ok({ a: 'state', pid: pidB });
 assert.deepEqual(Object.keys(st.board[0]).sort(), ['id', 'name', 'pts', 'team']);
-assert.equal(st.board[0].name, 'Ana b'); assert.equal(st.board[0].pts, 142);
+assert.equal(st.board[0].name, 'Ana b'); assert.equal(st.board[0].pts, pts1);
 const blob = JSON.stringify(st);
 for (const k of qids) if (ANSWERS[k].a.length > 12) assert.ok(!blob.includes(ANSWERS[k].a), 'no se filtra: ' + ANSWERS[k].a);
 assert.deepEqual(st.me.items, {});

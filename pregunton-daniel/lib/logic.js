@@ -4,7 +4,9 @@ import { ANSWERS } from './answers.js';
 export const CHAPTERS = 12;
 export const SECS_OPTIONS = [20, 30, 45, 60];
 const PALETTE = ['#ebbb4d', '#5aa0ff', '#5cc593', '#ee7258', '#b995f2', '#f08bb6', '#5fd0d6', '#f0a35a'];
-const TEAM_NAMES = ['Daniel', 'Sadrac', 'Mesac', 'Abed-nego'];
+// Cinco equipos. Los nombres y colores definitivos se cambian desde el Panel de la organizadora.
+const TEAM_NAMES = ['Equipo 1', 'Equipo 2', 'Equipo 3', 'Equipo 4', 'Equipo 5'];
+const BASE = { medio: 100, alto: 150 };   // puntos base por nivel; la rapidez suma hasta la mitad más
 const GRACE_MS = 2000;      // margen por la demora de la red
 const CACHE_MS = 12000;     // el marcador se recalcula como máximo cada 12 s por instancia
 const PID_RE = /^[A-Za-z0-9_-]{16,64}$/;
@@ -32,7 +34,10 @@ export function normCfg(d) {
 
 const pubId = pid => crypto.createHash('sha256').update('pub:' + pid).digest('hex').slice(0, 12);
 const sha = s => crypto.createHash('sha256').update(String(s)).digest();
-const ptsFor = (leftMs, secs) => 100 + Math.round(50 * Math.max(0, leftMs) / (secs * 1000));
+export const ptsFor = (leftMs, secs, lv = 'medio') => {
+  const base = BASE[lv] || BASE.medio;
+  return base + Math.round(base * 0.5 * Math.max(0, leftMs) / (secs * 1000));
+};
 const cleanName = s => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f<>]/g, '').replace(/\s+/g, ' ').trim().slice(0, 24);
 
 class HttpError extends Error { constructor(status, msg, code) { super(msg); this.status = status; this.code = code; } }
@@ -104,7 +109,7 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
     if (forceTimeout && elapsed < limit - 1500) throw new HttpError(409, 'Todavía queda tiempo.', 'not_yet');
     const timedOut = forceTimeout || elapsed > limit + GRACE_MS;
     const ok = !timedOut && pick === key.a;
-    const item = { ok: ok ? 1 : 0, pick: timedOut ? '' : String(pick || '').slice(0, 200), sec: Math.round(Math.min(t.secs, Math.max(0, elapsed / 1000)) * 10) / 10, pts: ok ? ptsFor(limit - elapsed, t.secs) : 0, to: timedOut ? 1 : 0 };
+    const item = { ok: ok ? 1 : 0, pick: timedOut ? '' : String(pick || '').slice(0, 200), sec: Math.round(Math.min(t.secs, Math.max(0, elapsed / 1000)) * 10) / 10, pts: ok ? ptsFor(limit - elapsed, t.secs, key.lv) : 0, to: timedOut ? 1 : 0 };
     pl.items = Object.assign({}, pl.items, { [qid]: item });
     pl.pts = sumPts(pl.items); pl.n = Object.keys(pl.items).length; pl.t = now();
     await savePlayer(pl);
