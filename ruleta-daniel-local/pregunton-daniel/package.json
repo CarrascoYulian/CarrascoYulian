@@ -1,0 +1,10 @@
+{
+  "name": "pregunton-daniel",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Preguntón bíblico del libro de Daniel (Reina Valera 1960) con equipos, tiempo por pregunta y marcador.",
+  "engines": { "node": "22.x" },
+  "dependencies": { "@vercel/blob": "2.9.0" },
+  "scripts": { "test": "node test/logic.test.js", "dev": "node test/dev-server.js" }
+}

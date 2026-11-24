@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daniel 1 al 12</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* Concepto: tablero de dos equipos arriba, pregunta al centro, panel de cita bíblica fijo abajo. Azul = Michelle, rojo = Dalismel. */
+:root {
+  --bg: #eef1f8;
+  --surface: #ffffff;
+  --fg: #151a30;
+  --muted: #5b6380;
+  --line: #d6dbea;
+  --blue: #1c5fd4;
+  --blue-soft: #dde8fc;
+  --red: #cc2b38;
+  --red-soft: #fbe0e3;
+  --good: #167a45;
+  --good-soft: #d9f2e4;
+  --bad: #a65a10;
+  --bad-soft: #fbead2;
+  --gold: #8a6a1c;
+  --on-team: #ffffff;
+  --s1: #0d7f86; --s2: #6a45c2; --s3: #b85a0e; --s4: #2a7d46; --s5: #8a6600; --on-seg: #ffffff;
+  --font-display: "Cinzel", Georgia, serif;
+  --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-verse: "Lora", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1120; --surface: #171d34; --fg: #e8ebf7; --muted: #99a2c0; --line: #2b3357;
+    --blue: #6a9cff; --blue-soft: #1a2b57; --red: #ff6c77; --red-soft: #4b1e29;
+    --good: #52cf8d; --good-soft: #14392a; --bad: #f2b255; --bad-soft: #43301a; --gold: #e2c26b;
+    --on-team: #0d1120;
+    --s1: #3fc1c9; --s2: #a58bf0; --s3: #f0954a; --s4: #5ccf8a; --s5: #ecc552; --on-seg: #0d1120;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1120; --surface: #171d34; --fg: #e8ebf7; --muted: #99a2c0; --line: #2b3357;
+  --blue: #6a9cff; --blue-soft: #1a2b57; --red: #ff6c77; --red-soft: #4b1e29;
+  --good: #52cf8d; --good-soft: #14392a; --bad: #f2b255; --bad-soft: #43301a; --gold: #e2c26b;
+  --on-team: #0d1120;
+  --s1: #3fc1c9; --s2: #a58bf0; --s3: #f0954a; --s4: #5ccf8a; --s5: #ecc552; --on-seg: #0d1120;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 28px;
+}
+body.has-panel { padding-bottom: 330px; }
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--font-display); font-size: clamp(1.5rem, 5vw, 2rem); margin: 0; letter-spacing: .04em; text-wrap: balance; }
+.sub { color: var(--muted); margin: 4px 0 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* marcador */
+.board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.team { background: var(--surface); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; transition: border-color .2s, background .2s; }
+.team .nm { font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+.team .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.team .pts { font-size: 2.2rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.team .det { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.team.blue .dot { background: var(--blue); } .team.blue .pts { color: var(--blue); }
+.team.red .dot { background: var(--red); } .team.red .pts { color: var(--red); }
+.team.blue.on { border-color: var(--blue); background: var(--blue-soft); }
+.team.red.on { border-color: var(--red); background: var(--red-soft); }
+.team .tag { font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); height: 1em; }
+.team.on .tag { color: var(--fg); }
+
+/* tarjeta */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: .85rem; color: var(--muted); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); width: 0; transition: width .3s; }
+.turn { font-weight: 800; font-size: 1rem; }
+.turn.blue { color: var(--blue); } .turn.red { color: var(--red); }
+.q { font-family: var(--font-verse); font-size: clamp(1.2rem, 4vw, 1.5rem); line-height: 1.35; margin: 0; text-wrap: balance; }
+.opts { display: grid; gap: 10px; }
+.opt { display: flex; gap: 12px; align-items: center; text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; min-height: 52px; transition: border-color .15s, background .15s; }
+.opt:hover:not(:disabled) { border-color: var(--fg); }
+.opt .ltr { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .9rem; background: var(--surface); border: 2px solid var(--line); }
+.opt .tx { min-width: 0; overflow-wrap: anywhere; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); }
+.opt.right .ltr { background: var(--good); color: var(--surface); border-color: var(--good); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); border-style: dashed; }
+.opt.wrong .ltr { background: var(--bad); color: var(--surface); border-color: var(--bad); }
+.opt.dim { opacity: .55; }
+
+
+/* ruleta y cuenta atrás */
+.wheelbox { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 10px; }
+.wheelwrap { position: relative; width: min(320px, 80vw); aspect-ratio: 1; max-width: 100%; }
+.wheelwrap svg { width: 100%; height: 100%; display: block; overflow: visible; }
+#wheel { transform-origin: 100px 100px; transform-box: view-box; }
+#wheel text { font-family: var(--font-body); font-weight: 800; font-size: 11.5px; fill: var(--on-seg); letter-spacing: .02em; }
+.pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 26px solid var(--fg); z-index: 2; }
+.landed { font-weight: 800; text-align: center; min-height: 1.5em; text-wrap: balance; }
+.qbox { display: flex; flex-direction: column; gap: 14px; }
+.timer { display: flex; align-items: center; gap: 12px; }
+.timer .num { font-weight: 800; font-size: 1.7rem; font-variant-numeric: tabular-nums; min-width: 2.2ch; text-align: right; }
+.tbar { flex: 1; height: 12px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.tbar > i { display: block; height: 100%; width: 100%; background: var(--good); transition: width .15s linear, background .2s; }
+.timer.low .num { color: var(--bad); }
+.timer.low .tbar > i { background: var(--bad); }
+.qtype { align-self: flex-start; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 2px solid var(--line); border-radius: 99px; padding: 3px 12px; }
+.qtype.x2 { color: var(--gold); border-color: var(--gold); }
+.blank { display: inline-block; min-width: 5ch; border-bottom: 3px solid var(--gold); padding: 0 .25em; text-align: center; }
+.blank.filled { color: var(--good); font-weight: 700; }
+.opts.tf { grid-template-columns: 1fr 1fr; }
+
+/* panel inferior con la cita */
+.panel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 3px solid var(--gold); box-shadow: 0 -8px 24px rgba(0,0,0,.14);
+  padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); padding-top: 14px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+.panel-in { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+.verdict { font-weight: 800; font-size: 1.05rem; }
+.verdict.ok { color: var(--good); } .verdict.ko { color: var(--bad); }
+.ref { font-family: var(--font-display); font-weight: 700; color: var(--gold); letter-spacing: .05em; font-size: 1rem; }
+.verse { font-family: var(--font-verse); font-style: italic; margin: 0; max-height: 26vh; overflow-y: auto; line-height: 1.5; }
+.btn { background: var(--fg); color: var(--bg); border: 0; border-radius: 12px; padding: 12px 20px; font-weight: 800; min-height: 48px; align-self: flex-start; }
+.btn.alt { background: transparent; color: var(--fg); border: 2px solid var(--line); }
+.btn.blue { background: var(--blue); color: var(--on-team); }
+
+/* inicio y final */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 2px solid var(--line); background: var(--bg); border-radius: 99px; min-width: 48px; min-height: 44px; padding: 6px 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+label.lb { font-weight: 800; }
+select { font: inherit; background: var(--bg); color: var(--fg); border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px; min-height: 44px; }
+.hint { color: var(--muted); font-size: .9rem; margin: 0; }
+.winner { font-family: var(--font-display); font-size: clamp(1.4rem, 5vw, 1.9rem); margin: 0; text-wrap: balance; }
+.winner.blue { color: var(--blue); } .winner.red { color: var(--red); }
+.theme { align-self: flex-end; background: transparent; border: 2px solid var(--line); border-radius: 99px; padding: 6px 12px; font-size: .8rem; font-weight: 700; color: var(--muted); }
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Daniel 1 al 12</h1>
+      <p class="sub">Reina-Valera 1960 · Michelle contra Dalismel · ruleta y 30 segundos</p>
+    </div>
+    <button class="theme" id="themeBtn" type="button" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
+  </header>
+
+  <section class="board" id="board" aria-label="Marcador"></section>
+
+  <section class="card" id="setup">
+    <div>
+      <label class="lb">Capítulos de Daniel</label>
+      <p class="hint">Toca los capítulos que quieren repasar.</p>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="row">
+      <button class="btn alt" type="button" id="allBtn">Todos</button>
+      <label class="lb" for="countSel">Preguntas</label>
+      <select id="countSel"></select>
+    </div>
+    <p class="hint" id="setupInfo"></p>
+    <button class="btn blue" type="button" id="startBtn">Empezar el juego</button>
+  </section>
+
+  <section class="card" id="game" hidden>
+    <div class="meta"><span id="progTxt"></span><span id="chapTxt"></span></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="turn" id="turn"></div>
+    <div class="wheelbox" id="wheelbox">
+      <div class="wheelwrap">
+        <div class="pointer"></div>
+        <svg viewBox="0 0 200 200" aria-hidden="true"><g id="wheel"></g></svg>
+      </div>
+      <div class="landed" id="landed" aria-live="polite"></div>
+      <button class="btn blue" id="spinBtn" type="button">Girar la ruleta</button>
+    </div>
+    <div class="qbox" id="qbox" hidden>
+      <div class="timer" id="timer" role="timer" aria-label="Tiempo para responder"><span class="num" id="tnum">30</span><div class="tbar"><i id="tbar"></i></div></div>
+      <div class="qtype" id="qtype"></div>
+      <h2 class="q" id="q"></h2>
+      <p class="hint" id="qhelp"></p>
+      <div class="opts" id="opts"></div>
+    </div>
+  </section>
+
+  <section class="card" id="final" hidden>
+    <h2 class="winner" id="winner"></h2>
+    <p class="hint" id="finalInfo"></p>
+    <div class="row">
+      <button class="btn blue" type="button" id="againBtn">Jugar otra vez</button>
+      <button class="btn alt" type="button" id="menuBtn">Cambiar capítulos</button>
+    </div>
+  </section>
+</div>
+
+<div class="panel" id="panel" hidden role="status" aria-live="polite">
+  <div class="panel-in">
+    <div class="verdict" id="verdict"></div>
+    <div class="ref" id="ref"></div>
+    <p class="verse" id="verse"></p>
+    <button class="btn" type="button" id="nextBtn">Siguiente</button>
+  </div>
+</div>
+
+<script>
+// Cada pregunta: c = capítulo, q = pregunta, o = opciones (la primera es la correcta), r = cita, v = texto RVR1960
+var Q = [
+// ---------- Daniel 1
+{c:1,q:"¿Qué propuso Daniel en su corazón cuando llegó a Babilonia?",o:["No contaminarse con la porción de la comida del rey ni con su vino","Orar tres veces al día frente a una ventana","No aprender las letras de los caldeos","Huir de regreso a Jerusalén"],r:"Daniel 1:8",v:"Pero Daniel propuso en su corazón no contaminarse con la porción de la comida del rey, ni con el vino que él bebía; pidió, por tanto, al jefe de los eunucos que no se le obligase a contaminarse."},
+{c:1,q:"¿Qué nombre le puso el jefe de los eunucos a Daniel?",o:["Beltsasar","Sadrac","Mesac","Abed-nego"],r:"Daniel 1:7",v:"A los cuales el jefe de los eunucos puso nombres: puso a Daniel, Beltsasar; a Ananías, Sadrac; a Misael, Mesac; y a Azarías, Abed-nego."},
+{c:1,q:"¿Cuántos días duró la prueba de comer legumbres y beber agua?",o:["Diez días","Tres días","Siete días","Veintiún días"],r:"Daniel 1:12",v:"Te ruego que hagas la prueba con tus siervos por diez días, y que nos den legumbres a comer, y agua a beber."},
+{c:1,q:"¿En qué tuvo entendimiento Daniel, por don de Dios?",o:["En toda visión y sueños","Solo en la música","En la guerra y las batallas","En la construcción de ciudades"],r:"Daniel 1:17",v:"A estos cuatro muchachos Dios les dio conocimiento e inteligencia en todas las letras y ciencia; y Daniel tuvo entendimiento en toda visión y sueños."},
+{c:1,q:"¿Qué hizo Dios con Daniel delante del jefe de los eunucos?",o:["Lo puso en gracia y en buena voluntad","Lo puso en prisión","Lo envió de regreso a su tierra","Lo dejó sin protección"],r:"Daniel 1:9",v:"Y puso Dios a Daniel en gracia y en buena voluntad con el jefe de los eunucos."},
+// ---------- Daniel 2
+{c:2,q:"En el sueño de la estatua, ¿qué parte representaba al rey Nabucodonosor?",o:["La cabeza de oro","El pecho de plata","Los pies de hierro y barro","Las piernas de hierro"],r:"Daniel 2:38",v:"y todo lugar donde habitan hijos de hombres, bestias del campo y aves del cielo, él los ha entregado en tu mano, y te ha dado el dominio sobre todo; tú eres aquella cabeza de oro."},
+{c:2,q:"¿Qué hirió a la estatua en sus pies de hierro y de barro?",o:["Una piedra cortada, no con mano","Un rayo del cielo","Un terremoto","Una espada de fuego"],r:"Daniel 2:34",v:"Estabas mirando, hasta que una piedra fue cortada, no con mano, e hirió a la imagen en sus pies de hierro y de barro cocido, y los desmenuzó."},
+{c:2,q:"Según Daniel, ¿quién revela los misterios?",o:["Un Dios en los cielos","Los magos y astrólogos","Los adivinos de Babilonia","Los sabios del rey"],r:"Daniel 2:28",v:"Pero hay un Dios en los cielos, el cual revela los misterios, y él ha hecho saber al rey Nabucodonosor lo que ha de acontecer en los postreros días. Tu sueño, y las visiones de tu cabeza sobre tu cama, son esto:"},
+{c:2,q:"¿Cómo llamó el rey Nabucodonosor al Dios de Daniel?",o:["Dios de dioses y Señor de los reyes","Dios de los ejércitos","El Dios de Abraham","Rey de la tierra"],r:"Daniel 2:47",v:"El rey habló a Daniel, y dijo: Ciertamente el Dios vuestro es Dios de dioses, y Señor de los reyes, y el que revela los misterios, pues pudiste revelar este misterio."},
+{c:2,q:"¿Cómo será el reino que levantará el Dios del cielo?",o:["Un reino que no será jamás destruido","Un reino que durará mil años","Un reino que pasará a otro pueblo","Un reino de oro y plata"],r:"Daniel 2:44",v:"Y en los días de estos reyes el Dios del cielo levantará un reino que no será jamás destruido, ni será el reino dejado a otro pueblo; desmenuzará y consumirá a todos estos reinos, pero él permanecerá para siempre."},
+// ---------- Daniel 3
+{c:3,q:"¿Cuánto medía de alto la estatua de oro que hizo Nabucodonosor?",o:["Sesenta codos","Seis codos","Cien codos","Treinta codos"],r:"Daniel 3:1",v:"El rey Nabucodonosor hizo una estatua de oro, cuya altura era de sesenta codos, y su anchura de seis codos; la levantó en el campo de Dura, en la provincia de Babilonia."},
+{c:3,q:"¿Cuántas veces más se calentó el horno de fuego de lo acostumbrado?",o:["Siete veces más","Tres veces más","Diez veces más","Doce veces más"],r:"Daniel 3:19",v:"Entonces Nabucodonosor se llenó de ira, y se demudó el aspecto de su rostro contra Sadrac, Mesac y Abed-nego, y ordenó que el horno se calentase siete veces más de lo acostumbrado."},
+{c:3,q:"¿Qué respondieron Sadrac, Mesac y Abed-nego al rey?",o:["Que Dios podía librarlos, y si no, no adorarían la estatua","Que adorarían la estatua para salvar la vida","Que pedirían perdón al rey","Que no tenían nada que responder"],r:"Daniel 3:17-18",v:"He aquí nuestro Dios a quien servimos puede librarnos del horno de fuego ardiendo; y de tu mano, oh rey, nos librará. Y si no, sepas, oh rey, que no serviremos a tus dioses, ni tampoco adoraremos la estatua que has levantado."},
+{c:3,q:"¿A quién se parecía el cuarto varón que se paseaba en el fuego?",o:["A hijo de los dioses","A un ángel con espada","A Daniel","A Nabucodonosor"],r:"Daniel 3:25",v:"Él respondió: He aquí yo veo cuatro varones sueltos, que se pasean en medio del fuego sin sufrir ningún daño; y el aspecto del cuarto es semejante a hijo de los dioses."},
+// ---------- Daniel 4
+{c:4,q:"¿Qué dijo el rey mientras se paseaba sobre el palacio de Babilonia?",o:["¿No es esta la gran Babilonia que yo edifiqué?","Bendito sea el Dios de Daniel","He pecado contra el Altísimo","Mi reino terminará pronto"],r:"Daniel 4:30",v:"Habló el rey y dijo: ¿No es esta la gran Babilonia que yo edifiqué para casa real con la fuerza de mi poder, y para gloria de mi majestad?"},
+{c:4,q:"¿Cuántos tiempos pasarían sobre el rey hasta que conociera que el Altísimo tiene el dominio?",o:["Siete tiempos","Tres tiempos","Cuarenta tiempos","Doce tiempos"],r:"Daniel 4:32",v:"y te echarán de entre los hombres, y con las bestias del campo será tu morada, y como a los bueyes te apacentarán; y siete tiempos pasarán sobre ti, hasta que conozcas que el Altísimo tiene el dominio en el reino de los hombres, y que lo da a quien él quiere."},
+{c:4,q:"¿Qué consejo le dio Daniel al rey?",o:["Redimir sus pecados con justicia y tener misericordia de los oprimidos","Construir otro templo","Hacer guerra contra Egipto","Ofrecer incienso a sus dioses"],r:"Daniel 4:27",v:"Por tanto, oh rey, acepta mi consejo: tus pecados redime con justicia, y tus iniquidades con misericordias para con los oprimidos, pues tal vez será eso una prolongación de tu tranquilidad."},
+{c:4,q:"Al final, ¿a quién alabó, engrandeció y glorificó Nabucodonosor?",o:["Al Rey del cielo","A Bel, dios de Babilonia","A Daniel","A la estatua de oro"],r:"Daniel 4:37",v:"Ahora yo Nabucodonosor alabo, engrandezco y glorifico al Rey del cielo, porque todas sus obras son verdaderas, y sus caminos justos; y humilla a los que andan con soberbia."},
+// ---------- Daniel 5
+{c:5,q:"¿A cuántos de sus príncipes hizo Belsasar un gran banquete?",o:["A mil","A cien","A setenta","A doce"],r:"Daniel 5:1",v:"El rey Belsasar hizo un gran banquete a mil de sus príncipes, y en presencia de los mil bebía vino."},
+{c:5,q:"¿Qué palabras estaban escritas en la pared?",o:["Mene, Mene, Tekel, Uparsin","Aleluya, Amén, Gloria, Paz","Santo, Santo, Santo","Alfa, Omega, Principio, Fin"],r:"Daniel 5:25",v:"Y la escritura que trazó es: MENE, MENE, TEKEL, UPARSIN."},
+{c:5,q:"¿Qué significa «Tekel»?",o:["Pesado has sido en balanza, y fuiste hallado falto","Contado ha Dios tu reino y le ha puesto fin","Tu reino fue dividido","Has sido hallado justo"],r:"Daniel 5:27",v:"TEKEL: Pesado has sido en balanza, y fuiste hallado falto."},
+{c:5,q:"¿Qué ocurrió con Belsasar esa misma noche?",o:["Fue muerto, y Darío de Media tomó el reino","Se arrepintió y pidió perdón","Huyó de Babilonia","Hizo a Daniel rey"],r:"Daniel 5:30-31",v:"La misma noche fue muerto Belsasar, rey de los caldeos. Y Darío de Media tomó el reino, siendo de sesenta y dos años."},
+// ---------- Daniel 6
+{c:6,q:"¿Contra qué buscaban los gobernadores una ocasión para acusar a Daniel?",o:["La ley de su Dios","Sus gastos como gobernador","Su ausencia del palacio","Su amistad con el rey"],r:"Daniel 6:5",v:"Entonces dijeron aquellos hombres: No hallaremos contra este Daniel ocasión alguna para acusarle, si no la hallamos contra él en relación con la ley de su Dios."},
+{c:6,q:"¿Cuántas veces al día se arrodillaba Daniel a orar, con las ventanas abiertas hacia Jerusalén?",o:["Tres veces","Una vez","Siete veces","Dos veces"],r:"Daniel 6:10",v:"Cuando Daniel supo que el edicto había sido firmado, entró en su casa, y abiertas las ventanas de su cámara que daban hacia Jerusalén, se arrodillaba tres veces al día, y oraba y daba gracias delante de su Dios, como solía hacerlo antes."},
+{c:6,q:"¿Quién cerró la boca de los leones para que no hicieran daño a Daniel?",o:["El ángel que envió su Dios","El rey Darío","Los príncipes","Un profeta"],r:"Daniel 6:22",v:"Mi Dios envió su ángel, el cual cerró la boca de los leones, para que no me hiciesen daño, porque ante él fui hallado inocente; y aun delante de ti, oh rey, yo no he hecho nada malo."},
+{c:6,q:"¿Por qué no se halló ninguna lesión en Daniel?",o:["Porque había confiado en su Dios","Porque los leones estaban dormidos","Porque el foso era poco profundo","Porque el rey lo ordenó"],r:"Daniel 6:23",v:"Fue entonces el rey muy contento a causa de él, y mandó sacar a Daniel del foso; y fue Daniel sacado del foso, y ninguna lesión se halló en él, porque había confiado en su Dios."},
+// ---------- Daniel 7
+{c:7,q:"¿De dónde subían las cuatro bestias grandes de la visión de Daniel?",o:["Del mar","De la tierra","Del desierto","Del monte"],r:"Daniel 7:3",v:"Y cuatro bestias grandes, diferentes la una de la otra, subían del mar."},
+{c:7,q:"¿Cómo era la primera bestia?",o:["Como león, con alas de águila","Como oso, con tres costillas","Como leopardo, con cuatro alas","Como toro, con diez cuernos"],r:"Daniel 7:4",v:"La primera era como león, y tenía alas de águila. Yo estaba mirando hasta que sus alas fueron arrancadas, y fue levantada del suelo y se puso en pie como un hombre, y le fue dado corazón de hombre."},
+{c:7,q:"¿Cómo era el vestido del Anciano de días?",o:["Blanco como la nieve","Rojo como la sangre","Azul como el cielo","De púrpura y oro"],r:"Daniel 7:9",v:"Estuve mirando hasta que fueron puestos tronos, y se sentó un Anciano de días, cuyo vestido era blanco como la nieve, y el pelo de su cabeza como lana limpia; su trono llama de fuego, y las ruedas del mismo, fuego ardiente."},
+{c:7,q:"¿Con qué venía uno como un hijo de hombre hasta el Anciano de días?",o:["Con las nubes del cielo","Con un carro de fuego","Con un ejército de ángeles","Con un torbellino"],r:"Daniel 7:13-14",v:"Miraba yo en la visión de la noche, y he aquí con las nubes del cielo venía uno como un hijo de hombre, que vino hasta el Anciano de días, y le hicieron acercarse delante de él. Y le fue dado dominio, gloria y reino, para que todos los pueblos, naciones y lenguas le sirvieran; su dominio es dominio eterno, que nunca pasará, y su reino uno que no será destruido."},
+// ---------- Daniel 8
+{c:8,q:"¿A qué reyes representa el carnero de dos cuernos?",o:["A los reyes de Media y de Persia","A los reyes de Egipto","A los reyes de Babilonia","A los reyes de Asiria"],r:"Daniel 8:20-21",v:"Aquel carnero que viste, que tenía dos cuernos, representa a los reyes de Media y de Persia. El macho cabrío es el rey de Grecia; y el cuerno grande que tenía entre sus ojos es el rey primero."},
+{c:8,q:"¿Qué ángel recibió la orden de enseñar a Daniel la visión?",o:["Gabriel","Miguel","Rafael","Uriel"],r:"Daniel 8:16",v:"Y oí una voz de hombre entre las riberas del Ulai, que gritó y dijo: Gabriel, enseña a éste la visión."},
+{c:8,q:"¿Cuántas tardes y mañanas pasarían hasta que el santuario fuera purificado?",o:["Dos mil trescientas","Mil doscientas sesenta","Setenta","Tres mil seiscientas"],r:"Daniel 8:14",v:"Y él me dijo: Hasta dos mil trescientas tardes y mañanas; luego el santuario será purificado."},
+{c:8,q:"¿Cómo quedó Daniel después de ver la visión?",o:["Quebrantado y enfermo algunos días","Lleno de gozo y fuerza","Sin ningún temor","Dormido por tres días"],r:"Daniel 8:27",v:"Y yo, Daniel, quedé quebrantado, y estuve enfermo algunos días; y cuando convalecí, atendí los negocios del rey; pero estaba espantado a causa de la visión, y no la entendía."},
+// ---------- Daniel 9
+{c:9,q:"¿En cuántos años se cumplirían las desolaciones de Jerusalén, según Jeremías?",o:["Setenta años","Cuarenta años","Cien años","Siete años"],r:"Daniel 9:2",v:"en el año primero de su reinado, yo Daniel miré atentamente en los libros el número de los años de que habló Jehová al profeta Jeremías, que habían de cumplirse las desolaciones de Jerusalén en setenta años."},
+{c:9,q:"¿Cómo buscó Daniel a Dios en su oración?",o:["En ayuno, cilicio y ceniza","Con cánticos y arpas","Con holocaustos y ofrendas","En silencio y soledad en el monte"],r:"Daniel 9:3",v:"Y volví mi rostro a Dios el Señor, buscándole en oración y ruego, en ayuno, cilicio y ceniza."},
+{c:9,q:"¿A qué hora vino Gabriel a Daniel mientras este oraba?",o:["A la hora del sacrificio de la tarde","A la medianoche","Al amanecer","Al mediodía"],r:"Daniel 9:21",v:"aún estaba hablando en oración, cuando el varón Gabriel, a quien había visto en la visión al principio, volando con presteza, vino a mí como a la hora del sacrificio de la tarde."},
+{c:9,q:"¿Cuántas semanas están determinadas sobre el pueblo de Daniel y la santa ciudad?",o:["Setenta semanas","Siete semanas","Sesenta y dos semanas","Cuarenta semanas"],r:"Daniel 9:24",v:"Setenta semanas están determinadas sobre tu pueblo y sobre tu santa ciudad, para terminar la prevaricación, poner fin al pecado, y expiar la iniquidad, para traer la justicia perpetua, y sellar la visión y la profecía, y ungir al Santo de los santos."},
+// ---------- Daniel 10
+{c:10,q:"¿Cuántas semanas estuvo Daniel afligido, sin comer manjar delicado ni carne ni vino?",o:["Tres semanas","Una semana","Siete semanas","Cuarenta días"],r:"Daniel 10:2-3",v:"En aquellos días yo Daniel estuve afligido por tres semanas. No comí manjar delicado, ni entró en mi boca carne ni vino, ni me ungí con ungüento, hasta que se cumplieron las tres semanas enteras."},
+{c:10,q:"¿A orillas de qué río estaba Daniel cuando tuvo la visión?",o:["El gran río Hidekel","El río Jordán","El río Quebar","El río Nilo"],r:"Daniel 10:4",v:"Y a los veinticuatro días del mes primero estaba yo a la orilla del gran río Hidekel."},
+{c:10,q:"¿Quién vino a ayudar al ángel cuando el príncipe del reino de Persia se le opuso?",o:["Miguel, uno de los principales príncipes","Gabriel","Elías","Un querubín"],r:"Daniel 10:13",v:"Pero el príncipe del reino de Persia se me opuso durante veintiún días; y he aquí Miguel, uno de los principales príncipes, vino para ayudarme, y quedé allí con los reyes de Persia."},
+{c:10,q:"¿Desde qué momento fueron oídas las palabras de Daniel?",o:["Desde el primer día que dispuso su corazón a entender y a humillarse","Desde que terminó los tres años de ayuno","Desde que llegó a Babilonia","Desde que el rey lo nombró gobernador"],r:"Daniel 10:12",v:"Entonces me dijo: Daniel, no temas; porque desde el primer día que dispusiste tu corazón a entender y a humillarte en la presencia de tu Dios, fueron oídas tus palabras; y a causa de tus palabras yo he venido."},
+// ---------- Daniel 11
+{c:11,q:"¿Cuántos reyes más habría en Persia, y cómo sería el cuarto?",o:["Tres reyes, y el cuarto se haría de grandes riquezas","Siete reyes, y el último sería justo","Doce reyes, y el cuarto sería pobre","Un solo rey de gran poder"],r:"Daniel 11:2",v:"Y ahora yo te mostraré la verdad. He aquí que habrá tres reyes en Persia, y el cuarto se hará de grandes riquezas más que todos; y al hacerse fuerte con sus riquezas, levantará a todos contra el reino de Grecia."},
+{c:11,q:"¿Cómo sería el rey que se levantaría luego, que dominaría con gran poder?",o:["Un rey valiente","Un rey anciano","Un rey pacífico","Un rey niño"],r:"Daniel 11:3",v:"Se levantará luego un rey valiente, el cual dominará con gran poder y hará su voluntad."},
+{c:11,q:"¿Qué hará el pueblo que conoce a su Dios?",o:["Se esforzará y actuará","Huirá al desierto","Guardará silencio","Se esconderá en las cuevas"],r:"Daniel 11:32",v:"Con lisonjas seducirá a los que violan el pacto; mas el pueblo que conoce a su Dios se esforzará y actuará."},
+{c:11,q:"¿Qué le sucederá finalmente al rey que plantó sus tiendas entre los mares y el monte glorioso y santo?",o:["Llegará a su fin, y no tendrá quien le ayude","Se convertirá al Dios de Daniel","Reinará para siempre","Será llevado cautivo a Egipto"],r:"Daniel 11:45",v:"Y plantará las tiendas de su palacio entre los mares y el monte glorioso y santo; pero llegará a su fin, y no tendrá quien le ayude."},
+// ---------- Daniel 12
+{c:12,q:"¿Quién se levantará en aquel tiempo como el gran príncipe a favor del pueblo de Daniel?",o:["Miguel","Gabriel","Elías","Moisés"],r:"Daniel 12:1",v:"En aquel tiempo se levantará Miguel, el gran príncipe que está de parte de los hijos de tu pueblo; y será tiempo de angustia, cual nunca fue desde que hubo gente hasta entonces; pero en aquel tiempo será libertado tu pueblo, todos los que se hallen escritos en el libro."},
+{c:12,q:"¿Qué pasará con muchos de los que duermen en el polvo de la tierra?",o:["Serán despertados, unos para vida eterna y otros para vergüenza perpetua","Dormirán hasta el fin de los siglos","Serán transformados en ángeles","Serán olvidados para siempre"],r:"Daniel 12:2",v:"Y muchos de los que duermen en el polvo de la tierra serán despertados, unos para vida eterna, y otros para vergüenza y confusión perpetua."},
+{c:12,q:"¿Cómo resplandecerán los que enseñan la justicia a la multitud?",o:["Como las estrellas a perpetua eternidad","Como el sol del mediodía","Como la luna llena","Como el oro refinado"],r:"Daniel 12:3",v:"Los entendidos resplandecerán como el resplandor del firmamento; y los que enseñan la justicia a la multitud, como las estrellas a perpetua eternidad."},
+{c:12,q:"¿Qué se le mandó a Daniel hacer con las palabras hasta el tiempo del fin?",o:["Cerrarlas y sellar el libro","Predicarlas en las plazas","Enterrarlas en una cueva","Entregarlas al rey"],r:"Daniel 12:4",v:"Pero tú, Daniel, cierra las palabras y sella el libro hasta el tiempo del fin. Muchos correrán de aquí para allá, y la ciencia se aumentará."},
+{c:12,q:"¿Qué recibiría Daniel al fin de los días?",o:["Su heredad","Una corona de oro","Un reino en Babilonia","Una nueva ciudad"],r:"Daniel 12:13",v:"Y tú irás hasta el fin, y reposarás, y te levantarás para recibir tu heredad al fin de los días."}
+];
+
+// ---------- Preguntas adicionales (hasta ~20 por capítulo). Los versículos se buscan por cita en V.
+var V = {};
+Q.forEach(function(x){ V[x.r] = x.v; });
+function A(c, q, a, w, r) { Q.push({c: c, q: q, o: [a].concat(w), r: r}); }
+var VX = {
+"Daniel 1:1":"En el año tercero del reinado de Joacim rey de Judá, vino Nabucodonosor rey de Babilonia a Jerusalén, y la sitió.",
+"Daniel 1:2":"Y el Señor entregó en sus manos a Joacim rey de Judá, y parte de los utensilios de la casa de Dios; y los trajo a tierra de Sinar, a la casa de su dios, y colocó los utensilios en la casa del tesoro de su dios.",
+"Daniel 1:3":"Y dijo el rey a Aspenaz, jefe de sus eunucos, que trajese de los hijos de Israel, del linaje real de los príncipes, muchachos en quienes no hubiese tacha alguna, de buen parecer, y enseñados en toda sabiduría, sabios en ciencia, y de buen entendimiento, e idóneos para estar en el palacio del rey; y que les enseñase las letras y la lengua de los caldeos.",
+"Daniel 1:5":"Y les señaló el rey ración para cada día, de la provisión de la comida del rey, y del vino que él bebía; y que los criase tres años, para que al fin de ellos estuviesen delante del rey.",
+"Daniel 1:6":"Entre estos estaban Daniel, Ananías, Misael y Azarías, de los hijos de Judá.",
+"Daniel 1:15":"Pasados los diez días, el aspecto de ellos apareció mejor y más robusto que el de los muchachos que comían de la porción de la comida del rey.",
+"Daniel 1:16":"Así, pues, Melsar se llevaba la ración de la comida de ellos y el vino que habían de beber, y les daba legumbres.",
+"Daniel 1:19":"Y el rey habló con ellos, y no fueron hallados entre todos ellos otros como Daniel, Ananías, Misael y Azarías; así, pues, estuvieron delante del rey.",
+"Daniel 1:20":"Y en todo asunto de sabiduría e inteligencia que el rey les consultó, los halló diez veces mejores que todos los magos y astrólogos que había en todo su reino.",
+"Daniel 1:21":"Y continuó Daniel hasta el año primero del rey Ciro.",
+"Daniel 2:1":"En el segundo año del reinado de Nabucodonosor, soñó Nabucodonosor sueños, y su espíritu se perturbó, y se le fue el sueño.",
+"Daniel 2:2":"Y mandó el rey llamar magos, astrólogos, encantadores y caldeos, para que explicasen al rey sus sueños. Vinieron, pues, y se presentaron delante del rey.",
+"Daniel 2:5":"Respondió el rey y dijo a los caldeos: El asunto lo olvidé; si no me mostráis el sueño y su interpretación, seréis hechos pedazos, y vuestras casas serán convertidas en muladares.",
+"Daniel 2:11":"Porque el asunto que el rey demanda es difícil, y no hay quien lo pueda declarar al rey, salvo los dioses cuya morada no está con la carne.",
+"Daniel 2:16":"Y Daniel entró y pidió al rey que le diese tiempo, y que él mostraría la interpretación al rey.",
+"Daniel 2:18":"para demandar misericordias del Dios del cielo sobre este misterio, a fin de que Daniel y sus compañeros no pereciesen con los otros sabios de Babilonia.",
+"Daniel 2:19":"Entonces el secreto fue revelado a Daniel en visión de noche, por lo cual bendijo Daniel al Dios del cielo.",
+"Daniel 2:20":"Y Daniel dijo: Sea bendito el nombre de Dios de siglos en siglos, porque suyos son el poder y la sabiduría.",
+"Daniel 2:21":"Él muda los tiempos y las edades; quita reyes, y pone reyes; da la sabiduría a los sabios, y la ciencia a los entendidos.",
+"Daniel 2:22":"Él revela lo profundo y lo escondido; conoce lo que está en tinieblas, y con él mora la luz.",
+"Daniel 2:32":"La cabeza de esta imagen era de oro fino; su pecho y sus brazos, de plata; su vientre y sus muslos, de bronce;",
+"Daniel 2:33":"sus piernas de hierro; sus pies, en parte de hierro y en parte de barro cocido.",
+"Daniel 2:39":"Y después de ti se levantará otro reino inferior al tuyo; y luego un tercer reino de bronce, el cual dominará sobre toda la tierra.",
+"Daniel 2:45":"de la manera que viste que del monte fue cortada una piedra, no con mano, la cual desmenuzó el hierro, el bronce, el barro, la plata y el oro. El Dios grande ha mostrado al rey lo que ha de acontecer en lo por venir; y el sueño es verdadero, y fiel su interpretación.",
+"Daniel 2:48":"Entonces el rey engrandeció a Daniel, y le dio muchos honores y grandes dones, y le hizo gobernador de toda la provincia de Babilonia, y jefe supremo de todos los sabios de Babilonia.",
+"Daniel 2:49":"Y Daniel solicitó del rey, y obtuvo que pusiese sobre los negocios de la provincia de Babilonia a Sadrac, Mesac y Abed-nego; y Daniel estaba en la corte del rey.",
+"Daniel 3:4-5":"Y el pregonero anunciaba en alta voz: Mándase a vosotros, oh pueblos, naciones y lenguas, que al oír el son de la bocina, de la flauta, del tamboril, del arpa, del salterio, de la zampoña y de todo instrumento de música, os postréis y adoréis la estatua de oro que el rey Nabucodonosor ha levantado;",
+"Daniel 3:6":"y cualquiera que no se postre y adore, en la misma hora será echado dentro de un horno de fuego ardiendo.",
+"Daniel 3:8":"Entonces en aquel tiempo algunos varones caldeos vinieron y acusaron maliciosamente a los judíos.",
+"Daniel 3:12":"Hay unos varones judíos, los cuales pusiste sobre los negocios de la provincia de Babilonia: Sadrac, Mesac y Abed-nego; estos varones, oh rey, no te han respetado; no adoran a tus dioses, ni adoran la estatua de oro que has levantado.",
+"Daniel 3:15":"Ahora, pues, ¿estáis dispuestos para que al oír el son de la bocina, de la flauta, del tamboril, del arpa, del salterio, de la zampoña y de todo instrumento de música, os postréis y adoréis la estatua que he hecho? Porque si no la adoráis, en la misma hora seréis echados en medio de un horno de fuego ardiendo; ¿y qué dios será aquel que os libre de mis manos?",
+"Daniel 3:16":"Sadrac, Mesac y Abed-nego respondieron al rey Nabucodonosor: No es necesario que te respondamos sobre este asunto.",
+"Daniel 3:20":"Y mandó a hombres muy vigorosos que tenía en su ejército, que atasen a Sadrac, Mesac y Abed-nego, para echarlos en el horno de fuego ardiendo.",
+"Daniel 3:21":"Entonces estos varones fueron atados con sus mantos, sus calzas, sus turbantes y sus vestidos, y fueron echados dentro del horno de fuego ardiendo.",
+"Daniel 3:22":"Y como la palabra del rey era apremiante, y lo encendido del horno muy vehemente, la llama del fuego mató a aquellos que habían alzado a Sadrac, Mesac y Abed-nego.",
+"Daniel 3:24":"Entonces el rey Nabucodonosor se espantó, y se levantó apresuradamente y dijo a los de su consejo: ¿No echaron a tres varones atados dentro del fuego? Ellos respondieron al rey: Es verdad, oh rey.",
+"Daniel 3:26":"Entonces Nabucodonosor se acercó a la puerta del horno de fuego ardiendo, y dijo: Sadrac, Mesac y Abed-nego, siervos del Dios Altísimo, salid y venid. Entonces Sadrac, Mesac y Abed-nego salieron de en medio del fuego.",
+"Daniel 3:27":"Y se juntaron los sátrapas, los gobernadores, los capitanes y los consejeros del rey, para mirar a estos varones, cómo el fuego no había tenido poder alguno sobre sus cuerpos, ni aun el cabello de sus cabezas se había quemado; sus vestidos no se habían alterado, ni olor de fuego había pasado por ellos.",
+"Daniel 3:28":"Entonces Nabucodonosor dijo: Bendito sea el Dios de ellos, de Sadrac, Mesac y Abed-nego, que envió su ángel y libró a sus siervos que confiaron en él, y que no cumplieron el edicto del rey, y entregaron sus cuerpos antes que servir y adorar a otro dios que su Dios.",
+"Daniel 3:29":"Por lo tanto, decreto que todo pueblo, nación o lengua que dijere blasfemia contra el Dios de Sadrac, Mesac y Abed-nego, sea descuartizado, y su casa convertida en muladar; por cuanto no hay dios que pueda librar como éste.",
+"Daniel 3:30":"Entonces el rey engrandeció a Sadrac, Mesac y Abed-nego en la provincia de Babilonia.",
+"Daniel 4:1":"Nabucodonosor rey, a todos los pueblos, naciones y lenguas que moran en toda la tierra: Paz os sea multiplicada.",
+"Daniel 4:2":"Las señales y milagros que el Dios Altísimo ha hecho conmigo, me ha parecido bien manifestarlos.",
+"Daniel 4:3":"¡Cuán grandes son sus señales, y cuán potentes sus maravillas! Su reino, reino sempiterno, y su señorío de generación en generación.",
+"Daniel 4:4":"Yo Nabucodonosor estaba tranquilo en mi casa, y floreciente en mi palacio.",
+"Daniel 4:5":"Vi un sueño que me espantó, y tendido en mi cama las imaginaciones y visiones de mi cabeza me turbaron.",
+"Daniel 4:8":"Hasta que entró delante de mí Daniel, cuyo nombre es Beltsasar como el nombre de mi dios, y en quien mora el espíritu de los santos dioses, y expuse ante él el sueño, diciendo:",
+"Daniel 4:10":"Las visiones de mi cabeza mientras estaba en mi lecho: Me parecía ver en medio de la tierra un árbol, cuya altura era grande.",
+"Daniel 4:13":"Vi en las visiones de mi cabeza mientras estaba en mi cama, que un vigilante y santo descendía del cielo.",
+"Daniel 4:22":"tú mismo eres, oh rey, que creciste y te hiciste fuerte, pues tu grandeza ha crecido y alcanzado hasta el cielo, y tu dominio hasta los confines de la tierra.",
+"Daniel 4:25":"que te echarán de entre los hombres, y con las bestias del campo será tu morada, y con hierba del campo te apacentarán como a los bueyes, y con el rocío del cielo serás bañado; y siete tiempos pasarán sobre ti, hasta que conozcas que el Altísimo tiene el dominio en el reino de los hombres, y que lo da a quien él quiere.",
+"Daniel 4:29":"Al cabo de doce meses, paseándose sobre el palacio del reino de Babilonia,",
+"Daniel 4:33":"En la misma hora se cumplió la palabra sobre Nabucodonosor, y fue echado de entre los hombres; y comía hierba como los bueyes, y su cuerpo se mojaba con el rocío del cielo, hasta que su pelo creció como plumas de águila, y sus uñas como las de las aves.",
+"Daniel 4:34":"Mas al fin del tiempo yo Nabucodonosor alcé mis ojos al cielo, y mi razón me fue devuelta; y bendije al Altísimo, y alabé y glorifiqué al que vive para siempre, cuyo dominio es sempiterno, y su reino por todas las edades.",
+"Daniel 4:35":"Todos los habitantes de la tierra son considerados como nada; y él hace según su voluntad en el ejército del cielo, y en los habitantes de la tierra, y no hay quien detenga su mano, y le diga: ¿Qué haces?",
+"Daniel 4:36":"En el mismo tiempo mi razón volvió a mí, y la majestad de mi reino, mi dignidad y mi grandeza volvieron a mí, y mis consejeros y mis grandes me buscaron; y fui restablecido en mi reino, y mayor grandeza me fue añadida.",
+"Daniel 5:2":"Belsasar, con el sabor del vino, mandó que trajesen los vasos de oro y de plata que Nabucodonosor su padre había traído del templo de Jerusalén, para que bebiesen en ellos el rey y sus príncipes, sus mujeres y sus concubinas.",
+"Daniel 5:3":"Entonces fueron traídos los vasos de oro que habían traído del templo de la casa de Dios que estaba en Jerusalén, y bebieron en ellos el rey y sus príncipes, sus mujeres y sus concubinas.",
+"Daniel 5:4":"Bebieron vino, y alabaron a los dioses de oro y de plata, de bronce, de hierro, de madera y de piedra.",
+"Daniel 5:5":"En la misma hora aparecieron unos dedos de una mano de hombre, que escribía delante del candelero sobre lo encalado de la pared del palacio real, y el rey veía la palma de la mano que escribía.",
+"Daniel 5:6":"Entonces el rey palideció, y sus pensamientos lo turbaron, y se debilitaron sus caderas, y sus rodillas daban la una contra la otra.",
+"Daniel 5:7":"El rey gritó en alta voz que hiciesen venir magos, caldeos y adivinos; y dijo el rey a los sabios de Babilonia: Cualquiera que lea esta escritura y me muestre su interpretación, será vestido de púrpura, y un collar de oro llevará en su cuello, y será el tercer señor en el reino.",
+"Daniel 5:10":"La reina, en virtud de las palabras del rey y de sus príncipes, entró a la sala del banquete; y habló la reina y dijo: Rey, para siempre vive; no te turben tus pensamientos, ni palidezca tu rostro.",
+"Daniel 5:11":"En tu reino hay un hombre en el cual mora el espíritu de los santos dioses, y en los días de tu padre se halló en él luz, e inteligencia y sabiduría, como sabiduría de los dioses; al cual el rey Nabucodonosor tu padre, oh rey, constituyó jefe de los magos, astrólogos, caldeos y adivinos,",
+"Daniel 5:17":"Entonces Daniel respondió y dijo delante del rey: Tus dones sean para ti, y tus recompensas dalas a otro; yo leeré la escritura al rey, y le daré la interpretación.",
+"Daniel 5:21":"y fue echado de entre los hijos de los hombres; y su corazón se hizo semejante al de las bestias, y con los asnos monteses fue su morada. Hierba le hicieron comer como a buey, y su cuerpo fue mojado con el rocío del cielo, hasta que reconoció que el Altísimo Dios tiene dominio sobre el reino de los hombres, y que pone sobre él al que le place.",
+"Daniel 5:23":"sino que contra el Señor del cielo te has ensoberbecido, e hiciste traer delante de ti los vasos de su casa, y tú, y tus grandes, tus mujeres y tus concubinas, bebisteis vino en ellos; además de esto, alabaste a dioses de plata y oro, de bronce, de hierro, de madera y de piedra, que ni ven, ni oyen, ni saben; y al Dios en cuya mano está tu vida, y cuyos son todos tus caminos, nunca honraste.",
+"Daniel 5:26":"Esta es la interpretación del asunto: MENE: Contó Dios tu reino, y le ha puesto fin.",
+"Daniel 5:28":"PERES: Tu reino ha sido roto, y dado a los medos y a los persas.",
+"Daniel 5:29":"Entonces mandó Belsasar vestir a Daniel de púrpura, y poner en su cuello un collar de oro, y proclamar que él era el tercer señor del reino.",
+"Daniel 5:30":"La misma noche fue muerto Belsasar, rey de los caldeos.",
+"Daniel 5:31":"Y Darío de Media tomó el reino, siendo de sesenta y dos años.",
+"Daniel 6:1":"Pareció bien a Darío constituir sobre el reino ciento veinte sátrapas, que gobernasen en todo el reino.",
+"Daniel 6:2":"y sobre ellos tres gobernadores, de los cuales Daniel era uno, a quienes estos sátrapas diesen cuenta, para que el rey no sufriese daño.",
+"Daniel 6:3":"Pero Daniel mismo era superior a estos sátrapas y gobernadores, porque había en él un espíritu superior; y el rey pensó en ponerlo sobre todo el reino.",
+"Daniel 6:4":"Entonces los gobernadores y sátrapas buscaban ocasión para acusar a Daniel en lo relacionado al reino; mas no podían hallar ocasión alguna o falta, porque él era fiel, y ningún vicio ni falta fue hallada en él.",
+"Daniel 6:7":"Todos los gobernadores del reino, magistrados, sátrapas, príncipes y capitanes han acordado por consejo que promulgues un edicto real y lo confirmes, que cualquiera que en el espacio de treinta días demande petición de cualquier dios u hombre fuera de ti, oh rey, sea echado en el foso de los leones.",
+"Daniel 6:8":"Ahora, oh rey, confirma el edicto y fírmalo, para que no pueda ser cambiado, conforme a la ley de Media y de Persia, la cual no puede ser abrogada.",
+"Daniel 6:13":"Entonces respondieron y dijeron delante del rey: Daniel, que es de los hijos de los cautivos de Judá, no te respeta a ti, oh rey, ni acata el edicto que confirmaste, sino que tres veces al día hace su petición.",
+"Daniel 6:14":"Cuando el rey oyó el asunto, le pesó en gran manera, y resolvió librar a Daniel; y hasta la puesta del sol trabajó para librarle.",
+"Daniel 6:16":"Entonces el rey mandó, y trajeron a Daniel, y lo echaron en el foso de los leones. Y el rey dijo a Daniel: El Dios tuyo, a quien tú continuamente sirves, él te libre.",
+"Daniel 6:17":"Y fue traída una piedra y puesta sobre la puerta del foso, la cual selló el rey con su anillo y con el anillo de sus príncipes, para que el acuerdo acerca de Daniel no se alterase.",
+"Daniel 6:18":"Luego el rey se fue a su palacio, y se acostó sin cenar, ni fueron traídos instrumentos de música delante de él, y se le fue el sueño.",
+"Daniel 6:20":"Y llegando cerca del foso, llamó a voces a Daniel con voz triste, y le dijo: Daniel, siervo del Dios viviente, el Dios tuyo, a quien tú continuamente sirves, ¿te ha podido librar de los leones?",
+"Daniel 6:21":"Entonces Daniel respondió al rey: Oh rey, vive para siempre.",
+"Daniel 6:24":"Y mandó el rey que trajesen a aquellos hombres que habían acusado a Daniel, y que los echasen en el foso de los leones a ellos, a sus hijos y a sus mujeres; y aún no habían llegado al fondo del foso, cuando los leones se apoderaron de ellos y quebrantaron todos sus huesos.",
+"Daniel 6:26":"De parte mía es dado edicto que en todo el dominio de mi reino todos teman y tiemblen ante la presencia del Dios de Daniel; porque él es el Dios viviente y permanece por todos los siglos, y su reino no será destruido, y su dominio perdurará hasta el fin.",
+"Daniel 6:27":"Él salva y libra, y hace señales y maravillas en el cielo y en la tierra; él ha librado a Daniel del poder de los leones.",
+"Daniel 6:28":"Y este Daniel prosperó durante el reinado de Darío y durante el reinado de Ciro el persa.",
+"Daniel 7:1":"En el primer año de Belsasar rey de Babilonia tuvo Daniel un sueño, y visiones de su cabeza mientras estaba en su lecho; luego escribió el sueño, y relató lo principal del asunto.",
+"Daniel 7:2":"Daniel dijo: Miraba yo en mi visión de noche, y he aquí que los cuatro vientos del cielo combatían en el gran mar.",
+"Daniel 7:5":"Y he aquí otra segunda bestia, semejante a un oso, la cual se alzaba de un costado más que del otro, y tenía en su boca tres costillas entre los dientes; y le fue dicho así: Levántate, devora mucha carne.",
+"Daniel 7:6":"Después de esto miré, y he aquí otra, semejante a un leopardo, con cuatro alas de ave en sus espaldas; tenía también esta bestia cuatro cabezas; y le fue dado dominio.",
+"Daniel 7:7":"Después de esto miraba yo en las visiones de la noche, y he aquí la cuarta bestia, espantosa y terrible y en gran manera fuerte, la cual tenía unos dientes grandes de hierro; devoraba y desmenuzaba, y las sobras hollaba con sus pies, y era diferente de todas las bestias que vinieron antes de ella, y tenía diez cuernos.",
+"Daniel 7:8":"Mientras yo contemplaba los cuernos, he aquí que otro cuerno pequeño salía entre ellos, y delante de él fueron arrancados tres cuernos de los primeros; y he aquí que este cuerno tenía ojos como de hombre, y una boca que hablaba grandes cosas.",
+"Daniel 7:10":"Un río de fuego procedía y salía de delante de él; millares de millares le servían, y millones de millones asistían delante de él; el juicio se sentó, y los libros fueron abiertos.",
+"Daniel 7:15":"Se turbó mi espíritu dentro de mí, yo Daniel, y las visiones de mi cabeza me asombraron.",
+"Daniel 7:17":"Estas cuatro bestias grandes son cuatro reyes que se levantarán en la tierra.",
+"Daniel 7:18":"Después recibirán el reino los santos del Altísimo, y poseerán el reino hasta el siglo, eternamente y para siempre.",
+"Daniel 7:21":"Yo veía que este cuerno hacía guerra contra los santos, y los vencía,",
+"Daniel 7:22":"hasta que vino el Anciano de días, y se dio el juicio a los santos del Altísimo; y llegó el tiempo, y los santos recibieron el reino.",
+"Daniel 7:25":"Y hablará palabras contra el Altísimo, y a los santos del Altísimo quebrantará, y pensará en cambiar los tiempos y la ley; y serán entregados en su mano hasta tiempo, y tiempos, y medio tiempo.",
+"Daniel 7:26":"Pero se sentará el Juez, y le quitarán su dominio para que sea destruido y arruinado hasta el fin,",
+"Daniel 7:27":"Y el reino, y el dominio, y la majestad de los reinos debajo de todo el cielo, será dado al pueblo de los santos del Altísimo, cuyo reino es reino eterno, y todos los dominios le servirán y obedecerán.",
+"Daniel 7:28":"Aquí fue el fin del asunto. En cuanto a mí, Daniel, mis pensamientos me turbaron mucho, y mi rostro se demudó; pero guardé el asunto en mi corazón.",
+"Daniel 8:1":"En el año tercero del reinado del rey Belsasar me apareció una visión a mí, Daniel, después de aquella que me había aparecido al principio.",
+"Daniel 8:2":"Vi en visión, estando yo en Susa, que está en la provincia de Elam, junto al río Ulai.",
+"Daniel 8:3":"Alcé los ojos y miré, y he aquí un carnero que estaba delante del río, y tenía dos cuernos; y aunque los cuernos eran altos, uno era más alto que el otro, y el más alto crecía detrás.",
+"Daniel 8:5":"Mientras yo consideraba, he aquí un macho cabrío venía del lado del occidente sobre la faz de toda la tierra, sin tocar tierra; y aquel macho cabrío tenía un cuerno notable entre sus ojos.",
+"Daniel 8:8":"Y el macho cabrío se engrandeció sobremanera; pero estando en su mayor fuerza, aquel gran cuerno fue quebrado, y en su lugar salieron cuatro cuernos notables hacia los cuatro vientos del cielo.",
+"Daniel 8:9":"Y de uno de ellos salió un cuerno pequeño, que creció mucho al sur, y al oriente, y hacia la tierra gloriosa.",
+"Daniel 8:10":"Y se engrandeció hasta el ejército del cielo; y parte del ejército y de las estrellas echó por tierra, y las pisoteó.",
+"Daniel 8:13":"Entonces oí a un santo que hablaba; y otro de los santos preguntó a aquel que hablaba: ¿Hasta cuándo durará la visión del continuo sacrificio, y la prevaricación asoladora entregando el santuario y el ejército para ser pisoteados?",
+"Daniel 8:15":"Y mientras yo Daniel consideraba la visión y procuraba comprenderla, he aquí que se puso delante de mí uno con apariencia de hombre.",
+"Daniel 8:17":"Vino entonces cerca de donde yo estaba; y con su venida me asombré, y me postré sobre mi rostro. Pero él me dijo: Entiende, hijo de hombre, porque la visión es para el tiempo del fin.",
+"Daniel 8:18":"Mientras él hablaba conmigo, caí dormido en tierra sobre mi rostro; mas él me tocó, y me hizo estar en pie.",
+"Daniel 8:22":"Y en cuanto al cuerno que fue quebrado, y en su lugar se levantaron cuatro, significa que cuatro reinos se levantarán de esa nación, pero no con la fuerza de él.",
+"Daniel 8:23":"Y al cabo del reinado de éstos, cuando los transgresores lleguen al colmo, se levantará un rey altivo de rostro y entendido en enigmas.",
+"Daniel 8:24":"Y su poder se fortalecerá, mas no con fuerza propia; y causará grandes ruinas, y prosperará, y hará arbitrariamente, y destruirá a los fuertes y al pueblo de los santos.",
+"Daniel 8:25":"Con su sagacidad hará prosperar el engaño en su mano; y en su corazón se engrandecerá, y sin aviso destruirá a muchos; y se levantará contra el Príncipe de los príncipes, pero será quebrantado, aunque no por mano humana.",
+"Daniel 8:26":"Y la visión de las tardes y mañanas que ha sido dicha, es verdadera; pero tú guarda la visión, porque es para muchos días.",
+"Daniel 9:1":"En el año primero de Darío hijo de Asuero, de la nación de los medos, que fue constituido rey sobre el reino de los caldeos,",
+"Daniel 9:4":"Oré a Jehová mi Dios, e hice confesión diciendo: Ahora, Señor, Dios grande, digno de ser temido, que guardas el pacto y la misericordia con los que te aman y guardan tus mandamientos;",
+"Daniel 9:5":"hemos pecado, hemos cometido iniquidad, hemos obrado impíamente, y hemos sido rebeldes, y nos hemos apartado de tus mandamientos y de tus ordenanzas.",
+"Daniel 9:7":"Tuya es, Señor, la justicia, y nuestra la confusión de rostro, como en este día lo es a todo hombre de Judá, a los moradores de Jerusalén, y a todo Israel, a los de cerca y a los de lejos, en todas las tierras adonde los has echado a causa de su rebelión con que se rebelaron contra ti.",
+"Daniel 9:9":"De Jehová nuestro Dios es el tener misericordia y el perdonar, aunque contra él nos hemos rebelado,",
+"Daniel 9:17":"Ahora pues, Dios nuestro, oye la oración de tu siervo, y sus ruegos; y haz que tu rostro resplandezca sobre tu santuario asolado, por amor del Señor.",
+"Daniel 9:18":"Inclina, oh Dios mío, tu oído, y oye; abre tus ojos, y mira nuestras desolaciones, y la ciudad sobre la cual es invocado tu nombre; porque no elevamos nuestros ruegos ante tu acatamiento confiados en nuestras justicias, sino en tus muchas misericordias.",
+"Daniel 9:19":"Oye, Señor; oh Señor, perdona; presta oído, Señor, y hazlo; no tardes, por amor de ti mismo, Dios mío; porque tu nombre es invocado sobre tu ciudad y sobre tu pueblo.",
+"Daniel 9:20":"Aún estaba hablando y orando, y confesando mi pecado y el pecado de mi pueblo Israel, y derramaba mi ruego delante de Jehová mi Dios por el monte santo de mi Dios;",
+"Daniel 9:22":"Y me hizo entender, y habló conmigo, diciendo: Daniel, ahora he salido para darte sabiduría y entendimiento.",
+"Daniel 9:23":"Al principio de tus ruegos fue dada la orden, y yo he venido para enseñártela, porque tú eres muy amado. Entiende, pues, la orden, y entiende la visión.",
+"Daniel 9:25":"Sabe, pues, y entiende, que desde la salida de la orden para restaurar y edificar a Jerusalén hasta el Mesías Príncipe, habrá siete semanas, y sesenta y dos semanas; se volverá a edificar la plaza y el muro en tiempos angustiosos.",
+"Daniel 9:26":"Y después de las sesenta y dos semanas se quitará la vida al Mesías, mas no por sí; y el pueblo de un príncipe que ha de venir destruirá la ciudad y el santuario; y su fin será con inundación, y hasta el fin de la guerra durarán las devastaciones.",
+"Daniel 9:27":"Y por otra semana confirmará el pacto con muchos; a la mitad de la semana hará cesar el sacrificio y la ofrenda. Después con la muchedumbre de las abominaciones vendrá el desolador, hasta que venga la consumación, y lo que está determinado se derrame sobre el desolador.",
+"Daniel 10:1":"En el año tercero de Ciro rey de Persia fue revelada palabra a Daniel, llamado Beltsasar; y la palabra era verdadera, y el conflicto grande; pero él comprendió la palabra, y tuvo inteligencia en la visión.",
+"Daniel 10:5":"Alcé mis ojos y miré, y he aquí un varón vestido de lino, y ceñidos sus lomos de oro de Ufaz.",
+"Daniel 10:6":"Su cuerpo era como de berilo, y su rostro parecía un relámpago, y sus ojos como antorchas de fuego, y sus brazos y sus pies como de color del bronce muy bruñido, y el sonido de sus palabras como el estruendo de una multitud.",
+"Daniel 10:7":"Y solo yo, Daniel, vi aquella visión, y no la vieron los hombres que estaban conmigo, sino que se apoderó de ellos un gran temor, y huyeron y se escondieron.",
+"Daniel 10:8":"Quedé, pues, yo solo, y vi esta gran visión; y no quedó fuerza en mí, antes mi fuerza se cambió en desfallecimiento, y no tuve vigor alguno.",
+"Daniel 10:9":"Pero oí el sonido de sus palabras; y al oír el sonido de sus palabras, caí sobre mi rostro en un profundo sueño, con mi rostro en tierra.",
+"Daniel 10:10":"Y he aquí una mano me tocó, e hizo que me pusiese sobre mis rodillas y sobre las palmas de mis manos.",
+"Daniel 10:11":"Y me dijo: Daniel, varón muy amado, está atento a las palabras que te hablaré, y ponte en pie; porque a ti he sido enviado ahora. Mientras hablaba esto conmigo, me puse en pie temblando.",
+"Daniel 10:14":"He venido para hacerte saber lo que ha de venir a tu pueblo en los postreros días; porque la visión es para esos días.",
+"Daniel 10:15":"Mientras me decía estas palabras, estaba yo con los ojos puestos en tierra, y enmudecido.",
+"Daniel 10:16":"Y he aquí uno con semejanza de hijo de hombre tocó mis labios. Entonces abrí mi boca y hablé, y dije al que estaba delante de mí: Señor mío, con la visión me han sobrevenido dolores, y no me queda fuerza.",
+"Daniel 10:19":"Y dijo: Muy amado, no temas; la paz sea contigo; esfuérzate y aliéntate. Y mientras él me hablaba, recobré las fuerzas, y dije: Hable mi señor, porque me has fortalecido.",
+"Daniel 10:20":"Y dijo: ¿Sabes por qué he venido a ti? Pues ahora tengo que volver para pelear contra el príncipe de Persia; y al terminar con él, el príncipe de Grecia vendrá.",
+"Daniel 10:21":"Pero yo te declararé lo que está escrito en el libro de la verdad; y ninguno me ayuda contra ellos, sino Miguel vuestro príncipe.",
+"Daniel 11:1":"Y en el año primero de Darío de Media, yo estuve para animarlo y fortalecerlo.",
+"Daniel 11:4":"Pero cuando se haya levantado, su reino será quebrantado y repartido hacia los cuatro vientos del cielo; no a sus descendientes, ni según el dominio con que él dominó; porque su reino será arrancado y será para otros fuera de ellos.",
+"Daniel 11:5":"Y se hará fuerte el rey del sur; mas uno de sus príncipes se hará más fuerte que él, y dominará; su dominio será grande.",
+"Daniel 11:31":"Y se levantarán de su parte fuerzas que profanarán el santuario y la fortaleza, y quitarán el continuo sacrificio, y pondrán la abominación desoladora.",
+"Daniel 11:33":"Y los sabios del pueblo instruirán a muchos; y por algunos días caerán a espada y a fuego, en cautividad y despojo.",
+"Daniel 11:35":"También de los sabios caerán algunos, para ser depurados y limpiados y emblanquecidos, hasta el tiempo determinado; porque aun para esto hay plazo.",
+"Daniel 11:36":"Y el rey hará a su voluntad; y se ensoberbecerá, y se engrandecerá sobre todo dios; y contra el Dios de los dioses hablará maravillas, y prosperará, hasta que sea consumada la ira; porque lo determinado se cumplirá.",
+"Daniel 11:37":"Del Dios de sus padres no hará caso, ni del amor de las mujeres; ni respetará a dios alguno, porque sobre todo se engrandecerá.",
+"Daniel 11:41":"Entrará a la tierra gloriosa, y muchas provincias caerán; mas éstas escaparán de su mano: Edom y Moab, y la mayoría de los hijos de Amón.",
+"Daniel 11:44":"Pero noticias del oriente y del norte lo atemorizarán, y saldrá con gran ira para destruir y matar a muchos.",
+"Daniel 12:5":"Y yo Daniel miré, y he aquí otros dos que estaban en pie, el uno de este lado del río, y el otro del otro lado del río.",
+"Daniel 12:6":"Y dijo uno al varón vestido de lino, que estaba sobre las aguas del río: ¿Cuándo será el fin de estas maravillas?",
+"Daniel 12:7":"Y oí al varón vestido de lino, que estaba sobre las aguas del río, el cual alzó su diestra y su siniestra al cielo, y juró por el que vive por los siglos, que será por tiempo, tiempos, y la mitad de un tiempo. Y cuando se acabe la dispersión del poder del pueblo santo, todas estas cosas serán cumplidas.",
+"Daniel 12:8":"Y yo oí, mas no entendí. Y dije: Señor mío, ¿cuál será el fin de estas cosas?",
+"Daniel 12:9":"Y él respondió: Anda, Daniel, pues estas palabras están cerradas y selladas hasta el tiempo del fin.",
+"Daniel 12:10":"Muchos serán limpiados, y emblanquecidos y purificados; los impíos procederán impíamente, y ninguno de los impíos entenderá, pero los entendidos comprenderán.",
+"Daniel 12:11":"Y desde el tiempo que sea quitado el continuo sacrificio hasta la abominación desoladora, habrá mil doscientos noventa días.",
+"Daniel 12:12":"Bienaventurado el que espere, y llegue a mil trescientos treinta y cinco días."
+};
+for (var k in VX) V[k] = VX[k];
+// Algunos versículos ya existentes se citan por separado:
+V["Daniel 7:13"] = V["Daniel 7:13-14"];
+
+// ---- Daniel 1
+A(1,"¿Qué rey de Babilonia vino a Jerusalén y la sitió?","Nabucodonosor",["Belsasar","Darío","Ciro"],"Daniel 1:1");
+A(1,"¿A qué tierra fueron llevados los utensilios de la casa de Dios?","A la tierra de Sinar",["A Egipto","A Persia","A Asiria"],"Daniel 1:2");
+A(1,"¿Cómo se llamaba el jefe de los eunucos del rey?","Aspenaz",["Arioc","Melsar","Beltsasar"],"Daniel 1:3");
+A(1,"¿Cuántos años los criaría el rey antes de que estuviesen delante de él?","Tres años",["Un año","Siete años","Diez años"],"Daniel 1:5");
+A(1,"¿De qué descendientes eran Daniel, Ananías, Misael y Azarías?","De los hijos de Judá",["De los hijos de Leví","De los hijos de Benjamín","De los hijos de Efraín"],"Daniel 1:6");
+A(1,"¿Qué nombre le pusieron a Ananías?","Sadrac",["Mesac","Abed-nego","Beltsasar"],"Daniel 1:7");
+A(1,"¿Qué nombre le pusieron a Misael?","Mesac",["Sadrac","Abed-nego","Beltsasar"],"Daniel 1:7");
+A(1,"¿Qué nombre le pusieron a Azarías?","Abed-nego",["Sadrac","Mesac","Beltsasar"],"Daniel 1:7");
+A(1,"Además de la comida, ¿con qué más no quiso contaminarse Daniel?","Con el vino que el rey bebía",["Con las ropas del rey","Con el oro del templo","Con la música del palacio"],"Daniel 1:8");
+A(1,"En la prueba de diez días, ¿qué pidió Daniel que les dieran a beber?","Agua",["Leche","Vino aguado","Jugo de uvas"],"Daniel 1:12");
+A(1,"Pasados los diez días, ¿cómo apareció el aspecto de ellos?","Mejor y más robusto",["Más pálido y delgado","Igual que antes","Más cansado"],"Daniel 1:15");
+A(1,"¿Qué les daba Melsar en lugar de la ración del rey?","Legumbres",["Pan y miel","Carne asada","Frutas y dátiles"],"Daniel 1:16");
+A(1,"¿Qué les dio Dios a estos cuatro muchachos?","Conocimiento e inteligencia en todas las letras y ciencia",["Riquezas y honra","Fuerza para la guerra","Poder para hacer milagros"],"Daniel 1:17");
+A(1,"Cuando el rey habló con ellos, ¿cómo fueron hallados entre todos los muchachos?","Ninguno como Daniel, Ananías, Misael y Azarías",["Iguales a los demás","Inferiores a los caldeos","Solo Daniel destacó"],"Daniel 1:19");
+A(1,"¿Cuántas veces mejores los halló el rey que todos los magos y astrólogos?","Diez veces mejores",["Siete veces mejores","Tres veces mejores","Cien veces mejores"],"Daniel 1:20");
+A(1,"¿Hasta qué año continuó Daniel?","Hasta el año primero del rey Ciro",["Hasta el año de Belsasar","Hasta la muerte de Darío","Hasta el año tercero de Joacim"],"Daniel 1:21");
+
+// ---- Daniel 2
+A(2,"¿En qué año del reinado de Nabucodonosor soñó sueños?","En el segundo año",["En el primer año","En el tercer año","En el décimo año"],"Daniel 2:1");
+A(2,"¿A quiénes mandó llamar el rey para explicarle sus sueños?","Magos, astrólogos, encantadores y caldeos",["Sacerdotes y levitas","Profetas de Israel","Escribas y fariseos"],"Daniel 2:2");
+A(2,"¿Qué sucedería a los caldeos si no mostraban el sueño y su interpretación?","Serían hechos pedazos y sus casas convertidas en muladares",["Serían desterrados","Serían encarcelados un año","Perderían sus cargos"],"Daniel 2:5");
+A(2,"Según los caldeos, ¿quién podía declarar lo que el rey pedía?","Los dioses cuya morada no está con la carne",["Los reyes de la tierra","Los profetas hebreos","Nadie, ni los dioses"],"Daniel 2:11");
+A(2,"¿Qué pidió Daniel al rey?","Que le diese tiempo",["Que lo librara de morir","Que le diera oro","Que llamara a los magos"],"Daniel 2:16");
+A(2,"¿Qué demandaron Daniel y sus compañeros al Dios del cielo?","Misericordias sobre este misterio",["Fuego del cielo","Riquezas","Venganza contra los caldeos"],"Daniel 2:18");
+A(2,"¿Cómo fue revelado el secreto a Daniel?","En visión de noche",["En una carta","Por un ángel de día","Por medio de un libro"],"Daniel 2:19");
+A(2,"Según Daniel, ¿de quién son el poder y la sabiduría?","De Dios",["Del rey","De los sabios","De los ángeles"],"Daniel 2:20");
+A(2,"¿Qué hace Dios con los reyes?","Quita reyes y pone reyes",["Solo los bendice","Los deja gobernar sin juicio","Los hace inmortales"],"Daniel 2:21");
+A(2,"¿Qué mora con Dios, según Daniel?","La luz",["La oscuridad","La gloria","La nube"],"Daniel 2:22");
+A(2,"¿De qué material eran el pecho y los brazos de la imagen?","De plata",["De oro","De bronce","De hierro"],"Daniel 2:32");
+A(2,"¿De qué eran las piernas de la imagen?","De hierro",["De bronce","De barro","De plata"],"Daniel 2:33");
+A(2,"¿De qué era el tercer reino que dominaría sobre toda la tierra?","De bronce",["De plata","De hierro","De barro"],"Daniel 2:39");
+A(2,"¿Cómo dijo Daniel que era el sueño y su interpretación?","Verdadero el sueño, y fiel su interpretación",["Dudoso y oscuro","Falso e inexacto","Incompleto"],"Daniel 2:45");
+A(2,"¿Qué cargo dio el rey a Daniel?","Gobernador de toda la provincia de Babilonia",["Rey de Judá","Capitán del ejército","Sumo sacerdote"],"Daniel 2:48");
+A(2,"¿A quiénes pidió Daniel que se pusiera sobre los negocios de la provincia de Babilonia?","A Sadrac, Mesac y Abed-nego",["A Aspenaz y Arioc","A Joacim y Sedequías","A Belsasar y Darío"],"Daniel 2:49");
+
+// ---- Daniel 3
+A(3,"¿Dónde levantó Nabucodonosor la estatua de oro?","En el campo de Dura",["En Jerusalén","En el templo","En Susa"],"Daniel 3:1");
+A(3,"¿Qué debían hacer todos al oír el son de la música?","Postrarse y adorar la estatua de oro",["Callar y orar","Cantar al rey","Ofrecer sacrificios en el templo"],"Daniel 3:4-5");
+A(3,"¿Qué le pasaría al que no se postrara y adorara?","Sería echado dentro de un horno de fuego ardiendo",["Sería desterrado","Perdería sus bienes","Sería arrojado al foso de los leones"],"Daniel 3:6");
+A(3,"¿Quiénes acusaron maliciosamente a los judíos?","Algunos varones caldeos",["Los sátrapas persas","Los sacerdotes de Bel","Los eunucos del rey"],"Daniel 3:8");
+A(3,"¿De qué acusaron a Sadrac, Mesac y Abed-nego?","De no adorar a los dioses del rey ni la estatua",["De robar al rey","De mentir en la corte","De no pagar tributo"],"Daniel 3:12");
+A(3,"¿Qué preguntó el rey con arrogancia?","¿Qué dios será aquel que os libre de mis manos?",["¿Quién es vuestro dios?","¿Por qué no me teméis?","¿Dónde está vuestro templo?"],"Daniel 3:15");
+A(3,"¿Qué respondieron primero los tres jóvenes al rey?","No es necesario que te respondamos sobre este asunto",["Perdónanos, oh rey","Adoraremos la estatua","Pidamos consejo a Daniel"],"Daniel 3:16");
+A(3,"¿Quiénes ataron a Sadrac, Mesac y Abed-nego?","Hombres muy vigorosos del ejército",["Los sacerdotes","Los eunucos","Los gobernadores"],"Daniel 3:20");
+A(3,"¿Cómo fueron echados los tres varones al horno?","Atados, con sus mantos, calzas, turbantes y vestidos",["Desnudos y sin ataduras","Con cadenas de bronce","Con las manos libres"],"Daniel 3:21");
+A(3,"¿Qué mató a los hombres que alzaron a Sadrac, Mesac y Abed-nego?","La llama del fuego",["La espada del rey","Una caída","El humo"],"Daniel 3:22");
+A(3,"¿A cuántos varones habían echado atados dentro del fuego?","A tres",["A dos","A cuatro","A siete"],"Daniel 3:24");
+A(3,"¿Cómo llamó Nabucodonosor a Sadrac, Mesac y Abed-nego al llamarlos a salir?","Siervos del Dios Altísimo",["Hijos de la promesa","Profetas de Jehová","Amigos del rey"],"Daniel 3:26");
+A(3,"¿Qué no se había quemado a los tres varones cuando salieron del fuego?","Ni aun el cabello de sus cabezas",["Solo sus manos","Sus sandalias","Su barba"],"Daniel 3:27");
+A(3,"Según Nabucodonosor, ¿qué envió Dios para librar a sus siervos?","Su ángel",["Una nube","Un viento fuerte","Un profeta"],"Daniel 3:28");
+A(3,"¿Qué decretó el rey contra quien dijera blasfemia contra el Dios de Sadrac, Mesac y Abed-nego?","Que sea descuartizado y su casa convertida en muladar",["Que sea desterrado","Que pague una multa","Que sea azotado"],"Daniel 3:29");
+A(3,"¿Qué hizo el rey con Sadrac, Mesac y Abed-nego después de librarlos?","Los engrandeció en la provincia de Babilonia",["Los envió a Jerusalén","Los hizo esclavos","Los encarceló"],"Daniel 3:30");
+
+// ---- Daniel 4
+A(4,"¿Qué saludo dio Nabucodonosor a todos los pueblos?","Paz os sea multiplicada",["Gloria al rey","Bendición sobre vosotros","Temed al Señor"],"Daniel 4:1");
+A(4,"¿Cómo llamó Nabucodonosor a Dios al narrar las señales?","El Dios Altísimo",["El Dios de Israel","El Dios de Abraham","El Dios de los ejércitos"],"Daniel 4:2");
+A(4,"¿Cómo es el reino de Dios, según Nabucodonosor?","Reino sempiterno",["Reino pasajero","Reino de este mundo","Reino dividido"],"Daniel 4:3");
+A(4,"¿Cómo estaba Nabucodonosor antes del sueño?","Tranquilo en su casa y floreciente en su palacio",["Preocupado y enfermo","Triste y enlutado","En guerra"],"Daniel 4:4");
+A(4,"¿Qué le causó el sueño a Nabucodonosor?","Lo espantó y lo turbó",["Lo alegró","Lo dejó indiferente","Lo hizo reír"],"Daniel 4:5");
+A(4,"¿Quién entró delante del rey a interpretar el sueño?","Daniel, llamado Beltsasar",["Sadrac","Aspenaz","Un mago caldeo"],"Daniel 4:8");
+A(4,"¿Qué vio el rey en medio de la tierra?","Un árbol de gran altura",["Una torre","Una estatua","Un río"],"Daniel 4:10");
+A(4,"¿Quién descendía del cielo en el sueño del rey?","Un vigilante y santo",["Un águila","Una paloma","Un carro de fuego"],"Daniel 4:13");
+A(4,"¿A quién representaba el árbol que creció hasta el cielo?","Al rey Nabucodonosor",["A Babilonia","A Daniel","A Jerusalén"],"Daniel 4:22");
+A(4,"¿Con qué sería bañado el rey mientras viviera con las bestias?","Con el rocío del cielo",["Con agua del río","Con aceite","Con lluvia fuerte"],"Daniel 4:25");
+A(4,"¿Cuánto tiempo pasó desde el consejo de Daniel hasta que el rey se paseó sobre el palacio?","Doce meses",["Siete días","Un año y medio","Tres meses"],"Daniel 4:29");
+A(4,"¿Como qué creció el pelo del rey?","Como plumas de águila",["Como lana","Como crin de caballo","Como hilo de oro"],"Daniel 4:33");
+A(4,"¿Qué le fue devuelto al rey cuando alzó sus ojos al cielo?","Su razón",["Su trono","Su corona","Su palacio"],"Daniel 4:34");
+A(4,"¿Quién puede detener la mano de Dios, según el rey?","Nadie",["Los reyes","Los ángeles","Los sabios"],"Daniel 4:35");
+A(4,"¿Qué ocurrió con el reino del rey cuando su razón volvió?","Fue restablecido, y mayor grandeza le fue añadida",["Fue dado a otro","Se redujo a la mitad","Quedó en ruinas"],"Daniel 4:36");
+A(4,"¿A quiénes humilla el Rey del cielo?","A los que andan con soberbia",["A los pobres","A los sabios","A los extranjeros"],"Daniel 4:37");
+
+// ---- Daniel 5
+A(5,"¿Qué mandó traer Belsasar con el sabor del vino?","Los vasos de oro y de plata del templo de Jerusalén",["Las tablas de la ley","El arca del pacto","Las coronas de sus padres"],"Daniel 5:2");
+A(5,"¿De dónde habían sido traídos los vasos de oro?","Del templo de la casa de Dios en Jerusalén",["De Egipto","De Asiria","Del palacio de Joacim"],"Daniel 5:3");
+A(5,"¿A quiénes alabaron mientras bebían vino?","A los dioses de oro, plata, bronce, hierro, madera y piedra",["Al Dios de Daniel","Al rey Nabucodonosor","A los reyes de Persia"],"Daniel 5:4");
+A(5,"¿Qué aparecieron en la misma hora?","Unos dedos de una mano de hombre que escribía",["Unas nubes oscuras","Un ángel con espada","Una estrella"],"Daniel 5:5");
+A(5,"¿Qué le ocurrió al rey al ver la mano?","Palideció y sus rodillas daban la una contra la otra",["Se rió","Se durmió","Mandó matar a los magos"],"Daniel 5:6");
+A(5,"¿Qué recompensa ofreció el rey a quien leyera la escritura?","Púrpura, collar de oro y ser el tercer señor del reino",["La mitad del reino","Mil talentos de plata","Una ciudad entera"],"Daniel 5:7");
+A(5,"¿Quién entró a la sala del banquete y recordó a Daniel?","La reina",["La reina madre de Persia","Una sierva","La hija del rey"],"Daniel 5:10");
+A(5,"¿Qué cargo dio Nabucodonosor a Daniel antes?","Jefe de los magos, astrólogos, caldeos y adivinos",["Jefe del ejército","Tesorero real","Copero del rey"],"Daniel 5:11");
+A(5,"¿Qué le dijo Daniel al rey sobre sus dones?","Tus dones sean para ti, y tus recompensas dalas a otro",["Acepto tus dones","Dame solo oro","Dalos a los pobres de Judá"],"Daniel 5:17");
+A(5,"¿Con quiénes tuvo Nabucodonosor su morada?","Con los asnos monteses",["Con los leones","Con los lobos","Con las ovejas"],"Daniel 5:21");
+A(5,"¿En cuya mano, según Daniel, estaba la vida de Belsasar?","La del Dios al que nunca honró",["La de los dioses de oro","La del rey de Persia","La de sus príncipes"],"Daniel 5:23");
+A(5,"¿Qué significa «Mene»?","Contó Dios tu reino, y le ha puesto fin",["Tu reino ha sido roto","Fuiste pesado y hallado falto","Tu reino será eterno"],"Daniel 5:26");
+A(5,"¿Qué significa «Peres»?","Tu reino ha sido roto, y dado a los medos y a los persas",["Contó Dios tu reino","Pesado has sido en balanza","Tu reino se ha dividido en tres"],"Daniel 5:28");
+A(5,"¿Con qué fue vestido Daniel por orden de Belsasar?","De púrpura y con un collar de oro en su cuello",["De lino blanco","De lana y cilicio","De escarlata y corona"],"Daniel 5:29");
+A(5,"¿Qué le pasó a Belsasar la misma noche?","Fue muerto",["Huyó de Babilonia","Se arrepintió","Fue herido pero vivió"],"Daniel 5:30");
+A(5,"¿Qué edad tenía Darío de Media cuando tomó el reino?","Sesenta y dos años",["Cuarenta años","Setenta años","Veinticinco años"],"Daniel 5:31");
+
+// ---- Daniel 6
+A(6,"¿Cuántos sátrapas constituyó Darío sobre el reino?","Ciento veinte",["Setenta","Cien","Doce"],"Daniel 6:1");
+A(6,"¿Cuántos gobernadores puso sobre los sátrapas?","Tres",["Siete","Doce","Uno"],"Daniel 6:2");
+A(6,"¿Qué había en Daniel que lo hacía superior a los demás?","Un espíritu superior",["Mucha riqueza","Un gran ejército","La amistad del rey Ciro"],"Daniel 6:3");
+A(6,"¿Por qué no pudieron hallar falta en Daniel?","Porque era fiel, y ningún vicio ni falta fue hallada en él",["Porque estaba escondido","Porque el rey lo protegía","Porque era muy joven"],"Daniel 6:4");
+A(6,"¿Por cuántos días prohibía el edicto pedir algo a cualquier dios u hombre que no fuera el rey?","Treinta días",["Siete días","Cuarenta días","Sesenta días"],"Daniel 6:7");
+A(6,"¿Según qué ley no podía cambiarse el edicto?","La ley de Media y de Persia",["La ley de Moisés","La ley de Babilonia","La ley de Egipto"],"Daniel 6:8");
+A(6,"¿De quiénes dijeron que era hijo Daniel al acusarlo?","De los cautivos de Judá",["De los sacerdotes","De los reyes de Babilonia","De los eunucos"],"Daniel 6:13");
+A(6,"¿Hasta cuándo trabajó el rey para librar a Daniel?","Hasta la puesta del sol",["Hasta el amanecer","Hasta el mediodía","Hasta la medianoche"],"Daniel 6:14");
+A(6,"¿Qué le dijo el rey a Daniel antes de que lo echaran al foso?","El Dios tuyo, a quien tú continuamente sirves, él te libre",["Que Dios tenga misericordia de ti","Que se cumpla la ley","Que tus enemigos sean juzgados"],"Daniel 6:16");
+A(6,"¿Con qué selló el rey la piedra sobre la puerta del foso?","Con su anillo y con el anillo de sus príncipes",["Con cera y cuerda","Con plomo","Con hierro"],"Daniel 6:17");
+A(6,"¿Qué hizo el rey esa noche?","Se acostó sin cenar, y se le fue el sueño",["Celebró una fiesta","Escribió un edicto","Fue a orar al templo"],"Daniel 6:18");
+A(6,"¿Cómo llamó el rey a Daniel al llegar al foso?","Siervo del Dios viviente",["Profeta del Altísimo","Varón muy amado","Hijo de los dioses"],"Daniel 6:20");
+A(6,"¿Cuál fue el saludo de Daniel al rey desde el foso?","Oh rey, vive para siempre",["La paz sea contigo","Dios te bendiga","Gloria al Dios de Israel"],"Daniel 6:21");
+A(6,"¿Qué hizo el rey con los hombres que habían acusado a Daniel?","Los echó al foso de los leones, con sus hijos y mujeres",["Los desterró","Los dejó libres","Los envió a Persia"],"Daniel 6:24");
+A(6,"¿Qué decretó Darío sobre el Dios de Daniel?","Que todos teman y tiemblen ante él",["Que sea un dios más entre otros","Que solo los judíos lo adoren","Que sea olvidado"],"Daniel 6:26");
+A(6,"¿Durante el reinado de quiénes prosperó Daniel?","De Darío y de Ciro el persa",["De Nabucodonosor y Belsasar","De Joacim y Sedequías","De Artajerjes y Asuero"],"Daniel 6:28");
+
+// ---- Daniel 7
+A(7,"¿En qué año tuvo Daniel el sueño de las cuatro bestias?","En el primer año de Belsasar",["En el tercer año de Ciro","En el primer año de Darío","En el segundo año de Nabucodonosor"],"Daniel 7:1");
+A(7,"¿Qué combatían en el gran mar?","Los cuatro vientos del cielo",["Cuatro ejércitos","Cuatro bestias","Cuatro ángeles"],"Daniel 7:2");
+A(7,"¿Cómo era la segunda bestia y qué tenía en su boca?","Semejante a un oso, con tres costillas entre los dientes",["Semejante a un león, con alas","Semejante a un toro, con cuernos","Semejante a un águila, con garras"],"Daniel 7:5");
+A(7,"¿Cómo era la tercera bestia?","Semejante a un leopardo, con cuatro alas y cuatro cabezas",["Semejante a un oso, con tres costillas","Semejante a un león, con alas de águila","Semejante a un carnero, con dos cuernos"],"Daniel 7:6");
+A(7,"¿Cuántos cuernos tenía la cuarta bestia?","Diez",["Siete","Cuatro","Doce"],"Daniel 7:7");
+A(7,"¿Qué tenía el cuerno pequeño que salió entre los otros?","Ojos como de hombre y una boca que hablaba grandes cosas",["Alas de águila","Un ojo de fuego","Una corona de oro"],"Daniel 7:8");
+A(7,"¿Qué fue abierto cuando el juicio se sentó?","Los libros",["Las puertas del cielo","Los sellos","El templo"],"Daniel 7:10");
+A(7,"¿Qué representan las cuatro bestias grandes?","Cuatro reyes que se levantarán en la tierra",["Cuatro profetas","Cuatro ciudades","Cuatro ángeles caídos"],"Daniel 7:17");
+A(7,"¿Quiénes recibirán el reino?","Los santos del Altísimo",["Los reyes de la tierra","Los ángeles","Los sabios de Babilonia"],"Daniel 7:18");
+A(7,"¿Qué hacía el cuerno contra los santos?","Les hacía guerra y los vencía",["Los protegía","Los gobernaba con justicia","Los ignoraba"],"Daniel 7:21");
+A(7,"¿A quiénes se dio el juicio cuando vino el Anciano de días?","A los santos del Altísimo",["A los reyes de la tierra","A los ángeles","A Daniel"],"Daniel 7:22");
+A(7,"¿Hasta cuándo serían entregados los santos en mano del cuerno?","Hasta tiempo, y tiempos, y medio tiempo",["Hasta siete años","Hasta mil días","Hasta cuarenta años"],"Daniel 7:25");
+A(7,"¿Qué se hará con el dominio del cuerno cuando se siente el Juez?","Será destruido y arruinado hasta el fin",["Será ampliado","Será repartido","Será entregado a Babilonia"],"Daniel 7:26");
+A(7,"¿Cómo es el reino del pueblo de los santos del Altísimo?","Reino eterno",["Reino temporal","Reino de oro","Reino pasajero"],"Daniel 7:27");
+A(7,"¿Cómo se sintió Daniel después de la visión?","Turbado en su espíritu y asombrado",["Alegre y confiado","Indiferente","Cansado pero tranquilo"],"Daniel 7:15");
+A(7,"¿Qué hizo Daniel con el asunto al terminar?","Lo guardó en su corazón",["Lo escribió en las puertas","Lo contó al rey","Lo olvidó"],"Daniel 7:28");
+
+// ---- Daniel 8
+A(8,"¿En qué año del rey Belsasar apareció esta visión a Daniel?","En el año tercero",["En el primer año","En el séptimo año","En el décimo año"],"Daniel 8:1");
+A(8,"¿Dónde estaba Daniel en esta visión?","En Susa, junto al río Ulai",["En Babilonia, junto al Éufrates","En Jerusalén","En Nínive"],"Daniel 8:2");
+A(8,"¿Qué animal estaba delante del río con dos cuernos?","Un carnero",["Un macho cabrío","Un león","Un toro"],"Daniel 8:3");
+A(8,"¿De qué lado venía el macho cabrío, y qué tenía entre sus ojos?","Del occidente, con un cuerno notable",["Del oriente, con dos cuernos","Del norte, con tres cuernos","Del sur, sin cuernos"],"Daniel 8:5");
+A(8,"¿Cuántos cuernos notables salieron en lugar del gran cuerno quebrado?","Cuatro",["Dos","Siete","Diez"],"Daniel 8:8");
+A(8,"¿Hacia dónde creció el cuerno pequeño?","Al sur, al oriente y hacia la tierra gloriosa",["Solo hacia el norte","Hacia el mar","Hacia Egipto únicamente"],"Daniel 8:9");
+A(8,"¿Hasta dónde se engrandeció el cuerno pequeño?","Hasta el ejército del cielo",["Hasta el monte santo","Hasta el río Ulai","Hasta Babilonia"],"Daniel 8:10");
+A(8,"¿Qué preguntó uno de los santos?","¿Hasta cuándo durará la visión del continuo sacrificio?",["¿Quién es el rey de Grecia?","¿Cuándo vendrá el Mesías?","¿Dónde está el santuario?"],"Daniel 8:13");
+A(8,"¿Con qué apariencia se puso uno delante de Daniel?","Con apariencia de hombre",["De ángel con alas","De águila","De nube de fuego"],"Daniel 8:15");
+A(8,"¿Para qué tiempo es la visión, según se le dijo a Daniel?","Para el tiempo del fin",["Para el año presente","Para la generación siguiente","Para los días de Belsasar"],"Daniel 8:17");
+A(8,"¿Qué le pasó a Daniel cuando el ángel hablaba con él?","Cayó dormido en tierra sobre su rostro",["Salió corriendo","Se arrodilló en oración","Se quedó mudo"],"Daniel 8:18");
+A(8,"¿Qué significa que en lugar del cuerno quebrado se levantaron cuatro?","Cuatro reinos se levantarán de esa nación, pero no con la fuerza de él",["Cuatro profetas vendrán","Cuatro años de guerra","Cuatro ciudades serán destruidas"],"Daniel 8:22");
+A(8,"¿Cómo será el rey que se levantará al cabo del reinado de ellos?","Altivo de rostro y entendido en enigmas",["Humilde y manso","Joven y sabio en justicia","Anciano y pacífico"],"Daniel 8:23");
+A(8,"¿Cómo se fortalecerá el poder de ese rey?","No con fuerza propia",["Con la fuerza de su pueblo","Con la ayuda de Dios","Con tesoros de Babilonia"],"Daniel 8:24");
+A(8,"¿Contra quién se levantará ese rey?","Contra el Príncipe de los príncipes",["Contra el rey de Persia","Contra Gabriel","Contra el pueblo de Egipto"],"Daniel 8:25");
+A(8,"¿Cómo es la visión de las tardes y mañanas?","Verdadera",["Falsa","Dudosa","Ya cumplida"],"Daniel 8:26");
+
+// ---- Daniel 9
+A(9,"¿Hijo de quién era Darío, constituido rey sobre el reino de los caldeos?","De Asuero",["De Nabucodonosor","De Ciro","De Belsasar"],"Daniel 9:1");
+A(9,"¿Qué miró atentamente Daniel en el año primero de Darío?","Los libros, el número de los años de Jeremías",["Las estrellas","Las tablas de la ley","Los anales del reino"],"Daniel 9:2");
+A(9,"¿Cómo comenzó Daniel su oración?","Oró a Jehová su Dios e hizo confesión",["Cantó un salmo","Pidió un milagro","Lloró en silencio"],"Daniel 9:4");
+A(9,"¿Qué confesó Daniel en su oración?","Hemos pecado, hemos cometido iniquidad y hemos sido rebeldes",["Hemos cumplido la ley","Somos un pueblo justo","No hemos conocido tus mandamientos"],"Daniel 9:5");
+A(9,"¿De quién es la justicia, según Daniel?","Del Señor",["Del pueblo","De los reyes","De los profetas"],"Daniel 9:7");
+A(9,"¿De quién es el tener misericordia y perdonar?","De Jehová nuestro Dios",["Del sacerdote","Del rey","Del profeta Jeremías"],"Daniel 9:9");
+A(9,"¿Qué pidió Daniel que resplandeciera sobre el santuario asolado?","El rostro de Dios",["El sol","Una estrella","El fuego del cielo"],"Daniel 9:17");
+A(9,"¿En qué confiaban al elevar sus ruegos ante Dios?","En sus muchas misericordias, no en sus justicias",["En sus sacrificios","En su fuerza militar","En su obediencia perfecta"],"Daniel 9:18");
+A(9,"¿Por qué pidió Daniel a Dios que no tardara?","Porque su nombre es invocado sobre su ciudad y su pueblo",["Porque el rey lo pedía","Porque estaba por morir","Porque ya llevaba muchos años"],"Daniel 9:19");
+A(9,"¿Por qué monte derramaba Daniel su ruego?","Por el monte santo de su Dios",["Por el monte Sinaí","Por el monte Carmelo","Por el monte de los Olivos"],"Daniel 9:20");
+A(9,"¿Para qué salió Gabriel a Daniel?","Para darle sabiduría y entendimiento",["Para castigarlo","Para llevarlo al cielo","Para darle una espada"],"Daniel 9:22");
+A(9,"¿Cómo llamó Gabriel a Daniel?","Muy amado",["Siervo fiel","Hijo de Judá","Sabio de Babilonia"],"Daniel 9:23");
+A(9,"¿Cuántas semanas habría hasta el Mesías Príncipe, además de sesenta y dos?","Siete semanas",["Tres semanas","Setenta semanas","Una semana"],"Daniel 9:25");
+A(9,"¿Qué sucedería después de las sesenta y dos semanas?","Se quitaría la vida al Mesías, mas no por sí",["Se edificaría el templo","Vendría el fin del mundo","Se restauraría el trono"],"Daniel 9:26");
+A(9,"¿Qué haría cesar a la mitad de la semana?","El sacrificio y la ofrenda",["La guerra","La oración","El pacto con Israel"],"Daniel 9:27");
+A(9,"¿Quién vino volando con presteza a Daniel?","El varón Gabriel",["Miguel","Rafael","Un querubín"],"Daniel 9:21");
+
+// ---- Daniel 10
+A(10,"¿En qué año de Ciro fue revelada palabra a Daniel?","En el año tercero",["En el año primero","En el año séptimo","En el año décimo"],"Daniel 10:1");
+A(10,"¿A qué día del mes primero estaba Daniel a la orilla del río Hidekel?","A los veinticuatro días",["A los quince días","A los siete días","A los diez días"],"Daniel 10:4");
+A(10,"¿De qué estaba vestido el varón que vio Daniel?","De lino",["De púrpura","De lana","De cuero"],"Daniel 10:5");
+A(10,"¿A qué se parecía el rostro del varón?","A un relámpago",["Al sol","A la luna","A una estrella"],"Daniel 10:6");
+A(10,"¿Quién vio la visión?","Solo Daniel",["Daniel y sus compañeros","Todos los que estaban con él","Los hombres de Persia"],"Daniel 10:7");
+A(10,"¿Qué ocurrió con la fuerza de Daniel al ver la gran visión?","No quedó fuerza en él",["Se fortaleció","Se mantuvo igual","Se multiplicó"],"Daniel 10:8");
+A(10,"¿En qué cayó Daniel al oír el sonido de las palabras?","En un profundo sueño, con su rostro en tierra",["En un éxtasis de gozo","En una oración larga","En un llanto"],"Daniel 10:9");
+A(10,"¿Qué hizo la mano que lo tocó?","Lo hizo ponerse sobre sus rodillas y las palmas de sus manos",["Lo levantó al cielo","Lo sanó de una herida","Lo cubrió con un manto"],"Daniel 10:10");
+A(10,"¿Cómo llamó el varón a Daniel?","Varón muy amado",["Siervo del Altísimo","Hijo de Judá","Rey de profetas"],"Daniel 10:11");
+A(10,"¿Cuántos días se le opuso el príncipe del reino de Persia?","Veintiún días",["Siete días","Tres días","Cuarenta días"],"Daniel 10:13");
+A(10,"¿Para qué vino el varón a Daniel?","Para hacerle saber lo que ha de venir a su pueblo en los postreros días",["Para llevarlo ante el rey","Para sanar a Babilonia","Para anunciar la caída de Susa"],"Daniel 10:14");
+A(10,"¿Cómo se quedó Daniel mientras el varón le hablaba?","Con los ojos puestos en tierra y enmudecido",["Alabando a Dios","Corriendo","Dormido profundamente"],"Daniel 10:15");
+A(10,"¿Qué tocó uno con semejanza de hijo de hombre?","Los labios de Daniel",["Sus ojos","Sus manos","Su frente"],"Daniel 10:16");
+A(10,"¿Qué le dijo el varón a Daniel para fortalecerlo?","La paz sea contigo; esfuérzate y aliéntate",["Confía en el rey","Levántate y huye","Descansa y duerme"],"Daniel 10:19");
+A(10,"¿Contra quién iba a volver a pelear el varón?","Contra el príncipe de Persia",["Contra el príncipe de Egipto","Contra Miguel","Contra Belsasar"],"Daniel 10:20");
+A(10,"¿Dónde está escrito lo que el varón declararía a Daniel?","En el libro de la verdad",["En las tablas de la ley","En el libro de Jeremías","En las crónicas de los reyes"],"Daniel 10:21");
+
+// ---- Daniel 11
+A(11,"¿En qué año de Darío de Media estuvo el mensajero para animarlo y fortalecerlo?","En el año primero",["En el año tercero","En el año décimo","En el año sexto"],"Daniel 11:1");
+A(11,"¿Contra qué reino levantaría el cuarto rey de Persia a todos?","Contra el reino de Grecia",["Contra Egipto","Contra Babilonia","Contra Roma"],"Daniel 11:2");
+A(11,"¿Qué haría el rey valiente que dominaría con gran poder?","Haría su voluntad",["Obedecería a otro rey","Dividiría su reino en vida","Entregaría el reino a Daniel"],"Daniel 11:3");
+A(11,"¿Hacia dónde sería repartido el reino de ese rey cuando se levantara?","Hacia los cuatro vientos del cielo",["Entre sus hijos","Hacia Persia","Entre los sacerdotes"],"Daniel 11:4");
+A(11,"¿Qué rey se hará fuerte?","El rey del sur",["El rey del norte","El rey de Persia","El rey de Media"],"Daniel 11:5");
+A(11,"¿A quiénes seducirá con lisonjas?","A los que violan el pacto",["A los sabios","A los extranjeros","A los sacerdotes"],"Daniel 11:32");
+A(11,"¿Qué harán los sabios del pueblo?","Instruirán a muchos",["Huirán","Guardarán silencio","Gobernarán al pueblo"],"Daniel 11:33");
+A(11,"¿Para qué caerán algunos de los sabios?","Para ser depurados, limpiados y emblanquecidos",["Para ser olvidados","Para ser coronados","Para ser desterrados"],"Daniel 11:35");
+A(11,"¿Qué pondrán las fuerzas que profanarán el santuario?","La abominación desoladora",["Un altar nuevo","Una estatua de oro","Un muro"],"Daniel 11:31");
+A(11,"¿Contra quién hablará maravillas el rey que hará a su voluntad?","Contra el Dios de los dioses",["Contra el rey del sur","Contra los sacerdotes","Contra los sabios"],"Daniel 11:36");
+A(11,"¿Hasta cuándo prosperará, según el texto?","Hasta que sea consumada la ira",["Hasta que muera el rey","Hasta el año diez","Hasta la lluvia"],"Daniel 11:36");
+A(11,"¿Del Dios de quiénes no hará caso?","Del Dios de sus padres",["Del Dios de Israel solamente","De los dioses de Persia","Del Dios de los medos"],"Daniel 11:37");
+A(11,"¿Quiénes escaparán de su mano al entrar en la tierra gloriosa?","Edom, Moab y la mayoría de los hijos de Amón",["Egipto y Libia","Tiro y Sidón","Persia y Media"],"Daniel 11:41");
+A(11,"¿Qué lo atemorizará y lo hará salir con gran ira?","Noticias del oriente y del norte",["Una derrota en el sur","La muerte de su hijo","Un terremoto"],"Daniel 11:44");
+A(11,"¿Entre qué plantará las tiendas de su palacio?","Entre los mares y el monte glorioso y santo",["Entre dos ríos","Entre Persia y Media","Entre Egipto y Babilonia"],"Daniel 11:45");
+A(11,"¿Qué se hará de los que enseñan, por algunos días?","Caerán a espada y a fuego, en cautividad y despojo",["Serán coronados","Serán enviados a Egipto","Serán llamados reyes"],"Daniel 11:33");
+
+// ---- Daniel 12
+A(12,"¿Cómo será el tiempo cuando se levante Miguel?","Tiempo de angustia, cual nunca fue",["Tiempo de paz y abundancia","Tiempo de silencio","Tiempo de reposo"],"Daniel 12:1");
+A(12,"¿Quiénes serán libertados en aquel tiempo?","Todos los que se hallen escritos en el libro",["Todos los de Judá","Solo los sacerdotes","Solo los reyes"],"Daniel 12:1");
+A(12,"¿Qué recibirán los otros que sean despertados del polvo de la tierra?","Vergüenza y confusión perpetua",["Gozo eterno","Olvido","Descanso eterno"],"Daniel 12:2");
+A(12,"¿Quiénes resplandecerán como el resplandor del firmamento?","Los entendidos",["Los reyes","Los ángeles","Los guerreros"],"Daniel 12:3");
+A(12,"¿Qué se aumentará cuando muchos corran de aquí para allá?","La ciencia",["La paz","La guerra","El oro"],"Daniel 12:4");
+A(12,"¿Cuántos otros estaban en pie, uno a cada lado del río?","Dos",["Tres","Uno","Siete"],"Daniel 12:5");
+A(12,"¿Sobre qué estaba el varón vestido de lino?","Sobre las aguas del río",["Sobre una roca","Sobre una nube","Sobre un monte"],"Daniel 12:6");
+A(12,"¿Por quién juró el varón vestido de lino?","Por el que vive por los siglos",["Por el rey de Babilonia","Por Miguel","Por el templo"],"Daniel 12:7");
+A(12,"¿Cuánto tiempo sería hasta que se cumplieran estas cosas, según el juramento?","Tiempo, tiempos y la mitad de un tiempo",["Mil días","Setenta semanas","Siete años exactos"],"Daniel 12:7");
+A(12,"¿Qué le pasó a Daniel al oír las palabras del varón?","Oyó, mas no entendió",["Entendió todo","Se durmió","Quedó mudo"],"Daniel 12:8");
+A(12,"¿Cómo estaban las palabras hasta el tiempo del fin?","Cerradas y selladas",["Abiertas a todos","Escritas en piedra","Ocultas en una cueva"],"Daniel 12:9");
+A(12,"¿Quiénes comprenderán, en este versículo?","Los entendidos",["Los impíos","Los reyes","Los guerreros"],"Daniel 12:10");
+A(12,"¿Qué harán los impíos?","Procederán impíamente",["Se arrepentirán","Entenderán la visión","Serán purificados"],"Daniel 12:10");
+A(12,"¿Cuántos días habría desde que sea quitado el continuo sacrificio hasta la abominación desoladora?","Mil doscientos noventa días",["Mil trescientos treinta y cinco días","Dos mil trescientos días","Mil doscientos sesenta días"],"Daniel 12:11");
+A(12,"¿Quién es bienaventurado, en este versículo?","El que espere y llegue a mil trescientos treinta y cinco días",["El que llegue a mil doscientos noventa días","El que guarde la ley","El que sea rey"],"Daniel 12:12");
+A(12,"¿Qué haría Daniel al final, según se le dijo?","Reposaría y se levantaría para recibir su heredad",["Gobernaría Babilonia","Volvería a Jerusalén","Escribiría otro libro"],"Daniel 12:13");
+
+// Completar el texto de cada pregunta y avisar de cualquier cita sin versículo
+Q.forEach(function(x){ if (!x.v) x.v = V[x.r]; });
+
+// ================== Bancos por tipo de pregunta ==================
+var BANK = {mc: [], cloze: [], vf: [], who: []};
+Q.forEach(function(x){ BANK.mc.push({c: x.c, type: "mc", q: x.q, o: x.o, ans: 0, r: x.r, v: x.v, shuf: true}); });
+function C(c, t, a, w, r) { BANK.cloze.push({c: c, type: "cloze", q: "Completa el versículo", text: t, o: [a].concat(w), ans: 0, r: r, v: V[r], shuf: true}); }
+function W(c, quote, a, w, r) { BANK.who.push({c: c, type: "who", q: "¿Quién lo dijo?", text: quote, o: [a].concat(w), ans: 0, r: r, v: V[r], shuf: true}); }
+function T(c, s, truth, r) { BANK.vf.push({c: c, type: "vf", q: "¿Verdadero o falso?", text: s, o: ["Verdadero", "Falso"], ans: truth ? 0 : 1, r: r, v: V[r], shuf: false}); }
+
+// ---- Completa el versículo (el texto sale tal cual de la Biblia; la respuesta es la palabra exacta)
+C(1,"Pero Daniel propuso en su corazón no ____ con la porción de la comida del rey","contaminarse",["alegrarse","mezclarse","complacerse"],"Daniel 1:8");
+C(1,"Y puso Dios a Daniel en gracia y en buena ____ con el jefe de los eunucos.","voluntad",["amistad","fe","paz"],"Daniel 1:9");
+C(1,"Te ruego que hagas la prueba con tus siervos por diez días, y que nos den ____ a comer, y agua a beber.","legumbres",["pan","frutas","miel"],"Daniel 1:12");
+C(1,"Daniel tuvo entendimiento en toda visión y ____.","sueños",["profecías","libros","leyes"],"Daniel 1:17");
+C(1,"los halló diez veces mejores que todos los magos y ____ que había en todo su reino.","astrólogos",["sacerdotes","escribas","profetas"],"Daniel 1:20");
+C(2,"Pero hay un Dios en los cielos, el cual revela los ____","misterios",["secretos","sueños","tiempos"],"Daniel 2:28");
+C(2,"Sea bendito el nombre de Dios de siglos en siglos, porque suyos son el poder y la ____.","sabiduría",["gloria","justicia","fuerza"],"Daniel 2:20");
+C(2,"Él muda los tiempos y las edades; quita reyes, y ____ reyes","pone",["levanta","hace","envía"],"Daniel 2:21");
+C(2,"una piedra fue cortada, no con ____, e hirió a la imagen en sus pies de hierro y de barro cocido","mano",["hacha","espada","fuerza"],"Daniel 2:34");
+C(2,"tú eres aquella cabeza de ____.","oro",["plata","bronce","hierro"],"Daniel 2:38");
+C(2,"el Dios del cielo levantará un reino que no será jamás ____","destruido",["dividido","vencido","olvidado"],"Daniel 2:44");
+C(3,"He aquí nuestro Dios a quien servimos puede librarnos del horno de fuego ____","ardiendo",["encendido","grande","caliente"],"Daniel 3:17-18");
+C(3,"ordenó que el horno se calentase ____ veces más de lo acostumbrado.","siete",["tres","diez","doce"],"Daniel 3:19");
+C(3,"el aspecto del cuarto es semejante a hijo de los ____.","dioses",["hombres","ángeles","reyes"],"Daniel 3:25");
+C(3,"Bendito sea el Dios de ellos, de Sadrac, Mesac y Abed-nego, que envió su ____ y libró a sus siervos","ángel",["mano","espíritu","fuego"],"Daniel 3:28");
+C(3,"Entonces el rey engrandeció a Sadrac, Mesac y Abed-nego en la provincia de ____.","Babilonia",["Judá","Persia","Media"],"Daniel 3:30");
+C(4,"¿No es esta la gran ____ que yo edifiqué para casa real con la fuerza de mi poder","Babilonia",["Jerusalén","Nínive","Susa"],"Daniel 4:30");
+C(4,"hasta que conozcas que el Altísimo tiene el ____ en el reino de los hombres","dominio",["poder","trono","juicio"],"Daniel 4:32");
+C(4,"tus pecados redime con ____, y tus iniquidades con misericordias para con los oprimidos","justicia",["oraciones","ofrendas","sacrificios"],"Daniel 4:27");
+C(4,"alcé mis ojos al cielo, y mi ____ me fue devuelta","razón",["salud","vida","corona"],"Daniel 4:34");
+C(4,"porque todas sus obras son verdaderas, y sus caminos ____","justos",["rectos","santos","buenos"],"Daniel 4:37");
+C(5,"MENE, MENE, TEKEL, ____.","UPARSIN",["ELOI","SELA","ABADÓN"],"Daniel 5:25");
+C(5,"Pesado has sido en ____, y fuiste hallado falto.","balanza",["juicio","tribunal","justicia"],"Daniel 5:27");
+C(5,"MENE: Contó Dios tu ____, y le ha puesto fin.","reino",["vida","ciudad","trono"],"Daniel 5:26");
+C(5,"proclamar que él era el tercer ____ del reino.","señor",["príncipe","rey","juez"],"Daniel 5:29");
+C(5,"La misma noche fue muerto ____, rey de los caldeos.","Belsasar",["Nabucodonosor","Darío","Ciro"],"Daniel 5:30");
+C(6,"se arrodillaba ____ veces al día, y oraba y daba gracias delante de su Dios","tres",["dos","siete","cuatro"],"Daniel 6:10");
+C(6,"Mi Dios envió su ángel, el cual cerró la boca de los ____","leones",["lobos","osos","enemigos"],"Daniel 6:22");
+C(6,"ninguna lesión se halló en él, porque había ____ en su Dios.","confiado",["creído","esperado","orado"],"Daniel 6:23");
+C(6,"porque él es el Dios ____ y permanece por todos los siglos","viviente",["verdadero","fuerte","eterno"],"Daniel 6:26");
+C(6,"No hallaremos contra este Daniel ocasión alguna para acusarle, si no la hallamos contra él en relación con la ley de su ____.","Dios",["rey","pueblo","padre"],"Daniel 6:5");
+C(7,"se sentó un ____ de días, cuyo vestido era blanco como la nieve","Anciano",["Rey","Juez","Padre"],"Daniel 7:9");
+C(7,"con las nubes del cielo venía uno como un hijo de ____","hombre",["Dios","rey","ángel"],"Daniel 7:13-14");
+C(7,"su dominio es dominio ____, que nunca pasará, y su reino uno que no será destruido","eterno",["grande","fuerte","justo"],"Daniel 7:13-14");
+C(7,"cuatro bestias grandes, diferentes la una de la otra, subían del ____","mar",["monte","desierto","cielo"],"Daniel 7:3");
+C(7,"el juicio se sentó, y los ____ fueron abiertos","libros",["sellos","cielos","tronos"],"Daniel 7:10");
+C(8,"luego el ____ será purificado.","santuario",["templo","pueblo","altar"],"Daniel 8:14");
+C(8,"____, enseña a éste la visión.","Gabriel",["Miguel","Rafael","Uriel"],"Daniel 8:16");
+C(8,"Entiende, hijo de hombre, porque la visión es para el tiempo del ____","fin",["juicio","reino","cautiverio"],"Daniel 8:17");
+C(8,"representa a los reyes de Media y de ____","Persia",["Grecia","Egipto","Babilonia"],"Daniel 8:20-21");
+C(8,"pero estaba espantado a causa de la visión, y no la ____","entendía",["creía","veía","olvidaba"],"Daniel 8:27");
+C(9,"buscándole en oración y ruego, en ayuno, cilicio y ____","ceniza",["lágrimas","polvo","silencio"],"Daniel 9:3");
+C(9,"De Jehová nuestro Dios es el tener misericordia y el ____","perdonar",["juzgar","bendecir","salvar"],"Daniel 9:9");
+C(9,"sino en tus muchas ____","misericordias",["justicias","obras","promesas"],"Daniel 9:18");
+C(9,"Setenta semanas están determinadas sobre tu pueblo y sobre tu santa ____","ciudad",["tierra","nación","casa"],"Daniel 9:24");
+C(9,"porque tú eres muy ____","amado",["fiel","justo","sabio"],"Daniel 9:23");
+C(10,"desde el primer día que dispusiste tu corazón a entender y a ____ en la presencia de tu Dios","humillarte",["orar","ayunar","postrarte"],"Daniel 10:12");
+C(10,"Daniel, varón muy ____","amado",["fiel","justo","sabio"],"Daniel 10:11");
+C(10,"Miguel, uno de los principales ____, vino para ayudarme","príncipes",["ángeles","reyes","siervos"],"Daniel 10:13");
+C(10,"Muy amado, no temas; la paz sea contigo; esfuérzate y ____.","aliéntate",["confía","levántate","descansa"],"Daniel 10:19");
+C(10,"su rostro parecía un ____","relámpago",["sol","fuego","ángel"],"Daniel 10:6");
+C(11,"el pueblo que conoce a su Dios se esforzará y ____","actuará",["orará","vencerá","esperará"],"Daniel 11:32");
+C(11,"Y los sabios del pueblo instruirán a ____","muchos",["pocos","todos","reyes"],"Daniel 11:33");
+C(11,"Se levantará luego un rey ____, el cual dominará con gran poder y hará su voluntad.","valiente",["justo","sabio","joven"],"Daniel 11:3");
+C(11,"porque lo determinado se ____","cumplirá",["olvidará","repetirá","cambiará"],"Daniel 11:36");
+C(11,"pero llegará a su ____, y no tendrá quien le ayude","fin",["tierra","hora","trono"],"Daniel 11:45");
+C(12,"se levantará ____, el gran príncipe que está de parte de los hijos de tu pueblo","Miguel",["Gabriel","Daniel","Elías"],"Daniel 12:1");
+C(12,"unos para vida ____, y otros para vergüenza y confusión perpetua","eterna",["feliz","larga","nueva"],"Daniel 12:2");
+C(12,"los que enseñan la justicia a la multitud, como las ____ a perpetua eternidad","estrellas",["lámparas","nubes","llamas"],"Daniel 12:3");
+C(12,"cierra las palabras y sella el ____ hasta el tiempo del fin","libro",["pacto","rollo","templo"],"Daniel 12:4");
+C(12,"te levantarás para recibir tu ____ al fin de los días","heredad",["corona","reino","premio"],"Daniel 12:13");
+
+// ---- ¿Quién lo dijo? (citas tal cual del texto)
+W(1,"«Te ruego que hagas la prueba con tus siervos por diez días, y que nos den legumbres a comer, y agua a beber.»","Daniel",["Aspenaz","Melsar","Nabucodonosor"],"Daniel 1:12");
+W(2,"«Sea bendito el nombre de Dios de siglos en siglos, porque suyos son el poder y la sabiduría.»","Daniel",["Nabucodonosor","Arioc","Un mago caldeo"],"Daniel 2:20");
+W(2,"«El asunto lo olvidé; si no me mostráis el sueño y su interpretación, seréis hechos pedazos.»","El rey Nabucodonosor",["Daniel","Arioc","Belsasar"],"Daniel 2:5");
+W(2,"«Ciertamente el Dios vuestro es Dios de dioses, y Señor de los reyes, y el que revela los misterios.»","El rey Nabucodonosor",["Daniel","Darío","Ciro"],"Daniel 2:47");
+W(3,"«Si no, sepas, oh rey, que no serviremos a tus dioses, ni tampoco adoraremos la estatua que has levantado.»","Sadrac, Mesac y Abed-nego",["Daniel y Ananías","Los caldeos","Los sátrapas"],"Daniel 3:17-18");
+W(3,"«He aquí yo veo cuatro varones sueltos, que se pasean en medio del fuego sin sufrir ningún daño.»","El rey Nabucodonosor",["Daniel","Un caldeo","Aspenaz"],"Daniel 3:25");
+W(3,"«Bendito sea el Dios de ellos, de Sadrac, Mesac y Abed-nego, que envió su ángel y libró a sus siervos.»","El rey Nabucodonosor",["Belsasar","Darío","Daniel"],"Daniel 3:28");
+W(4,"«¿No es esta la gran Babilonia que yo edifiqué para casa real con la fuerza de mi poder?»","El rey Nabucodonosor",["Belsasar","Darío","Ciro"],"Daniel 4:30");
+W(4,"«Acepta mi consejo: tus pecados redime con justicia, y tus iniquidades con misericordias para con los oprimidos.»","Daniel",["Sadrac","Aspenaz","Un mago"],"Daniel 4:27");
+W(5,"«Tus dones sean para ti, y tus recompensas dalas a otro; yo leeré la escritura al rey.»","Daniel",["Un caldeo","El rey Darío","La reina"],"Daniel 5:17");
+W(5,"«Rey, para siempre vive; no te turben tus pensamientos, ni palidezca tu rostro.»","La reina",["Daniel","Un príncipe","Un mago"],"Daniel 5:10");
+W(6,"«El Dios tuyo, a quien tú continuamente sirves, él te libre.»","El rey Darío",["Nabucodonosor","Belsasar","Ciro"],"Daniel 6:16");
+W(6,"«Mi Dios envió su ángel, el cual cerró la boca de los leones, para que no me hiciesen daño.»","Daniel",["El rey Darío","Un gobernador","Sadrac"],"Daniel 6:22");
+W(6,"«No hallaremos contra este Daniel ocasión alguna para acusarle, si no la hallamos contra él en relación con la ley de su Dios.»","Los gobernadores y sátrapas",["El rey Darío","Los sacerdotes","Los magos"],"Daniel 6:5");
+W(7,"«Se turbó mi espíritu dentro de mí, y las visiones de mi cabeza me asombraron.»","Daniel",["Belsasar","Gabriel","Nabucodonosor"],"Daniel 7:15");
+W(8,"«Entiende, hijo de hombre, porque la visión es para el tiempo del fin.»","Gabriel",["Miguel","Daniel","Un mago"],"Daniel 8:17");
+W(9,"«Hemos pecado, hemos cometido iniquidad, hemos obrado impíamente, y hemos sido rebeldes.»","Daniel",["Gabriel","El rey Darío","Jeremías"],"Daniel 9:5");
+W(9,"«Daniel, ahora he salido para darte sabiduría y entendimiento.»","Gabriel",["Miguel","Daniel","Jeremías"],"Daniel 9:22");
+W(10,"«Daniel, varón muy amado, está atento a las palabras que te hablaré, y ponte en pie.»","El varón enviado a Daniel",["El rey Ciro","Un sacerdote","Nabucodonosor"],"Daniel 10:11");
+W(10,"«Hable mi señor, porque me has fortalecido.»","Daniel",["Miguel","El rey Ciro","Gabriel"],"Daniel 10:19");
+W(12,"«Señor mío, ¿cuál será el fin de estas cosas?»","Daniel",["Miguel","Gabriel","El rey Darío"],"Daniel 12:8");
+W(12,"«Anda, Daniel, pues estas palabras están cerradas y selladas hasta el tiempo del fin.»","El varón vestido de lino",["Un sacerdote","El rey Ciro","Un profeta"],"Daniel 12:9");
+
+// ---- Verdadero o falso
+T(1,"Daniel propuso en su corazón no contaminarse con la porción de la comida del rey.",true,"Daniel 1:8");
+T(1,"La prueba de legumbres y agua duró veinte días.",false,"Daniel 1:12");
+T(1,"A Daniel el jefe de los eunucos le puso por nombre Beltsasar.",true,"Daniel 1:7");
+T(1,"Daniel y sus compañeros eran de los hijos de Benjamín.",false,"Daniel 1:6");
+T(1,"Daniel continuó hasta el año primero del rey Ciro.",true,"Daniel 1:21");
+T(2,"La cabeza de la imagen era de plata.",false,"Daniel 2:32");
+T(2,"La piedra que hirió a la imagen fue cortada, no con mano.",true,"Daniel 2:34");
+T(2,"Nabucodonosor soñó sueños en el segundo año de su reinado.",true,"Daniel 2:1");
+T(2,"Daniel dijo que los magos de Babilonia son los que revelan los misterios.",false,"Daniel 2:28");
+T(2,"El Dios del cielo levantará un reino que no será jamás destruido.",true,"Daniel 2:44");
+T(3,"La estatua de oro tenía sesenta codos de altura y seis codos de anchura.",true,"Daniel 3:1");
+T(3,"El horno se calentó tres veces más de lo acostumbrado.",false,"Daniel 3:19");
+T(3,"El aspecto del cuarto varón era semejante a hijo de los dioses.",true,"Daniel 3:25");
+T(3,"El fuego quemó el cabello de las cabezas de Sadrac, Mesac y Abed-nego.",false,"Daniel 3:27");
+T(3,"La llama del fuego mató a los hombres que alzaron a Sadrac, Mesac y Abed-nego.",true,"Daniel 3:22");
+T(4,"Nabucodonosor dijo: «¿No es esta la gran Babilonia que yo edifiqué?»",true,"Daniel 4:30");
+T(4,"Siete tiempos pasarían sobre el rey hasta que conociera el dominio del Altísimo.",true,"Daniel 4:32");
+T(4,"El árbol grande del sueño representaba al rey Belsasar.",false,"Daniel 4:22");
+T(4,"Daniel aconsejó al rey redimir sus pecados con justicia.",true,"Daniel 4:27");
+T(4,"A Nabucodonosor nunca le fue devuelta la razón.",false,"Daniel 4:34");
+T(5,"Belsasar hizo un gran banquete a mil de sus príncipes.",true,"Daniel 5:1");
+T(5,"En la pared estaba escrito: MENE, MENE, TEKEL, UPARSIN.",true,"Daniel 5:25");
+T(5,"TEKEL significa: Tu reino ha sido roto, y dado a los medos y a los persas.",false,"Daniel 5:27");
+T(5,"Daniel aceptó los dones que le ofreció el rey Belsasar.",false,"Daniel 5:17");
+T(5,"Darío de Media tomó el reino siendo de sesenta y dos años.",true,"Daniel 5:31");
+T(6,"Darío constituyó sobre el reino ciento veinte sátrapas.",true,"Daniel 6:1");
+T(6,"El edicto prohibía pedir a otro dios o a otro hombre por sesenta días.",false,"Daniel 6:7");
+T(6,"Daniel oraba con las ventanas abiertas hacia Jerusalén.",true,"Daniel 6:10");
+T(6,"Los leones hicieron daño a Daniel.",false,"Daniel 6:22");
+T(6,"El rey selló la piedra del foso con su anillo y con el anillo de sus príncipes.",true,"Daniel 6:17");
+T(7,"Las cuatro bestias grandes subían del mar.",true,"Daniel 7:3");
+T(7,"La primera bestia era como un oso.",false,"Daniel 7:4");
+T(7,"La cuarta bestia tenía diez cuernos.",true,"Daniel 7:7");
+T(7,"Los santos del Altísimo recibirán el reino.",true,"Daniel 7:18");
+T(7,"El vestido del Anciano de días era negro como la noche.",false,"Daniel 7:9");
+T(8,"Daniel estaba en Susa, junto al río Ulai, cuando tuvo la visión.",true,"Daniel 8:2");
+T(8,"El carnero de dos cuernos representa a los reyes de Grecia.",false,"Daniel 8:20-21");
+T(8,"El macho cabrío es el rey de Grecia.",true,"Daniel 8:20-21");
+T(8,"En lugar del gran cuerno quebrado salieron dos cuernos notables.",false,"Daniel 8:8");
+T(8,"Daniel quedó quebrantado y estuvo enfermo algunos días.",true,"Daniel 8:27");
+T(9,"Daniel miró atentamente en los libros el número de los años de que habló Jehová al profeta Jeremías.",true,"Daniel 9:2");
+T(9,"Las desolaciones de Jerusalén se cumplirían en cuarenta años.",false,"Daniel 9:2");
+T(9,"Gabriel vino a Daniel como a la hora del sacrificio de la tarde.",true,"Daniel 9:21");
+T(9,"Daniel buscó a Dios con cantos y música.",false,"Daniel 9:3");
+T(9,"Setenta semanas están determinadas sobre el pueblo de Daniel y su santa ciudad.",true,"Daniel 9:24");
+T(10,"Daniel estuvo afligido por tres semanas.",true,"Daniel 10:2-3");
+T(10,"Daniel estaba a la orilla del río Jordán.",false,"Daniel 10:4");
+T(10,"Miguel, uno de los principales príncipes, vino para ayudar.",true,"Daniel 10:13");
+T(10,"Los hombres que estaban con Daniel también vieron la visión.",false,"Daniel 10:7");
+T(10,"El rostro del varón parecía un relámpago.",true,"Daniel 10:6");
+T(11,"Habrá tres reyes más en Persia, y el cuarto se hará de grandes riquezas.",true,"Daniel 11:2");
+T(11,"El rey valiente que se levantará hará la voluntad de otro rey.",false,"Daniel 11:3");
+T(11,"El pueblo que conoce a su Dios se esforzará y actuará.",true,"Daniel 11:32");
+T(11,"Los sabios del pueblo instruirán a muchos.",true,"Daniel 11:33");
+T(11,"El rey llegará a su fin, y tendrá quien le ayude.",false,"Daniel 11:45");
+T(12,"Se levantará Miguel, el gran príncipe que está de parte de los hijos del pueblo de Daniel.",true,"Daniel 12:1");
+T(12,"Todos los que duermen en el polvo serán despertados para vida eterna.",false,"Daniel 12:2");
+T(12,"A Daniel se le mandó cerrar las palabras y sellar el libro hasta el tiempo del fin.",true,"Daniel 12:4");
+T(12,"Daniel oyó y entendió todo lo que se le dijo.",false,"Daniel 12:8");
+T(12,"Daniel recibiría su heredad al fin de los días.",true,"Daniel 12:13");
+
+[BANK.cloze, BANK.who, BANK.vf].forEach(function(arr){ arr.forEach(function(x){ if (!x.v) console.warn("Sin versículo:", x.r); }); });
+
+// ================== Juego ==================
+var TIME = 30; // segundos para responder
+var TYPES = {
+  mc:    {name: "Opción múltiple",       seg: "Opciones", tok: "--s1"},
+  cloze: {name: "Completa el versículo", seg: "Completa", tok: "--s2"},
+  vf:    {name: "Verdadero o falso",     seg: "V o F",    tok: "--s3"},
+  who:   {name: "¿Quién lo dijo?",       seg: "¿Quién?",  tok: "--s4"},
+  dbl:   {name: "Puntos dobles",         seg: "×2",       tok: "--s5"}
+};
+var SEGS = ["mc", "cloze", "vf", "who", "mc", "cloze", "vf", "dbl"];
+var TEAMS = [
+  {name: "Michelle", cls: "blue", label: "Equipo azul"},
+  {name: "Dalismel", cls: "red", label: "Equipo rojo"}
+];
+var $ = function(id){ return document.getElementById(id); };
+var selected = {}; for (var i = 1; i <= 12; i++) selected[i] = true;
+var S = null, wheelRot = 0, timerId = null;
+var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function filt(type) { return BANK[type].filter(function(x){ return selected[x.c]; }); }
+function total() { return filt("mc").length + filt("cloze").length + filt("vf").length + filt("who").length; }
+
+// ---- ruleta (SVG)
+function buildWheel() {
+  var n = SEGS.length, step = 360 / n, R = 96, h = "";
+  function pt(a, r) { var t = a * Math.PI / 180; return [(100 + r * Math.sin(t)).toFixed(2), (100 - r * Math.cos(t)).toFixed(2)]; }
+  SEGS.forEach(function(k, i){
+    var a0 = i * step, a1 = (i + 1) * step, p0 = pt(a0, R), p1 = pt(a1, R), mid = a0 + step / 2, T = TYPES[k];
+    h += '<path d="M100,100 L' + p0[0] + ',' + p0[1] + ' A' + R + ',' + R + ' 0 0 1 ' + p1[0] + ',' + p1[1] + ' Z" style="fill:var(' + T.tok + ')" stroke="var(--surface)" stroke-width="1.5"/>';
+    var tx = mid <= 180
+      ? '<g transform="rotate(' + (mid - 90) + ' 100 100)"><text x="' + (100 + R - 8) + '" y="104" text-anchor="end">' + T.seg + '</text></g>'
+      : '<g transform="rotate(' + (mid + 90) + ' 100 100)"><text x="' + (100 - R + 8) + '" y="104" text-anchor="start">' + T.seg + '</text></g>';
+    h += tx;
+  });
+  h += '<circle cx="100" cy="100" r="13" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>';
+  $("wheel").innerHTML = h;
+}
+
+function renderChips() {
+  var h = "";
+  for (var i = 1; i <= 12; i++) h += '<button type="button" class="chip" data-c="' + i + '" aria-pressed="' + (!!selected[i]) + '">' + i + '</button>';
+  $("chips").innerHTML = h;
+  var n = total(), sel = $("countSel"), prev = parseInt(sel.value, 10), opts = [10, 20, 30, 40, 60];
+  sel.innerHTML = opts.map(function(k){ return '<option value="' + k + '">' + k + ' turnos (' + (k / 2) + ' por equipo)</option>'; }).join("");
+  sel.value = opts.indexOf(prev) > -1 ? prev : 20;
+  $("setupInfo").textContent = n ? (n + " preguntas disponibles: " + filt("mc").length + " de opción múltiple, " + filt("cloze").length + " para completar, " + filt("vf").length + " de verdadero o falso y " + filt("who").length + " de «¿Quién lo dijo?».") : "Elige al menos un capítulo.";
+  $("startBtn").disabled = n < 2;
+}
+$("chips").addEventListener("click", function(e){
+  var b = e.target.closest(".chip"); if (!b) return;
+  var c = b.getAttribute("data-c"); selected[c] = !selected[c]; renderChips();
+});
+$("allBtn").addEventListener("click", function(){ for (var i = 1; i <= 12; i++) selected[i] = true; renderChips(); });
+
+function renderBoard() {
+  $("board").innerHTML = TEAMS.map(function(t, i){
+    var on = S && !S.done && S.turn === i;
+    return '<div class="team ' + t.cls + (on ? ' on' : '') + '"><div class="tag">' + (on ? 'Su turno' : '') + '</div>' +
+      '<div class="nm"><span class="dot"></span>' + t.name + '</div>' +
+      '<div class="pts">' + (S ? S.score[i] : 0) + '</div>' +
+      '<div class="det">' + t.label + ' · ' + (S ? S.ok[i] : 0) + ' bien · ' + (S ? S.ko[i] : 0) + ' mal</div></div>';
+  }).join("");
+}
+
+// ---- reparto de preguntas sin repetir hasta agotar cada banco
+function draw(type) {
+  var P = S.pools;
+  if (!filt(type).length) type = "mc";
+  if (!P[type].length) P[type] = shuffle(filt(type));
+  return P[type].pop();
+}
+
+function start() {
+  S = {total: parseInt($("countSel").value, 10), i: 0, turn: 0, score: [0, 0], ok: [0, 0], ko: [0, 0], answered: false, done: false, pools: {mc: [], cloze: [], vf: [], who: []}};
+  $("setup").hidden = true; $("final").hidden = true; $("game").hidden = false;
+  showWheel();
+}
+
+function showWheel() {
+  stopTimer();
+  var t = TEAMS[S.turn];
+  $("panel").hidden = true; document.body.classList.remove("has-panel");
+  $("qbox").hidden = true; $("wheelbox").hidden = false;
+  $("progTxt").textContent = "Turno " + (S.i + 1) + " de " + S.total;
+  $("chapTxt").textContent = "Daniel 1 al 12";
+  $("bar").style.width = (S.i / S.total * 100) + "%";
+  var tn = $("turn"); tn.className = "turn " + t.cls; tn.textContent = "Turno de " + t.name;
+  $("landed").textContent = "Gira la ruleta para ver qué te toca.";
+  $("spinBtn").disabled = false; $("spinBtn").textContent = "Girar la ruleta";
+  renderBoard();
+  $("spinBtn").focus({preventScroll: true});
+}
+
+$("spinBtn").addEventListener("click", function(){
+  $("spinBtn").disabled = true;
+  var n = SEGS.length, step = 360 / n, idx = Math.floor(Math.random() * n), center = idx * step + step / 2;
+  var jitter = (Math.random() - 0.5) * step * 0.7;
+  var target = 360 * (Math.floor(wheelRot / 360) + (reduce ? 1 : 6)) - center + jitter;
+  var w = $("wheel");
+  w.style.transition = reduce ? "transform .4s linear" : "transform 4.6s cubic-bezier(.12,.62,.12,1)";
+  wheelRot = target; w.style.transform = "rotate(" + target + "deg)";
+  $("landed").textContent = "Girando…";
+  setTimeout(function(){ landed(SEGS[idx]); }, reduce ? 500 : 4800);
+});
+
+function landed(seg) {
+  var mult = 1, type = seg;
+  if (seg === "dbl") {
+    var avail = ["mc", "cloze", "vf", "who"].filter(function(t){ return filt(t).length; });
+    type = avail[Math.floor(Math.random() * avail.length)]; mult = 2;
+    $("landed").textContent = "¡Puntos dobles! Te toca: " + TYPES[type].name;
+  } else {
+    if (!filt(type).length) { type = "mc"; }
+    $("landed").textContent = "Te toca: " + TYPES[type].name;
+  }
+  setTimeout(function(){ showQ(draw(type), mult); }, 1300);
+}
+
+// ---- pregunta con cuenta atrás
+function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+function tick(deadline) {
+  var left = Math.max(0, deadline - Date.now()), sec = Math.ceil(left / 1000);
+  $("tnum").textContent = sec;
+  $("tbar").style.width = (left / (TIME * 1000) * 100) + "%";
+  var low = sec <= 10;
+  $("timer").classList.toggle("low", low);
+  if (left <= 0) { stopTimer(); answer(-1); }
+}
+
+function showQ(q, mult) {
+  var t = TEAMS[S.turn];
+  S.answered = false; S.cur = {q: q, mult: mult};
+  $("wheelbox").hidden = true; $("qbox").hidden = false;
+  $("chapTxt").textContent = "Daniel " + q.c;
+  var order = [];
+  for (var i = 0; i < q.o.length; i++) order.push(i);
+  if (q.shuf) order = shuffle(order);
+  S.cur.order = order;
+  $("qtype").textContent = TYPES[q.type].name + (mult === 2 ? " · ×2 puntos" : "");
+  $("qtype").className = "qtype" + (mult === 2 ? " x2" : "");
+  var qe = $("q");
+  if (q.type === "cloze") {
+    var parts = q.text.split("____");
+    qe.innerHTML = "";
+    qe.appendChild(document.createTextNode("«" + parts[0]));
+    var bl = document.createElement("span"); bl.className = "blank"; bl.id = "blank"; bl.textContent = "      "; qe.appendChild(bl);
+    qe.appendChild(document.createTextNode((parts[1] || "") + "»"));
+  } else if (q.type === "vf" || q.type === "who") {
+    qe.textContent = (q.type === "who" ? "" : "") + q.text;
+  } else { qe.textContent = q.q; }
+  $("qhelp").textContent = q.type === "cloze" ? "Elige la palabra que falta, tal cual está en la Biblia." : q.type === "vf" ? "¿Es verdadero o falso lo que dice?" : q.type === "who" ? "¿Quién lo dijo?" : "";
+  $("qhelp").hidden = !$("qhelp").textContent;
+  var o = $("opts"); o.className = q.type === "vf" ? "opts tf" : "opts";
+  o.innerHTML = order.map(function(k, idx){
+    return '<button type="button" class="opt" data-k="' + k + '"><span class="ltr">' + (q.type === "vf" ? (idx ? "F" : "V") : "ABCD"[idx]) + '</span><span class="tx"></span></button>';
+  }).join("");
+  Array.prototype.forEach.call(o.children, function(b, idx){ b.querySelector(".tx").textContent = q.o[order[idx]]; });
+  $("panel").hidden = true; document.body.classList.remove("has-panel");
+  var deadline = Date.now() + TIME * 1000;
+  $("timer").classList.remove("low"); $("tnum").textContent = TIME; $("tbar").style.width = "100%";
+  stopTimer(); timerId = setInterval(function(){ tick(deadline); }, 150);
+  renderBoard();
+}
+
+$("opts").addEventListener("click", function(e){
+  var b = e.target.closest(".opt"); if (!b || S.answered) return;
+  answer(parseInt(b.getAttribute("data-k"), 10));
+});
+
+function answer(k) {
+  if (S.answered) return;
+  S.answered = true; stopTimer();
+  var q = S.cur.q, mult = S.cur.mult, good = k === q.ans, t = TEAMS[S.turn], timeout = k === -1, pts = 10 * mult;
+  Array.prototype.forEach.call($("opts").children, function(x){
+    var xk = parseInt(x.getAttribute("data-k"), 10); x.disabled = true;
+    if (xk === q.ans) { x.classList.add("right"); x.querySelector(".ltr").textContent = "✓"; }
+    else if (xk === k) { x.classList.add("wrong"); x.querySelector(".ltr").textContent = "✗"; }
+    else x.classList.add("dim");
+  });
+  var bl = $("blank"); if (bl) { bl.textContent = q.o[q.ans]; bl.classList.add("filled"); }
+  if (good) { S.score[S.turn] += pts; S.ok[S.turn]++; } else { S.ko[S.turn]++; }
+  var v = $("verdict");
+  v.className = "verdict " + (good ? "ok" : "ko");
+  v.textContent = good ? ("¡Correcto, " + t.name + "! +" + pts + " puntos")
+    : (timeout ? ("¡Se acabó el tiempo, " + t.name + "! ") : ("Incorrecto, " + t.name + ". ")) + "La respuesta era: " + q.o[q.ans];
+  $("ref").textContent = q.r + " (RVR1960)";
+  $("verse").textContent = "“" + q.v + "”";
+  $("nextBtn").textContent = S.i === S.total - 1 ? "Ver resultado" : "Siguiente turno";
+  $("panel").hidden = false; document.body.classList.add("has-panel");
+  renderBoard();
+  $("nextBtn").focus({preventScroll: true});
+}
+
+$("nextBtn").addEventListener("click", function(){
+  if (S.i === S.total - 1) return finish();
+  S.i++; S.turn = 1 - S.turn; showWheel();
+  window.scrollTo(0, 0);
+});
+
+function finish() {
+  S.done = true; stopTimer();
+  $("panel").hidden = true; document.body.classList.remove("has-panel");
+  $("game").hidden = true; $("final").hidden = false;
+  var a = S.score[0], b = S.score[1], w = $("winner");
+  if (a === b) { w.className = "winner"; w.textContent = "¡Empate a " + a + " puntos!"; }
+  else { var i = a > b ? 0 : 1; w.className = "winner " + TEAMS[i].cls; w.textContent = "¡Gana " + TEAMS[i].name + " con " + S.score[i] + " puntos!"; }
+  $("finalInfo").textContent = TEAMS[0].name + ": " + S.ok[0] + " bien, " + S.ko[0] + " mal. " + TEAMS[1].name + ": " + S.ok[1] + " bien, " + S.ko[1] + " mal.";
+  renderBoard();
+}
+$("againBtn").addEventListener("click", start);
+$("menuBtn").addEventListener("click", function(){
+  S = null; $("final").hidden = true; $("setup").hidden = false; renderBoard(); renderChips();
+});
+$("startBtn").addEventListener("click", start);
+
+$("themeBtn").addEventListener("click", function(){
+  var r = document.documentElement, dark = r.getAttribute("data-theme") === "dark" ||
+    (!r.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  r.setAttribute("data-theme", dark ? "light" : "dark");
+});
+
+buildWheel(); renderChips(); renderBoard();
+
+</script>
+</body>
+
+</html>

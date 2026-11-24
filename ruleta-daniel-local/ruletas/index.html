@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruletas Bíblicas · Libro de Daniel</title>
+<meta name="theme-color" content="#0d0e12">
+<meta name="description" content="Ruletas del Gran Preguntón Bíblico. Funciona sin internet.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --bg:#eef1f7;
+    --paper:#ffffff;
+    --ink:#0d0e12;
+    --ink-soft:#5a6070;
+    --blue:#1f4e9e;
+    --blue-dark:#163b7a;
+    --line:#dde2ee;
+    --serif:Georgia,"Times New Roman",serif;
+    --sans:"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{
+    font-family:var(--sans);color:var(--ink);
+    background:
+      radial-gradient(1100px 520px at 50% -8%, #dfe7f7 0%, transparent 70%),
+      var(--bg);
+  }
+
+  /* ================= ESTRUCTURA ================= */
+  .stage{
+    display:grid;
+    grid-template-columns:minmax(150px,250px) minmax(0,1fr) minmax(150px,250px);
+    gap:18px;max-width:1600px;margin:0 auto;padding:20px 18px 34px;
+    align-items:start;
+  }
+  main{
+    display:flex;flex-direction:column;align-items:center;gap:30px;
+    background:var(--paper);border:1px solid var(--line);border-radius:26px;
+    box-shadow:0 18px 50px rgba(20,35,70,.10);
+    padding:34px 28px 36px;min-width:0;
+  }
+
+  /* ---- 1. Encabezado ---- */
+  .head{text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+  .brand{font-size:.82rem;letter-spacing:.24em;text-transform:uppercase;font-weight:700;color:var(--ink-soft)}
+  .brand b{color:var(--blue)}
+  h1{
+    font-family:var(--serif);font-weight:900;text-transform:uppercase;
+    font-size:clamp(2.4rem,6vw,4.4rem);letter-spacing:.06em;line-height:1.05;
+  }
+  h1 span{color:var(--blue)}
+  .subtitle{font-size:clamp(1rem,2vw,1.3rem);font-weight:600;color:var(--blue);min-height:1.5em}
+
+  /* ---- 2. Cronómetro (grande) ---- */
+  .timer-card{
+    width:100%;max-width:640px;background:var(--ink);color:#fff;border-radius:24px;
+    padding:26px 24px 24px;display:flex;flex-direction:column;align-items:center;gap:18px;
+    box-shadow:0 14px 34px rgba(0,0,0,.28);
+  }
+  .time{
+    font-variant-numeric:tabular-nums;font-weight:800;line-height:1;letter-spacing:.03em;
+    font-size:clamp(5rem,15vw,9.5rem);transition:color .2s;
+  }
+  .time.warn{color:#ffb74d}
+  .time.end{color:#ff5252;animation:blink .6s step-end infinite}
+  @keyframes blink{50%{opacity:.35}}
+  .bar{width:100%;height:10px;border-radius:99px;background:#2b2e38;overflow:hidden}
+  .bar i{display:block;height:100%;width:100%;background:#4f86e0;border-radius:99px;transition:width 1s linear,background .3s}
+  .time.warn ~ .bar i{background:#ffb74d}
+  .time.end ~ .bar i{background:#ff5252}
+  .row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;width:100%}
+
+  /* ---- 3. Ruleta (grande) ---- */
+  .wheel-card{display:flex;flex-direction:column;align-items:center;gap:22px;width:100%}
+  .wheel-wrap{
+    position:relative;width:min(100%,640px);aspect-ratio:1;
+    filter:drop-shadow(0 14px 24px rgba(15,25,55,.25));
+  }
+  canvas#wheel{width:100%;height:100%;display:block}
+  .pointer{
+    position:absolute;left:50%;top:-8px;transform:translateX(-50%);z-index:2;
+    width:0;height:0;border-left:21px solid transparent;border-right:21px solid transparent;
+    border-top:42px solid var(--blue);filter:drop-shadow(0 3px 2px rgba(0,0,0,.4));
+  }
+  .hub{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:1;
+    width:21%;aspect-ratio:1;border-radius:50%;background:#fff;border:6px solid var(--ink);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;text-align:center;
+  }
+  .hub small{font-size:.62rem;letter-spacing:.12em;font-weight:800;color:var(--ink-soft)}
+  .hub b{font-size:clamp(1.7rem,5vw,2.8rem);font-weight:900;color:var(--blue)}
+  .result{
+    display:flex;align-items:center;justify-content:center;gap:16px;min-height:84px;min-width:min(100%,380px);
+    padding:10px 28px;border-radius:18px;border:2px dashed var(--line);color:var(--ink-soft);font-weight:600;text-align:center;
+  }
+  .result.show{border:2px solid var(--blue);background:#eef3fc;color:var(--ink);animation:pop .45s cubic-bezier(.2,1.4,.4,1)}
+  .result .num{font-family:var(--serif);font-size:3.6rem;font-weight:900;color:var(--blue);line-height:1}
+  @keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+
+  /* ---- 4. Seguir adelante ---- */
+  .nav-card{width:100%;max-width:640px;display:flex;flex-direction:column;align-items:center;gap:16px;
+    padding-top:26px;border-top:2px solid var(--line)}
+  .history{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:28px}
+  .history:empty{display:none}
+  .chip{background:var(--ink);color:#fff;border-radius:99px;min-width:2.1rem;text-align:center;padding:.2rem .6rem;font-weight:700;font-size:.85rem}
+  .meta{color:var(--ink-soft);font-weight:600;font-size:.95rem}
+  .steps{display:flex;gap:6px}
+  .steps i{width:38px;height:7px;border-radius:99px;background:var(--line)}
+  .steps i.on{background:var(--blue)}
+  .steps i.done{background:var(--ink)}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .hint{font-size:.76rem;color:var(--ink-soft);text-align:center;line-height:1.8}
+  kbd{font:inherit;font-weight:700;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 .4em;background:#f4f6fa}
+  .offline-ok{font-size:.76rem;font-weight:700;color:#1b7a3a}
+  .offline-ok:empty{display:none}
+
+  /* ================= BOTONES ================= */
+  button{
+    font:inherit;cursor:pointer;border:0;border-radius:14px;padding:.85rem 1.6rem;
+    font-weight:800;letter-spacing:.02em;font-size:1.05rem;
+    transition:transform .08s,background .2s,opacity .2s;
+  }
+  button:active:not(:disabled){transform:translateY(2px)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button:focus-visible{outline:3px solid #8fb3f0;outline-offset:2px}
+  .b-blue{background:var(--blue);color:#fff;box-shadow:0 4px 0 var(--blue-dark)}
+  .b-blue:hover:not(:disabled){background:#2a5fb8}
+  .b-white{background:#fff;color:var(--ink)}
+  .b-white:hover:not(:disabled){background:#e9edf6}
+  .b-line{background:transparent;color:#fff;border:2px solid #fff}
+  .b-line:hover:not(:disabled){background:#fff;color:var(--ink)}
+  .b-black{background:var(--ink);color:#fff;box-shadow:0 4px 0 #000}
+  .b-black:hover:not(:disabled){background:#272a33}
+  .b-big{font-size:1.3rem;padding:1rem 2.2rem;min-width:200px}
+  .b-xl{font-size:1.35rem;padding:1.05rem 3rem}
+  .b-small{font-size:.82rem;padding:.5rem .95rem;border-radius:10px;background:transparent;color:var(--ink-soft);border:1px solid var(--line);font-weight:600}
+  .b-small:hover:not(:disabled){background:#eef1f7}
+
+  /* ================= BANDERAS ================= */
+  .flags{display:flex;flex-direction:column;gap:6px;align-items:center;padding-top:10px}
+  .flagbox{width:100%;display:flex;flex-direction:column;align-items:center}
+  .flagbox canvas{width:100%;height:auto;aspect-ratio:480/420;display:block}
+  .flag-name{
+    margin-top:-10px;font-weight:800;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink);
+    background:#fff;border:1px solid var(--line);border-radius:99px;padding:.22rem .9rem;
+  }
+
+  /* ================= MODO PROYECTOR ================= */
+  body.present{overflow:hidden;background:#fff}
+  body.present .stage{
+    max-width:none;height:100vh;padding:1.2vh 1vw;gap:.8vw;align-items:stretch;
+    grid-template-columns:clamp(110px,11vw,230px) minmax(0,1fr) clamp(110px,11vw,230px);
+  }
+  body.present .flags{justify-content:center;padding-top:0}
+  body.present main{
+    height:100%;padding:1.6vh 1.6vw;border-radius:20px;gap:2vh;
+    display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:1fr auto 1fr;
+    column-gap:2vw;align-items:center;justify-items:center;
+  }
+  body.present .wheel-card{grid-column:1;grid-row:1 / 4;width:auto;gap:1.6vh}
+  body.present .wheel-wrap{width:min(68vh,43vw)}
+  body.present .head{grid-column:2;grid-row:1;align-self:end}
+  body.present .timer-card{grid-column:2;grid-row:2;max-width:100%;padding:2vh 1.6vw;gap:1.4vh;border-radius:20px}
+  body.present .nav-card{grid-column:2;grid-row:3;align-self:start;border-top:0;padding-top:0;max-width:100%;gap:1.4vh}
+  body.present .brand,body.present .hint,body.present .tools,body.present .steps,
+  body.present .offline-ok,body.present .meta,body.present .history{display:none}
+  body.present h1{font-size:min(9.5vh,5vw);white-space:nowrap}
+  body.present .subtitle{font-size:min(2.6vh,1.4vw)}
+  body.present .time{font-size:min(15vh,7.4vw)}
+  body.present .timer-card button{font-size:min(2.3vh,1.2vw);padding:1.1vh 1.1vw}
+  body.present .row{gap:.9vw;flex-wrap:nowrap}
+  body.present .result{min-height:8vh;padding:.6vh 1.4vw;min-width:0;font-size:min(2.4vh,1.3vw)}
+  body.present .result .num{font-size:min(7vh,3.8vw)}
+  body.present .wheel-card button{font-size:min(2.6vh,1.4vw);padding:1.3vh 1.8vw;min-width:0}
+  body.present .b-xl{font-size:min(3vh,1.6vw);padding:1.5vh 2.6vw}
+  body.present .nav-card .b-small{font-size:min(2vh,1.05vw);padding:.9vh 1vw}
+  body.present .flag-name{font-size:max(.68rem,1.4vh)}
+
+  /* ================= MÓVIL / PANTALLA ESTRECHA ================= */
+  @media (max-width:900px){
+    .stage{grid-template-columns:1fr;padding:10px 10px 26px}
+    .flags{flex-direction:row;gap:4px;padding-top:0}
+    .flags.right{order:2}
+    main{order:1;padding:24px 14px 28px}
+    .flagbox{flex:1}
+    .flag-name{font-size:.6rem;padding:.15rem .5rem}
+  }
+  @media (prefers-reduced-motion:reduce){.time.end{animation:none}}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- Banderas izquierda -->
+  <aside class="flags left" aria-label="Equipos de la izquierda">
+    <div class="flagbox"><canvas class="flagcv" data-color="#2e9b4f" data-side="left"></canvas><div class="flag-name">Verde</div></div>
+    <div class="flagbox"><canvas class="flagcv" data-color="#7b3fb0" data-side="left"></canvas><div class="flag-name">Morado</div></div>
+    <div class="flagbox"><canvas class="flagcv" data-color="#1e73d8" data-side="left"></canvas><div class="flag-name">Azul</div></div>
+  </aside>
+
+  <main>
+    <!-- 1. Título -->
+    <header class="head">
+      <div class="brand">Gran Preguntón Bíblico · <b>Libro de Daniel</b></div>
+      <h1 id="title">Ronda <span>1</span></h1>
+      <div class="subtitle" id="subtitle"></div>
+    </header>
+
+    <!-- 2. Cronómetro grande + botones -->
+    <section class="timer-card" aria-label="Cronómetro">
+      <div class="time" id="time" role="timer">00:30</div>
+      <div class="bar"><i id="bar"></i></div>
+      <div class="row">
+        <button class="b-blue" id="btnStart">Iniciar</button>
+        <button class="b-white" id="btnPause" disabled>Pausar</button>
+        <button class="b-line" id="btnTimerReset">Reiniciar</button>
+      </div>
+    </section>
+
+    <!-- 3. Ruleta grande + botones -->
+    <section class="wheel-card" aria-label="Ruleta">
+      <div class="wheel-wrap">
+        <div class="pointer"></div>
+        <canvas id="wheel" width="1100" height="1100" aria-label="Ruleta de preguntas"></canvas>
+        <div class="hub"><small>QUEDAN</small><b id="left">0</b></div>
+      </div>
+      <div class="result" id="result" aria-live="polite">Pulsa «Iniciar ruleta»</div>
+      <div class="row">
+        <button class="b-blue b-big" id="btnSpin">▶ Iniciar ruleta</button>
+        <button class="b-black b-big" id="btnStop" disabled>■ Parar ruleta</button>
+      </div>
+    </section>
+
+    <!-- 4. Seguir adelante -->
+    <section class="nav-card">
+      <div class="meta">Ya salieron <span id="count">0</span> de <span id="total">0</span></div>
+      <div class="history" id="history" aria-label="Números que ya salieron"></div>
+      <button class="b-blue b-xl" id="btnNext">Siguiente ronda →</button>
+      <div class="steps" id="steps" aria-hidden="true"></div>
+      <button class="b-small" id="btnPrev">← Ronda anterior</button>
+      <div class="tools">
+        <button class="b-small" id="btnPresent">⛶ Modo proyector (F)</button>
+        <button class="b-small" id="btnInstall" hidden>⬇ Instalar como aplicación</button>
+        <button class="b-small" id="btnReset">Reiniciar todo el juego</button>
+      </div>
+      <div class="hint"><kbd>Espacio</kbd> iniciar / parar ruleta · <kbd>C</kbd> cronómetro · <kbd>→</kbd> siguiente · <kbd>←</kbd> anterior · <kbd>F</kbd> pantalla completa</div>
+      <div class="offline-ok" id="offlineOk"></div>
+    </section>
+  </main>
+
+  <!-- Banderas derecha -->
+  <aside class="flags right" aria-label="Equipos de la derecha">
+    <div class="flagbox"><canvas class="flagcv" data-color="#f2c200" data-side="right"></canvas><div class="flag-name">Amarillo</div></div>
+    <div class="flagbox"><canvas class="flagcv" data-color="#d62828" data-side="right"></canvas><div class="flag-name">Rojo</div></div>
+    <div class="flagbox"><canvas class="flagcv" data-color="#f08a00" data-side="right"></canvas><div class="flag-name">Naranja</div></div>
+  </aside>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ================= DATOS ================= */
+  const range = (a, b) => Array.from({length: b - a + 1}, (_, i) => a + i);
+  const STAGES = [
+    { round: 1, sub: 'Preguntas abiertas · Los 6 equipos',                    nums: range(1, 25) },
+    { round: 2, sub: 'Parte 1 · Selección múltiple (por grupos)',            nums: range(1, 15) },
+    { round: 2, sub: 'Parte 2 · Preguntas individuales',                     nums: range(16, 25) },
+    { round: 3, sub: 'Individuales · Cada integrante responde una pregunta', nums: range(1, 25) },
+    { round: 4, sub: 'Gran final · Preguntas mixtas',                        nums: range(1, 35) },
+  ];
+  const TIME = 30;
+  const KEY = 'ruletas-daniel-v1';
+  const $ = id => document.getElementById(id);
+  const canvas = $('wheel'), ctx = canvas.getContext('2d');
+  const C = { blue: '#1f4e9e', black: '#0d0e12', light: '#e6ebf5' };
+
+  let stage = 0;
+  let drawn = STAGES.map(() => []);
+  let angle = 0;
+  let mode = 'idle';                  // idle | run | stop | show
+  let highlight = null;
+  const busy = () => mode !== 'idle';
+
+  function load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (s && Array.isArray(s.drawn) && s.drawn.length === STAGES.length) {
+        drawn = s.drawn; stage = Math.min(Math.max(+s.stage || 0, 0), STAGES.length - 1);
+      }
+    } catch (e) {}
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ stage, drawn })); } catch (e) {} }
+  const remaining = () => STAGES[stage].nums.filter(n => !drawn[stage].includes(n));
+
+  /* ================= RULETA ================= */
+  function segColor(i, n) {
+    if (n % 2 === 1 && i === n - 1) return { bg: C.light, fg: C.black };
+    return i % 2 === 0 ? { bg: C.blue, fg: '#fff' } : { bg: C.black, fg: '#fff' };
+  }
+  function drawWheel() {
+    const W = canvas.width, cx = W / 2, cy = W / 2, R = W / 2 - 14;
+    ctx.clearRect(0, 0, W, W);
+    const items = remaining(), n = items.length;
+    ctx.beginPath(); ctx.arc(cx, cy, R + 10, 0, Math.PI * 2); ctx.fillStyle = C.black; ctx.fill();
+    if (n === 0) {
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fillStyle = C.light; ctx.fill();
+      ctx.fillStyle = C.black; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '800 50px Georgia,serif'; ctx.fillText('Ruleta completada', cx, cy - 70);
+      ctx.font = '600 34px "Segoe UI",Arial'; ctx.fillStyle = C.blue; ctx.fillText('Pasa a la siguiente ronda', cx, cy + 90);
+      return;
+    }
+    const a = (Math.PI * 2) / n;
+    const fontPx = Math.max(24, Math.min(60, Math.floor(R * a * 0.5)));
+    items.forEach((num, i) => {
+      const s = angle + i * a, e = s + a, col = segColor(i, n);
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, s, e); ctx.closePath();
+      ctx.fillStyle = highlight === num ? '#ffffff' : col.bg; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.stroke();
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(s + a / 2);
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = highlight === num ? C.blue : col.fg;
+      ctx.font = `800 ${fontPx}px "Segoe UI",Arial`;
+      ctx.fillText(String(num), R - 26, 0);
+      ctx.restore();
+    });
+  }
+
+  /* Iniciar: gira sin parar. Parar: frena suavemente en un número al azar de los que quedan. */
+  const VMAX = 11;                                   // rad/s
+  let vel = 0, tPrev = 0;
+
+  function startSpin() {
+    if (busy() || !remaining().length) return;
+    mode = 'run'; highlight = null; vel = 0; tPrev = performance.now();
+    const r = $('result'); r.className = 'result'; r.textContent = 'Girando… pulsa «Parar ruleta»';
+    setUI();
+    const loop = now => {
+      if (mode !== 'run') return;
+      const dt = Math.min(.05, (now - tPrev) / 1000); tPrev = now;
+      vel = Math.min(VMAX, vel + dt * 9);
+      angle += vel * dt;
+      drawWheel();
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+
+  function stopSpin() {
+    if (mode !== 'run') return;
+    mode = 'stop'; setUI();
+    const items = remaining(), n = items.length, a = Math.PI * 2 / n;
+    const k = Math.floor(Math.random() * n);               // sorteo uniforme entre los que quedan
+    const jitter = (Math.random() - .5) * a * .7;
+    const target = -Math.PI / 2 - (k + .5) * a + jitter;   // el puntero está arriba
+    const start = angle, minTurn = Math.PI * 2 * 1.3;
+    let extra = (target - (start + minTurn)) % (Math.PI * 2); if (extra < 0) extra += Math.PI * 2;
+    const delta = minTurn + extra;
+    const dur = Math.min(8000, Math.max(3500, 4 * delta / Math.max(vel, 5) * 1000));
+    const t0 = performance.now();
+    const tick = now => {
+      const t = Math.min(1, (now - t0) / dur);
+      angle = start + delta * (1 - Math.pow(1 - t, 4));
+      drawWheel();
+      if (t < 1) return requestAnimationFrame(tick);
+      land(items[k]);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function land(num) {
+    mode = 'show'; highlight = num; drawWheel();
+    drawn[stage].push(num); save();
+    const r = $('result');
+    r.className = 'result show';
+    r.innerHTML = `<span>Pregunta número</span><span class="num">${num}</span>`;
+    beep(880, .15); setTimeout(() => beep(1175, .25), 170);
+    updateMeta(); setUI();
+    setTimeout(() => {             // el número sale de la ruleta y no se repite
+      highlight = null; angle = angle % (Math.PI * 2); mode = 'idle';
+      drawWheel(); setUI();
+    }, 1600);
+  }
+
+  /* ================= CRONÓMETRO ================= */
+  let tLeft = TIME, tId = null, audio = null;
+  const fmt = s => '00:' + String(s).padStart(2, '0');
+  function paintTimer() {
+    const el = $('time');
+    el.textContent = fmt(tLeft);
+    el.className = 'time' + (tLeft === 0 ? ' end' : tLeft <= 10 ? ' warn' : '');
+    $('bar').style.width = (tLeft / TIME * 100) + '%';
+    $('btnStart').textContent = (tLeft < TIME && tLeft > 0 && !tId) ? 'Continuar' : 'Iniciar';
+    $('btnStart').disabled = !!tId || tLeft === 0;
+    $('btnPause').disabled = !tId;
+  }
+  function stopTimer() { clearInterval(tId); tId = null; }
+  function startTimer() {
+    if (tId || tLeft === 0) return;
+    tId = setInterval(() => {
+      tLeft--;
+      if (tLeft <= 0) { tLeft = 0; stopTimer(); beep(440, .9, 'square'); }
+      else if (tLeft <= 5) beep(660, .08);
+      paintTimer();
+    }, 1000);
+    paintTimer();
+  }
+  function pauseTimer() { stopTimer(); paintTimer(); }
+  function resetTimer() { stopTimer(); tLeft = TIME; paintTimer(); }
+  function beep(freq, dur, type) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(.18, audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001, audio.currentTime + dur);
+      o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime + dur);
+    } catch (e) {}
+  }
+
+  /* ================= INTERFAZ ================= */
+  function updateMeta() {
+    $('left').textContent = remaining().length;
+    $('count').textContent = drawn[stage].length;
+    $('total').textContent = STAGES[stage].nums.length;
+    $('history').innerHTML = drawn[stage].map(n => `<span class="chip">${n}</span>`).join('');
+  }
+  function setUI() {
+    const st = STAGES[stage], last = stage === STAGES.length - 1;
+    $('title').innerHTML = `Ronda <span>${st.round}</span>`;
+    $('subtitle').textContent = st.sub;
+    document.title = `Ronda ${st.round} · Ruletas Bíblicas`;
+    $('btnSpin').disabled = busy() || remaining().length === 0;
+    $('btnStop').disabled = mode !== 'run';
+    $('btnPrev').disabled = busy() || stage === 0;
+    $('btnNext').disabled = busy() || last;
+    $('btnNext').textContent = last ? 'Última ronda' : 'Siguiente ronda →';
+    $('steps').innerHTML = STAGES.map((_, i) => `<i class="${i < stage ? 'done' : i === stage ? 'on' : ''}"></i>`).join('');
+    updateMeta();
+  }
+  function goTo(i) {
+    if (busy()) return;
+    stage = i; angle = 0; highlight = null; resetTimer(); save();
+    const r = $('result'); r.className = 'result'; r.textContent = 'Pulsa «Iniciar ruleta»';
+    drawWheel(); setUI();
+  }
+  $('btnSpin').onclick = startSpin;
+  $('btnStop').onclick = stopSpin;
+  $('btnStart').onclick = startTimer;
+  $('btnPause').onclick = pauseTimer;
+  $('btnTimerReset').onclick = resetTimer;
+  $('btnNext').onclick = () => goTo(Math.min(stage + 1, STAGES.length - 1));
+  $('btnPrev').onclick = () => goTo(Math.max(stage - 1, 0));
+  $('btnReset').onclick = () => {
+    if (busy() || !confirm('¿Reiniciar todas las ruletas y volver a la Ronda 1?')) return;
+    drawn = STAGES.map(() => []); goTo(0);
+  };
+
+  /* ================= MODO PROYECTOR ================= */
+  let forced = false, wake = null;
+  const isFull = () => !!document.fullscreenElement || (innerHeight >= screen.height - 2 && innerWidth >= screen.width - 2);
+  const syncPresent = () => document.body.classList.toggle('present', forced || isFull());
+  async function keepAwake() {
+    try { if ('wakeLock' in navigator && document.visibilityState === 'visible') wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+  }
+  async function togglePresent() {
+    const on = !(document.fullscreenElement || forced || isFull());
+    forced = on;
+    try {
+      if (on && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+      else if (!on && document.fullscreenElement) await document.exitFullscreen();
+    } catch (e) {}
+    if (!on) forced = false;
+    syncPresent(); if (on) keepAwake();
+  }
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) forced = false; syncPresent(); });
+  document.addEventListener('visibilitychange', () => { if (document.body.classList.contains('present')) keepAwake(); });
+  addEventListener('resize', syncPresent);
+  $('btnPresent').onclick = togglePresent;
+
+  /* ================= TECLADO ================= */
+  const stopKey = e => { e.preventDefault(); e.stopPropagation(); };
+  addEventListener('keyup', e => { if (e.code === 'Space') stopKey(e); }, true);
+  addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    switch (e.code) {
+      case 'Space': stopKey(e); if (e.repeat) break; if (mode === 'run') stopSpin(); else startSpin(); break;
+      case 'KeyC': if (tId) pauseTimer(); else startTimer(); break;
+      case 'KeyX': resetTimer(); break;
+      case 'ArrowRight': case 'KeyN': if (!$('btnNext').disabled) goTo(stage + 1); break;
+      case 'ArrowLeft': case 'KeyB': if (!$('btnPrev').disabled) goTo(stage - 1); break;
+      case 'KeyF': case 'KeyP': togglePresent(); break;
+    }
+  }, true);
+
+  /* ================= INSTALAR / SIN INTERNET ================= */
+  let deferred = null;
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; $('btnInstall').hidden = false; });
+  $('btnInstall').onclick = async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('btnInstall').hidden = true; };
+  addEventListener('appinstalled', () => { $('btnInstall').hidden = true; });
+  if (location.protocol === 'file:') {
+    $('offlineOk').textContent = '✓ Funciona sin internet (archivo local)';
+  } else if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready)
+      .then(() => { $('offlineOk').textContent = '✓ Lista para usar sin internet'; }).catch(() => {});
+  }
+
+  /* ================= BANDERAS ONDEANTES ================= */
+  const flags = [...document.querySelectorAll('.flagcv')].map(cv => {
+    cv.width = 480; cv.height = 420;
+    return { cv, g: cv.getContext('2d'), color: cv.dataset.color, flip: cv.dataset.side === 'right', ph: Math.random() * 6 };
+  });
+  function drawFlag(f, t) {
+    const { g, cv } = f, W = cv.width, H = cv.height;
+    g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H);
+    if (f.flip) { g.translate(W, 0); g.scale(-1, 1); }
+    const px = 26, top = 46, FW = 400, FH = 250, N = 56, sw = FW / N;
+    // mástil
+    const grad = g.createLinearGradient(px - 9, 0, px + 9, 0);
+    grad.addColorStop(0, '#3a3d46'); grad.addColorStop(.5, '#0d0e12'); grad.addColorStop(1, '#2a2c33');
+    g.fillStyle = grad; g.fillRect(px - 8, 24, 16, H - 24);
+    g.beginPath(); g.arc(px, 22, 14, 0, Math.PI * 2); g.fillStyle = '#0d0e12'; g.fill();
+    g.beginPath(); g.arc(px - 4, 17, 4, 0, Math.PI * 2); g.fillStyle = 'rgba(255,255,255,.35)'; g.fill();
+    // tela: la onda crece hacia la punta; la pendiente da luz y sombra
+    const off = i => { const u = i / N; return (6 + 26 * u) * Math.sin(u * 7.2 - t * 2.6 + f.ph); };
+    for (let i = 0; i < N; i++) {
+      const x0 = px + 8 + i * sw, x1 = x0 + sw + 1.2;
+      const y0 = top + off(i), y1 = top + off(i + 1);
+      const s = Math.max(-1, Math.min(1, (off(i + 1) - off(i)) / 2.4));
+      g.beginPath();
+      g.moveTo(x0, y0); g.lineTo(x1, y1); g.lineTo(x1, y1 + FH); g.lineTo(x0, y0 + FH); g.closePath();
+      g.fillStyle = f.color; g.fill();
+      g.fillStyle = s > 0 ? `rgba(0,0,0,${.34 * s})` : `rgba(255,255,255,${-.30 * s})`;
+      g.fill();
+    }
+    g.lineWidth = 3; g.strokeStyle = 'rgba(255,255,255,.35)'; g.beginPath();
+    for (let i = 0; i <= N; i++) { const x = px + 8 + i * sw, y = top + off(i); i ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.stroke();
+    g.strokeStyle = 'rgba(0,0,0,.28)'; g.beginPath();
+    for (let i = 0; i <= N; i++) { const x = px + 8 + i * sw, y = top + FH + off(i); i ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.stroke();
+  }
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let lastF = 0;
+  function flagLoop(now) {
+    if (!document.hidden && now - lastF > 33) { lastF = now; flags.forEach(f => drawFlag(f, now / 1000)); }
+    if (!still) requestAnimationFrame(flagLoop);
+  }
+  if (still) flags.forEach(f => drawFlag(f, 0)); else requestAnimationFrame(flagLoop);
+
+  /* ================= ARRANQUE ================= */
+  load(); resetTimer(); drawWheel(); syncPresent(); setUI();
+})();
+</script>
+</body>
+</html>
