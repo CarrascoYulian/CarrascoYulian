@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ruletas Bíblicas · Libro de Daniel</title>
+<meta name="theme-color" content="#0d0e12">
+<meta name="description" content="Ruletas del Gran Preguntón Bíblico. Funciona sin internet.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>
   :root{
     --bg:#f4f6fa;
@@ -186,6 +191,50 @@
   .steps i.on{background:var(--blue)}
   .steps i.done{background:var(--ink)}
 
+  .tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center}
+  .hint{font-size:.74rem;color:var(--ink-soft);text-align:center;line-height:1.6}
+  kbd{font:inherit;font-weight:700;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 .35em;background:#f4f6fa}
+  .offline-ok{font-size:.74rem;font-weight:700;color:#1b7a3a}
+  .offline-ok:empty{display:none}
+
+  .colA,.colB{display:contents}
+
+  /* ---------- Modo proyector (pantalla completa, estilo diapositiva) ---------- */
+  body.present{overflow:hidden;background:#fff}
+  body.present .stage{
+    max-width:none;height:100vh;padding:1.2vh 1vw;gap:.8vw;
+    grid-template-columns:clamp(84px,8vw,150px) minmax(0,1fr) clamp(84px,8vw,150px);
+  }
+  body.present main{
+    height:100%;padding:1.4vh 1.4vw;border-radius:18px;
+    display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:auto auto;
+    column-gap:2vw;align-content:center;align-items:center;justify-items:stretch;
+  }
+  body.present .wheel-wrap{grid-column:1;grid-row:1 / 3;width:min(86vh,44vw)}
+  body.present .colA,body.present .colB{grid-column:2;display:flex;flex-direction:column;align-items:center;gap:1.4vh;min-width:0}
+  body.present .colA{grid-row:1;align-self:end}
+  body.present .colB{grid-row:2;align-self:start;margin-top:1.4vh}
+  body.present .brand,body.present .hint,body.present .tools,body.present .steps,body.present .offline-ok,
+  body.present .meta{display:none}
+  body.present h1{font-size:min(10.5vh,5.4vw);white-space:nowrap}
+  body.present .subtitle{font-size:min(2.7vh,1.5vw);margin-top:0}
+  body.present .timer{padding:1vh 1.4vw;gap:.8vh 1vw;flex-wrap:wrap;max-width:100%;justify-content:center}
+  body.present .timer button{white-space:nowrap}
+  body.present .bar{display:none}
+  body.present .time{font-size:min(9vh,4.4vw);flex-basis:100%}
+  body.present .bar{width:min(8vw,120px)}
+  body.present .timer button{font-size:min(2.3vh,1.2vw);padding:1vh 1vw}
+  body.present .result{min-height:9vh;padding:.8vh 1.6vw;font-size:min(2.6vh,1.4vw);white-space:nowrap}
+  body.present .result .num{font-size:min(8vh,4.2vw)}
+  body.present .btn-spin{font-size:min(3vh,1.6vw);padding:1.5vh 2.6vw}
+  body.present .btn-small,body.present #btnNext{font-size:min(2.1vh,1.1vw);padding:1vh 1vw}
+  body.present .history{max-width:100%;min-height:0;max-height:12vh;overflow:hidden}
+  body.present .chip{font-size:min(2vh,1vw)}
+  body.present .flag{width:min(112px,7.2vw);height:calc(min(112px,7.2vw)*.625);left:calc(50% - min(57px,3.6vw))}
+  body.present .pole::before{left:calc(50% - min(62px,3.9vw))}
+  body.present .pole::after{left:calc(50% - min(65px,4.1vw))}
+  body.present .flag-name{font-size:max(.68rem,1.4vh);margin-top:30px}
+
   /* ---------- Responsive ---------- */
   @media (max-width:860px){
     .stage{grid-template-columns:1fr;padding:10px 10px 24px}
@@ -215,6 +264,7 @@
   </aside>
 
   <main>
+    <div class="colA">
     <div class="brand">Gran Preguntón Bíblico · <b>Libro de Daniel</b></div>
     <h1 id="title">Ronda <span>1</span></h1>
     <div class="subtitle" id="subtitle"></div>
@@ -226,6 +276,7 @@
       <button class="btn-dark" id="btnTimer">Iniciar cronómetro</button>
       <button class="btn-ghost" id="btnTimerReset" style="color:#fff;border-color:#fff" title="Volver a 30 segundos">Reiniciar</button>
     </section>
+    </div>
 
     <!-- Ruleta -->
     <div class="wheel-wrap">
@@ -234,6 +285,7 @@
       <div class="hub"><small>QUEDAN</small><b id="left">0</b></div>
     </div>
 
+    <div class="colB">
     <div class="result" id="result" aria-live="polite">Gira la ruleta para elegir una pregunta</div>
 
     <button class="btn-primary btn-spin" id="btnSpin">Iniciar ruleta</button>
@@ -248,7 +300,14 @@
       <div class="steps" id="steps" aria-hidden="true"></div>
       <button class="btn-primary" id="btnNext">Siguiente ronda →</button>
     </div>
-    <button class="btn-small" id="btnReset">Reiniciar todo el juego</button>
+    <div class="tools">
+      <button class="btn-small" id="btnPresent">⛶ Modo proyector (F)</button>
+      <button class="btn-small" id="btnInstall" hidden>⬇ Instalar como aplicación</button>
+      <button class="btn-small" id="btnReset">Reiniciar todo el juego</button>
+    </div>
+    <div class="hint"><kbd>Espacio</kbd> girar · <kbd>C</kbd> cronómetro · <kbd>→</kbd> siguiente ronda · <kbd>←</kbd> anterior · <kbd>F</kbd> pantalla completa</div>
+    <div class="offline-ok" id="offlineOk"></div>
+    </div>
   </main>
 
   <!-- Banderas derecha -->
@@ -475,7 +534,62 @@
     drawn = STAGES.map(() => []); goTo(0);
   };
 
-  load(); resetTimer(); drawWheel(); setUI();
+  /* ---------- Modo proyector / pantalla completa ---------- */
+  let forced = false;
+  const isFull = () => !!document.fullscreenElement ||
+    (innerHeight >= screen.height - 2 && innerWidth >= screen.width - 2);
+  function syncPresent() { document.body.classList.toggle('present', forced || isFull()); }
+  let wake = null;
+  async function keepAwake() {
+    try { if ('wakeLock' in navigator && document.visibilityState === 'visible') wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+  }
+  async function togglePresent() {
+    const on = !(document.fullscreenElement || forced || isFull());
+    forced = on;
+    try {
+      if (on && document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen();
+      else if (!on && document.fullscreenElement) await document.exitFullscreen();
+    } catch (e) {}
+    if (!on) forced = false;
+    syncPresent(); if (on) keepAwake();
+  }
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) forced = false; syncPresent(); });
+  document.addEventListener('visibilitychange', () => { if (document.body.classList.contains('present')) keepAwake(); });
+  addEventListener('resize', syncPresent);
+  $('btnPresent').onclick = togglePresent;
+
+  /* ---------- Atajos de teclado ---------- */
+  const stopKey = e => { e.preventDefault(); e.stopPropagation(); };
+  addEventListener('keyup', e => { if (e.code === 'Space') stopKey(e); }, true);
+  addEventListener('keydown', e => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    switch (e.code) {
+      case 'Space': stopKey(e); if (!e.repeat) spin(); break;
+      case 'KeyC': if (!$('btnTimer').disabled) toggleTimer(); break;
+      case 'KeyX': resetTimer(); break;
+      case 'ArrowRight': case 'KeyN': if (!$('btnNext').disabled) goTo(stage + 1); break;
+      case 'ArrowLeft': case 'KeyB': if (!$('btnPrev').disabled) goTo(stage - 1); break;
+      case 'KeyF': case 'KeyP': togglePresent(); break;
+    }
+  }, true);
+
+  /* ---------- Instalación y modo sin internet ---------- */
+  let deferred = null;
+  addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferred = e; $('btnInstall').hidden = false; });
+  $('btnInstall').onclick = async () => {
+    if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; $('btnInstall').hidden = true;
+  };
+  addEventListener('appinstalled', () => { $('btnInstall').hidden = true; });
+
+  if (location.protocol === 'file:') {
+    $('offlineOk').textContent = '✓ Funciona sin internet (archivo local)';
+  } else if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready)
+      .then(() => { $('offlineOk').textContent = '✓ Lista para usar sin internet'; })
+      .catch(() => {});
+  }
+
+  load(); resetTimer(); drawWheel(); syncPresent(); setUI();
 })();
 </script>
 </body>
