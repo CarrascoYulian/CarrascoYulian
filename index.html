@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ruletas Bíblicas · Libro de Daniel</title>
+<style>
+  :root{
+    --bg:#f4f6fa;
+    --paper:#ffffff;
+    --ink:#0d0e12;
+    --ink-soft:#4b5160;
+    --blue:#1f4e9e;
+    --blue-dark:#173b78;
+    --line:#d5dbe7;
+    --red:#c62828;
+    --f-green:#2e9b4f;
+    --f-purple:#7b3fb0;
+    --f-blue:#1e73d8;
+    --f-yellow:#f2c200;
+    --f-red:#d62828;
+    --f-orange:#f08a00;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    background:
+      radial-gradient(1200px 500px at 50% -10%, #e3eaf7 0%, transparent 70%),
+      var(--bg);
+    color:var(--ink);
+    min-height:100vh;
+  }
+
+  /* ---------- Layout ---------- */
+  .stage{
+    display:grid;
+    grid-template-columns:minmax(110px,170px) minmax(0,1fr) minmax(110px,170px);
+    gap:12px;
+    max-width:1500px;
+    margin:0 auto;
+    padding:16px 16px 28px;
+  }
+  .flags{
+    display:flex;flex-direction:column;justify-content:center;gap:34px;
+    align-items:center;
+  }
+  .flag-item{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
+  .pole{position:relative;width:100%;height:96px;display:flex;align-items:flex-start}
+  .pole::before{ /* mástil */
+    content:"";position:absolute;left:calc(50% - 62px);top:-6px;bottom:-20px;width:5px;border-radius:3px;
+    background:linear-gradient(90deg,#2a2c33,#0d0e12);
+  }
+  .pole::after{ /* remate del mástil */
+    content:"";position:absolute;left:calc(50% - 65px);top:-14px;width:11px;height:11px;border-radius:50%;
+    background:var(--ink);
+  }
+  .flag{
+    position:absolute;left:calc(50% - 57px);top:2px;
+    width:112px;height:70px;background:var(--c);
+    clip-path:polygon(0 0,100% 0,88% 50%,100% 100%,0 100%);
+    transform-origin:left center;
+    animation:wave 3.2s ease-in-out infinite;
+    box-shadow:inset 0 -10px 18px rgba(0,0,0,.18), inset 0 8px 14px rgba(255,255,255,.18);
+  }
+  .flag-item:nth-child(2) .flag{animation-delay:-1s}
+  .flag-item:nth-child(3) .flag{animation-delay:-2s}
+  @keyframes wave{
+    0%,100%{transform:skewY(0deg) scaleX(1)}
+    50%{transform:skewY(-3deg) scaleX(.96)}
+  }
+  .flag-name{
+    font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink);margin-top:34px;
+  }
+
+  main{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow:0 10px 40px rgba(20,35,70,.08);
+    padding:22px 20px 26px;
+    display:flex;flex-direction:column;align-items:center;gap:16px;
+    min-width:0;
+  }
+  .brand{
+    font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;
+    text-align:center;
+  }
+  .brand b{color:var(--blue)}
+  h1{
+    font-size:clamp(2.6rem,8vw,5.4rem);
+    line-height:1;font-weight:900;letter-spacing:.02em;text-transform:uppercase;
+    color:var(--ink);text-align:center;
+  }
+  h1 span{color:var(--blue)}
+  .subtitle{
+    font-size:clamp(1rem,2.2vw,1.35rem);font-weight:600;color:var(--blue);text-align:center;
+    margin-top:-6px;min-height:1.6em;
+  }
+
+  /* ---------- Cronómetro ---------- */
+  .timer{
+    display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center;
+    background:var(--ink);color:#fff;border-radius:16px;padding:12px 20px;
+    box-shadow:0 6px 18px rgba(0,0,0,.2);
+  }
+  .time{
+    font-variant-numeric:tabular-nums;font-weight:800;
+    font-size:clamp(2.4rem,6vw,3.6rem);letter-spacing:.04em;min-width:3.4ch;text-align:center;
+    transition:color .2s;
+  }
+  .time.warn{color:#ffb74d}
+  .time.end{color:#ff5252;animation:blink .6s step-end infinite}
+  @keyframes blink{50%{opacity:.35}}
+  .bar{
+    width:150px;height:8px;border-radius:99px;background:#2b2e38;overflow:hidden;
+  }
+  .bar i{display:block;height:100%;width:100%;background:var(--blue);border-radius:99px;
+    transition:width 1s linear, background .3s}
+  .time.warn ~ .bar i{background:#ffb74d}
+  .time.end ~ .bar i{background:#ff5252}
+
+  /* ---------- Botones ---------- */
+  button{
+    font:inherit;cursor:pointer;border:0;border-radius:12px;
+    padding:.8rem 1.4rem;font-weight:700;letter-spacing:.02em;
+    transition:transform .08s, background .2s, opacity .2s, box-shadow .2s;
+  }
+  button:active:not(:disabled){transform:translateY(1px) scale(.99)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button:focus-visible{outline:3px solid #8fb3f0;outline-offset:2px}
+  .btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 0 var(--blue-dark)}
+  .btn-primary:hover:not(:disabled){background:#2a5fb8}
+  .btn-dark{background:#fff;color:var(--ink)}
+  .btn-dark:hover:not(:disabled){background:#e9edf6}
+  .btn-ghost{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+  .btn-ghost:hover:not(:disabled){background:var(--ink);color:#fff}
+  .btn-spin{font-size:1.25rem;padding:1rem 2.6rem}
+  .btn-small{font-size:.8rem;padding:.45rem .9rem;border-radius:9px;
+    background:transparent;color:var(--ink-soft);border:1px solid var(--line);font-weight:600}
+  .btn-small:hover:not(:disabled){background:#eef1f7}
+
+  /* ---------- Ruleta ---------- */
+  .wheel-wrap{
+    position:relative;width:min(100%,560px);aspect-ratio:1;
+    filter:drop-shadow(0 12px 22px rgba(15,25,55,.22));
+  }
+  canvas{width:100%;height:100%;display:block}
+  .pointer{
+    position:absolute;left:50%;top:-6px;transform:translateX(-50%);
+    width:0;height:0;border-left:19px solid transparent;border-right:19px solid transparent;
+    border-top:38px solid var(--blue);z-index:2;
+    filter:drop-shadow(0 3px 2px rgba(0,0,0,.35));
+  }
+  .hub{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:21%;aspect-ratio:1;border-radius:50%;background:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    border:5px solid var(--ink);z-index:1;text-align:center;line-height:1;
+  }
+  .hub small{font-size:.62rem;letter-spacing:.12em;font-weight:700;color:var(--ink-soft)}
+  .hub b{font-size:clamp(1.6rem,5vw,2.6rem);font-weight:900;color:var(--blue)}
+
+  .result{
+    display:flex;align-items:center;gap:14px;min-height:76px;
+    padding:8px 26px;border-radius:16px;border:2px dashed var(--line);color:var(--ink-soft);
+    font-weight:600;
+  }
+  .result.show{
+    border:2px solid var(--blue);background:#eef3fc;color:var(--ink);
+    animation:pop .45s cubic-bezier(.2,1.4,.4,1);
+  }
+  .result .num{font-size:3.4rem;font-weight:900;color:var(--blue);line-height:1}
+  @keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+
+  .meta{display:flex;flex-wrap:wrap;gap:8px 18px;justify-content:center;align-items:center;
+    color:var(--ink-soft);font-weight:600;font-size:.95rem}
+  .history{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:620px;min-height:30px}
+  .chip{
+    background:var(--ink);color:#fff;border-radius:99px;min-width:2.1rem;text-align:center;
+    padding:.2rem .6rem;font-weight:700;font-size:.85rem;
+  }
+  .nav{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;margin-top:4px}
+  .steps{display:flex;gap:6px}
+  .steps i{width:34px;height:6px;border-radius:99px;background:var(--line)}
+  .steps i.on{background:var(--blue)}
+  .steps i.done{background:var(--ink)}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:860px){
+    .stage{grid-template-columns:1fr;padding:10px 10px 24px}
+    .flags{flex-direction:row;gap:6px;order:0}
+    .flags.right{order:2}
+    main{order:1}
+    .flag-item{flex:1}
+    .pole{height:70px}
+    .pole::before,.pole::after{display:none}
+    .flag{left:50%;transform-origin:center top;width:84px;height:52px;margin-left:-42px;top:0}
+    .flag-name{margin-top:6px;font-size:.62rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .flag{animation:none}
+    .time.end{animation:none}
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- Banderas izquierda -->
+  <aside class="flags left" aria-label="Equipos de la izquierda">
+    <div class="flag-item"><div class="pole"><div class="flag" style="--c:var(--f-green)"></div></div><div class="flag-name">Verde</div></div>
+    <div class="flag-item"><div class="pole"><div class="flag" style="--c:var(--f-purple)"></div></div><div class="flag-name">Morado</div></div>
+    <div class="flag-item"><div class="pole"><div class="flag" style="--c:var(--f-blue)"></div></div><div class="flag-name">Azul</div></div>
+  </aside>
+
+  <main>
+    <div class="brand">Gran Preguntón Bíblico · <b>Libro de Daniel</b></div>
+    <h1 id="title">Ronda <span>1</span></h1>
+    <div class="subtitle" id="subtitle"></div>
+
+    <!-- Cronómetro (arriba) -->
+    <section class="timer" aria-label="Cronómetro">
+      <div class="time" id="time" role="timer" aria-live="off">00:30</div>
+      <div class="bar"><i id="bar"></i></div>
+      <button class="btn-dark" id="btnTimer">Iniciar cronómetro</button>
+      <button class="btn-ghost" id="btnTimerReset" style="color:#fff;border-color:#fff" title="Volver a 30 segundos">Reiniciar</button>
+    </section>
+
+    <!-- Ruleta -->
+    <div class="wheel-wrap">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="1100" height="1100" aria-label="Ruleta de preguntas"></canvas>
+      <div class="hub"><small>QUEDAN</small><b id="left">0</b></div>
+    </div>
+
+    <div class="result" id="result" aria-live="polite">Gira la ruleta para elegir una pregunta</div>
+
+    <button class="btn-primary btn-spin" id="btnSpin">Iniciar ruleta</button>
+
+    <div class="meta">
+      <span>Ya salieron: <span id="count">0</span> de <span id="total">0</span></span>
+    </div>
+    <div class="history" id="history" aria-label="Números que ya salieron"></div>
+
+    <div class="nav">
+      <button class="btn-small" id="btnPrev">← Ronda anterior</button>
+      <div class="steps" id="steps" aria-hidden="true"></div>
+      <button class="btn-primary" id="btnNext">Siguiente ronda →</button>
+    </div>
+    <button class="btn-small" id="btnReset">Reiniciar todo el juego</button>
+  </main>
+
+  <!-- Banderas derecha -->
+  <aside class="flags right" aria-label="Equipos de la derecha">
+    <div class="flag-item"><div class="pole"><div class="flag" style="--c:var(--f-yellow)"></div></div><div class="flag-name">Amarillo</div></div>
+    <div class="flag-item"><div class="pole"><div class="flag" style="--c:var(--f-red)"></div></div><div class="flag-name">Rojo</div></div>
+    <div class="flag-item"><div class="pole"><div class="flag" style="--c:var(--f-orange)"></div></div><div class="flag-name">Naranja</div></div>
+  </aside>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* Etapas del juego. Cada ruleta contiene exactamente las preguntas del documento
+     (incluidas las de reserva, que el moderador usa solo si hace falta). */
+  const range = (a, b) => Array.from({length: b - a + 1}, (_, i) => a + i);
+  const STAGES = [
+    { round: 1, sub: 'Preguntas abiertas · Los 6 equipos',                     nums: range(1, 25) },
+    { round: 2, sub: 'Parte 1 · Selección múltiple (por grupos)',             nums: range(1, 15) },
+    { round: 2, sub: 'Parte 2 · Preguntas individuales',                      nums: range(16, 25) },
+    { round: 3, sub: 'Individuales · Cada integrante responde una pregunta',  nums: range(1, 25) },
+    { round: 4, sub: 'Gran final · Preguntas mixtas',                         nums: range(1, 35) },
+  ];
+  const TIME = 30;
+  const KEY = 'ruletas-daniel-v1';
+
+  const $ = id => document.getElementById(id);
+  const canvas = $('wheel'), ctx = canvas.getContext('2d');
+  const C = { blue: '#1f4e9e', black: '#0d0e12', light: '#e6ebf5', white: '#ffffff' };
+
+  /* ---------- Estado ---------- */
+  let stage = 0;
+  let drawn = STAGES.map(() => []);   // números ya salidos por etapa
+  let angle = 0;                      // rotación actual
+  let spinning = false;
+  let highlight = null;               // número resaltado tras salir
+
+  function load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (s && Array.isArray(s.drawn) && s.drawn.length === STAGES.length) {
+        drawn = s.drawn; stage = Math.min(Math.max(+s.stage || 0, 0), STAGES.length - 1);
+      }
+    } catch (e) {}
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ stage, drawn })); } catch (e) {}
+  }
+  const remaining = () => STAGES[stage].nums.filter(n => !drawn[stage].includes(n));
+
+  /* ---------- Dibujo de la ruleta ---------- */
+  function segColor(i, n) {
+    if (n % 2 === 1 && i === n - 1) return { bg: C.light, fg: C.black }; // evita dos colores iguales juntos
+    return i % 2 === 0 ? { bg: C.blue, fg: '#fff' } : { bg: C.black, fg: '#fff' };
+  }
+
+  function drawWheel() {
+    const W = canvas.width, cx = W / 2, cy = W / 2, R = W / 2 - 14;
+    ctx.clearRect(0, 0, W, W);
+    const items = remaining();
+    const n = items.length;
+
+    // aro exterior
+    ctx.beginPath(); ctx.arc(cx, cy, R + 10, 0, Math.PI * 2);
+    ctx.fillStyle = C.black; ctx.fill();
+
+    if (n === 0) {
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = C.light; ctx.fill();
+      ctx.fillStyle = C.black; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '800 46px "Segoe UI",Arial'; ctx.fillText('Ruleta completada', cx, cy - 60);
+      ctx.font = '600 32px "Segoe UI",Arial'; ctx.fillStyle = C.blue;
+      ctx.fillText('Pasa a la siguiente ronda', cx, cy + 90);
+      return;
+    }
+
+    const a = (Math.PI * 2) / n;
+    const fontPx = Math.max(24, Math.min(58, Math.floor(R * a * 0.5)));
+
+    items.forEach((num, i) => {
+      const s = angle + i * a, e = s + a;
+      const col = segColor(i, n);
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, s, e); ctx.closePath();
+      ctx.fillStyle = (highlight === num) ? '#ffffff' : col.bg; ctx.fill();
+      ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx, cy); ctx.rotate(s + a / 2);
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = (highlight === num) ? C.blue : col.fg;
+      ctx.font = `800 ${fontPx}px "Segoe UI",Arial`;
+      ctx.fillText(String(num), R - 26, 0);
+      ctx.restore();
+    });
+  }
+
+  /* ---------- Giro ---------- */
+  const easeOut = t => 1 - Math.pow(1 - t, 4);
+
+  function spin() {
+    const items = remaining();
+    if (spinning || !items.length) return;
+    spinning = true; highlight = null;
+    setUI();
+    $('result').className = 'result';
+    $('result').textContent = 'Girando…';
+
+    const n = items.length, a = (Math.PI * 2) / n;
+    const k = Math.floor(Math.random() * n);                 // ganador uniforme entre los que quedan
+    const jitter = (Math.random() - .5) * a * .7;            // punto de parada dentro del sector
+    const target = -Math.PI / 2 - (k + .5) * a + jitter;     // el puntero está arriba
+    const start = angle;
+    const turns = 6 + Math.floor(Math.random() * 3);
+    let delta = ((target - start) % (Math.PI * 2));
+    if (delta < 0) delta += Math.PI * 2;
+    delta += turns * Math.PI * 2;
+    const dur = 5200, t0 = performance.now();
+
+    const tick = now => {
+      const t = Math.min(1, (now - t0) / dur);
+      angle = start + delta * easeOut(t);
+      drawWheel();
+      if (t < 1) return requestAnimationFrame(tick);
+      land(items[k]);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  function land(num) {
+    highlight = num;
+    drawWheel();
+    drawn[stage].push(num);                 // ya no podrá volver a salir
+    save();
+    const r = $('result');
+    r.className = 'result show';
+    r.innerHTML = `<span>Pregunta número</span><span class="num">${num}</span>`;
+    beep(880, .15); setTimeout(() => beep(1175, .25), 170);
+    updateMeta();
+    // tras mostrarla, se quita de la ruleta
+    setTimeout(() => {
+      highlight = null;
+      angle = angle % (Math.PI * 2);
+      spinning = false;
+      drawWheel(); setUI();
+    }, 1500);
+  }
+
+  /* ---------- Cronómetro (inicio solo con clic) ---------- */
+  let tLeft = TIME, tId = null, audio = null;
+
+  function fmt(s) { return '00:' + String(s).padStart(2, '0'); }
+  function paintTimer() {
+    const el = $('time');
+    el.textContent = fmt(tLeft);
+    el.className = 'time' + (tLeft === 0 ? ' end' : tLeft <= 10 ? ' warn' : '');
+    $('bar').style.width = (tLeft / TIME * 100) + '%';
+    $('btnTimer').textContent = tId ? 'Pausar' : (tLeft === TIME ? 'Iniciar cronómetro' : (tLeft === 0 ? 'Tiempo terminado' : 'Continuar'));
+    $('btnTimer').disabled = tLeft === 0;
+  }
+  function stopTimer() { clearInterval(tId); tId = null; }
+  function toggleTimer() {
+    if (tId) { stopTimer(); paintTimer(); return; }
+    if (tLeft === 0) return;
+    tId = setInterval(() => {
+      tLeft--;
+      if (tLeft <= 0) { tLeft = 0; stopTimer(); beep(440, .9, 'square'); }
+      else if (tLeft <= 5) beep(660, .08);
+      paintTimer();
+    }, 1000);
+    paintTimer();
+  }
+  function resetTimer() { stopTimer(); tLeft = TIME; paintTimer(); }
+
+  function beep(freq, dur, type) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(.18, audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(.001, audio.currentTime + dur);
+      o.connect(g); g.connect(audio.destination);
+      o.start(); o.stop(audio.currentTime + dur);
+    } catch (e) {}
+  }
+
+  /* ---------- Interfaz ---------- */
+  function updateMeta() {
+    const st = STAGES[stage];
+    $('left').textContent = remaining().length;
+    $('count').textContent = drawn[stage].length;
+    $('total').textContent = st.nums.length;
+    $('history').innerHTML = drawn[stage].map(n => `<span class="chip">${n}</span>`).join('');
+  }
+
+  function setUI() {
+    const st = STAGES[stage], last = stage === STAGES.length - 1;
+    $('title').innerHTML = `Ronda <span>${st.round}</span>`;
+    $('subtitle').textContent = st.sub;
+    document.title = `Ronda ${st.round} · Ruletas Bíblicas`;
+    $('btnSpin').disabled = spinning || remaining().length === 0;
+    $('btnPrev').disabled = spinning || stage === 0;
+    $('btnNext').disabled = spinning || last;
+    $('btnNext').textContent = last ? 'Última ronda' : 'Siguiente ronda →';
+    $('steps').innerHTML = STAGES.map((_, i) => `<i class="${i < stage ? 'done' : i === stage ? 'on' : ''}"></i>`).join('');
+    updateMeta();
+  }
+
+  function goTo(i) {
+    if (spinning) return;
+    stage = i; angle = 0; highlight = null;
+    resetTimer(); save();
+    const r = $('result'); r.className = 'result'; r.textContent = 'Gira la ruleta para elegir una pregunta';
+    drawWheel(); setUI();
+  }
+
+  $('btnSpin').onclick = spin;
+  $('btnTimer').onclick = toggleTimer;
+  $('btnTimerReset').onclick = resetTimer;
+  $('btnNext').onclick = () => goTo(Math.min(stage + 1, STAGES.length - 1));
+  $('btnPrev').onclick = () => goTo(Math.max(stage - 1, 0));
+  $('btnReset').onclick = () => {
+    if (spinning || !confirm('¿Reiniciar todas las ruletas y volver a la Ronda 1?')) return;
+    drawn = STAGES.map(() => []); goTo(0);
+  };
+
+  load(); resetTimer(); drawWheel(); setUI();
+})();
+</script>
+</body>
+</html>
