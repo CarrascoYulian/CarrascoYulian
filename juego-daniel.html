@@ -24,6 +24,7 @@
   --bad-soft: #fbead2;
   --gold: #8a6a1c;
   --on-team: #ffffff;
+  --s1: #0d7f86; --s2: #6a45c2; --s3: #b85a0e; --s4: #2a7d46; --s5: #8a6600; --on-seg: #ffffff;
   --font-display: "Cinzel", Georgia, serif;
   --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-verse: "Lora", Georgia, serif;
@@ -34,6 +35,7 @@
     --blue: #6a9cff; --blue-soft: #1a2b57; --red: #ff6c77; --red-soft: #4b1e29;
     --good: #52cf8d; --good-soft: #14392a; --bad: #f2b255; --bad-soft: #43301a; --gold: #e2c26b;
     --on-team: #0d1120;
+    --s1: #3fc1c9; --s2: #a58bf0; --s3: #f0954a; --s4: #5ccf8a; --s5: #ecc552; --on-seg: #0d1120;
     color-scheme: dark;
   }
 }
@@ -42,9 +44,11 @@
   --blue: #6a9cff; --blue-soft: #1a2b57; --red: #ff6c77; --red-soft: #4b1e29;
   --good: #52cf8d; --good-soft: #14392a; --bad: #f2b255; --bad-soft: #43301a; --gold: #e2c26b;
   --on-team: #0d1120;
+  --s1: #3fc1c9; --s2: #a58bf0; --s3: #f0954a; --s4: #5ccf8a; --s5: #ecc552; --on-seg: #0d1120;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
   padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
@@ -91,6 +95,28 @@ button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
 .opt.wrong .ltr { background: var(--bad); color: var(--surface); border-color: var(--bad); }
 .opt.dim { opacity: .55; }
 
+
+/* ruleta y cuenta atrás */
+.wheelbox { display: flex; flex-direction: column; align-items: center; gap: 14px; padding-top: 10px; }
+.wheelwrap { position: relative; width: min(320px, 80vw); aspect-ratio: 1; max-width: 100%; }
+.wheelwrap svg { width: 100%; height: 100%; display: block; overflow: visible; }
+#wheel { transform-origin: 100px 100px; transform-box: view-box; }
+#wheel text { font-family: var(--font-body); font-weight: 800; font-size: 11.5px; fill: var(--on-seg); letter-spacing: .02em; }
+.pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 26px solid var(--fg); z-index: 2; }
+.landed { font-weight: 800; text-align: center; min-height: 1.5em; text-wrap: balance; }
+.qbox { display: flex; flex-direction: column; gap: 14px; }
+.timer { display: flex; align-items: center; gap: 12px; }
+.timer .num { font-weight: 800; font-size: 1.7rem; font-variant-numeric: tabular-nums; min-width: 2.2ch; text-align: right; }
+.tbar { flex: 1; height: 12px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.tbar > i { display: block; height: 100%; width: 100%; background: var(--good); transition: width .15s linear, background .2s; }
+.timer.low .num { color: var(--bad); }
+.timer.low .tbar > i { background: var(--bad); }
+.qtype { align-self: flex-start; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 2px solid var(--line); border-radius: 99px; padding: 3px 12px; }
+.qtype.x2 { color: var(--gold); border-color: var(--gold); }
+.blank { display: inline-block; min-width: 5ch; border-bottom: 3px solid var(--gold); padding: 0 .25em; text-align: center; }
+.blank.filled { color: var(--good); font-weight: 700; }
+.opts.tf { grid-template-columns: 1fr 1fr; }
+
 /* panel inferior con la cita */
 .panel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 3px solid var(--gold); box-shadow: 0 -8px 24px rgba(0,0,0,.14);
   padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); padding-top: 14px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
@@ -124,7 +150,7 @@ header { display: flex; justify-content: space-between; align-items: flex-start;
   <header>
     <div>
       <h1>Daniel 1 al 12</h1>
-      <p class="sub">Reina-Valera 1960 · Michelle contra Dalismel</p>
+      <p class="sub">Reina-Valera 1960 · Michelle contra Dalismel · ruleta y 30 segundos</p>
     </div>
     <button class="theme" id="themeBtn" type="button" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
   </header>
@@ -150,8 +176,21 @@ header { display: flex; justify-content: space-between; align-items: flex-start;
     <div class="meta"><span id="progTxt"></span><span id="chapTxt"></span></div>
     <div class="bar"><i id="bar"></i></div>
     <div class="turn" id="turn"></div>
-    <h2 class="q" id="q"></h2>
-    <div class="opts" id="opts"></div>
+    <div class="wheelbox" id="wheelbox">
+      <div class="wheelwrap">
+        <div class="pointer"></div>
+        <svg viewBox="0 0 200 200" aria-hidden="true"><g id="wheel"></g></svg>
+      </div>
+      <div class="landed" id="landed" aria-live="polite"></div>
+      <button class="btn blue" id="spinBtn" type="button">Girar la ruleta</button>
+    </div>
+    <div class="qbox" id="qbox" hidden>
+      <div class="timer" id="timer" role="timer" aria-label="Tiempo para responder"><span class="num" id="tnum">30</span><div class="tbar"><i id="tbar"></i></div></div>
+      <div class="qtype" id="qtype"></div>
+      <h2 class="q" id="q"></h2>
+      <p class="hint" id="qhelp"></p>
+      <div class="opts" id="opts"></div>
+    </div>
   </section>
 
   <section class="card" id="final" hidden>
@@ -637,27 +676,211 @@ A(12,"¿Qué haría Daniel al final, según se le dijo?","Reposaría y se levant
 // Completar el texto de cada pregunta y avisar de cualquier cita sin versículo
 Q.forEach(function(x){ if (!x.v) x.v = V[x.r]; });
 
+// ================== Bancos por tipo de pregunta ==================
+var BANK = {mc: [], cloze: [], vf: [], who: []};
+Q.forEach(function(x){ BANK.mc.push({c: x.c, type: "mc", q: x.q, o: x.o, ans: 0, r: x.r, v: x.v, shuf: true}); });
+function C(c, t, a, w, r) { BANK.cloze.push({c: c, type: "cloze", q: "Completa el versículo", text: t, o: [a].concat(w), ans: 0, r: r, v: V[r], shuf: true}); }
+function W(c, quote, a, w, r) { BANK.who.push({c: c, type: "who", q: "¿Quién lo dijo?", text: quote, o: [a].concat(w), ans: 0, r: r, v: V[r], shuf: true}); }
+function T(c, s, truth, r) { BANK.vf.push({c: c, type: "vf", q: "¿Verdadero o falso?", text: s, o: ["Verdadero", "Falso"], ans: truth ? 0 : 1, r: r, v: V[r], shuf: false}); }
+
+// ---- Completa el versículo (el texto sale tal cual de la Biblia; la respuesta es la palabra exacta)
+C(1,"Pero Daniel propuso en su corazón no ____ con la porción de la comida del rey","contaminarse",["alegrarse","mezclarse","complacerse"],"Daniel 1:8");
+C(1,"Y puso Dios a Daniel en gracia y en buena ____ con el jefe de los eunucos.","voluntad",["amistad","fe","paz"],"Daniel 1:9");
+C(1,"Te ruego que hagas la prueba con tus siervos por diez días, y que nos den ____ a comer, y agua a beber.","legumbres",["pan","frutas","miel"],"Daniel 1:12");
+C(1,"Daniel tuvo entendimiento en toda visión y ____.","sueños",["profecías","libros","leyes"],"Daniel 1:17");
+C(1,"los halló diez veces mejores que todos los magos y ____ que había en todo su reino.","astrólogos",["sacerdotes","escribas","profetas"],"Daniel 1:20");
+C(2,"Pero hay un Dios en los cielos, el cual revela los ____","misterios",["secretos","sueños","tiempos"],"Daniel 2:28");
+C(2,"Sea bendito el nombre de Dios de siglos en siglos, porque suyos son el poder y la ____.","sabiduría",["gloria","justicia","fuerza"],"Daniel 2:20");
+C(2,"Él muda los tiempos y las edades; quita reyes, y ____ reyes","pone",["levanta","hace","envía"],"Daniel 2:21");
+C(2,"una piedra fue cortada, no con ____, e hirió a la imagen en sus pies de hierro y de barro cocido","mano",["hacha","espada","fuerza"],"Daniel 2:34");
+C(2,"tú eres aquella cabeza de ____.","oro",["plata","bronce","hierro"],"Daniel 2:38");
+C(2,"el Dios del cielo levantará un reino que no será jamás ____","destruido",["dividido","vencido","olvidado"],"Daniel 2:44");
+C(3,"He aquí nuestro Dios a quien servimos puede librarnos del horno de fuego ____","ardiendo",["encendido","grande","caliente"],"Daniel 3:17-18");
+C(3,"ordenó que el horno se calentase ____ veces más de lo acostumbrado.","siete",["tres","diez","doce"],"Daniel 3:19");
+C(3,"el aspecto del cuarto es semejante a hijo de los ____.","dioses",["hombres","ángeles","reyes"],"Daniel 3:25");
+C(3,"Bendito sea el Dios de ellos, de Sadrac, Mesac y Abed-nego, que envió su ____ y libró a sus siervos","ángel",["mano","espíritu","fuego"],"Daniel 3:28");
+C(3,"Entonces el rey engrandeció a Sadrac, Mesac y Abed-nego en la provincia de ____.","Babilonia",["Judá","Persia","Media"],"Daniel 3:30");
+C(4,"¿No es esta la gran ____ que yo edifiqué para casa real con la fuerza de mi poder","Babilonia",["Jerusalén","Nínive","Susa"],"Daniel 4:30");
+C(4,"hasta que conozcas que el Altísimo tiene el ____ en el reino de los hombres","dominio",["poder","trono","juicio"],"Daniel 4:32");
+C(4,"tus pecados redime con ____, y tus iniquidades con misericordias para con los oprimidos","justicia",["oraciones","ofrendas","sacrificios"],"Daniel 4:27");
+C(4,"alcé mis ojos al cielo, y mi ____ me fue devuelta","razón",["salud","vida","corona"],"Daniel 4:34");
+C(4,"porque todas sus obras son verdaderas, y sus caminos ____","justos",["rectos","santos","buenos"],"Daniel 4:37");
+C(5,"MENE, MENE, TEKEL, ____.","UPARSIN",["ELOI","SELA","ABADÓN"],"Daniel 5:25");
+C(5,"Pesado has sido en ____, y fuiste hallado falto.","balanza",["juicio","tribunal","justicia"],"Daniel 5:27");
+C(5,"MENE: Contó Dios tu ____, y le ha puesto fin.","reino",["vida","ciudad","trono"],"Daniel 5:26");
+C(5,"proclamar que él era el tercer ____ del reino.","señor",["príncipe","rey","juez"],"Daniel 5:29");
+C(5,"La misma noche fue muerto ____, rey de los caldeos.","Belsasar",["Nabucodonosor","Darío","Ciro"],"Daniel 5:30");
+C(6,"se arrodillaba ____ veces al día, y oraba y daba gracias delante de su Dios","tres",["dos","siete","cuatro"],"Daniel 6:10");
+C(6,"Mi Dios envió su ángel, el cual cerró la boca de los ____","leones",["lobos","osos","enemigos"],"Daniel 6:22");
+C(6,"ninguna lesión se halló en él, porque había ____ en su Dios.","confiado",["creído","esperado","orado"],"Daniel 6:23");
+C(6,"porque él es el Dios ____ y permanece por todos los siglos","viviente",["verdadero","fuerte","eterno"],"Daniel 6:26");
+C(6,"No hallaremos contra este Daniel ocasión alguna para acusarle, si no la hallamos contra él en relación con la ley de su ____.","Dios",["rey","pueblo","padre"],"Daniel 6:5");
+C(7,"se sentó un ____ de días, cuyo vestido era blanco como la nieve","Anciano",["Rey","Juez","Padre"],"Daniel 7:9");
+C(7,"con las nubes del cielo venía uno como un hijo de ____","hombre",["Dios","rey","ángel"],"Daniel 7:13-14");
+C(7,"su dominio es dominio ____, que nunca pasará, y su reino uno que no será destruido","eterno",["grande","fuerte","justo"],"Daniel 7:13-14");
+C(7,"cuatro bestias grandes, diferentes la una de la otra, subían del ____","mar",["monte","desierto","cielo"],"Daniel 7:3");
+C(7,"el juicio se sentó, y los ____ fueron abiertos","libros",["sellos","cielos","tronos"],"Daniel 7:10");
+C(8,"luego el ____ será purificado.","santuario",["templo","pueblo","altar"],"Daniel 8:14");
+C(8,"____, enseña a éste la visión.","Gabriel",["Miguel","Rafael","Uriel"],"Daniel 8:16");
+C(8,"Entiende, hijo de hombre, porque la visión es para el tiempo del ____","fin",["juicio","reino","cautiverio"],"Daniel 8:17");
+C(8,"representa a los reyes de Media y de ____","Persia",["Grecia","Egipto","Babilonia"],"Daniel 8:20-21");
+C(8,"pero estaba espantado a causa de la visión, y no la ____","entendía",["creía","veía","olvidaba"],"Daniel 8:27");
+C(9,"buscándole en oración y ruego, en ayuno, cilicio y ____","ceniza",["lágrimas","polvo","silencio"],"Daniel 9:3");
+C(9,"De Jehová nuestro Dios es el tener misericordia y el ____","perdonar",["juzgar","bendecir","salvar"],"Daniel 9:9");
+C(9,"sino en tus muchas ____","misericordias",["justicias","obras","promesas"],"Daniel 9:18");
+C(9,"Setenta semanas están determinadas sobre tu pueblo y sobre tu santa ____","ciudad",["tierra","nación","casa"],"Daniel 9:24");
+C(9,"porque tú eres muy ____","amado",["fiel","justo","sabio"],"Daniel 9:23");
+C(10,"desde el primer día que dispusiste tu corazón a entender y a ____ en la presencia de tu Dios","humillarte",["orar","ayunar","postrarte"],"Daniel 10:12");
+C(10,"Daniel, varón muy ____","amado",["fiel","justo","sabio"],"Daniel 10:11");
+C(10,"Miguel, uno de los principales ____, vino para ayudarme","príncipes",["ángeles","reyes","siervos"],"Daniel 10:13");
+C(10,"Muy amado, no temas; la paz sea contigo; esfuérzate y ____.","aliéntate",["confía","levántate","descansa"],"Daniel 10:19");
+C(10,"su rostro parecía un ____","relámpago",["sol","fuego","ángel"],"Daniel 10:6");
+C(11,"el pueblo que conoce a su Dios se esforzará y ____","actuará",["orará","vencerá","esperará"],"Daniel 11:32");
+C(11,"Y los sabios del pueblo instruirán a ____","muchos",["pocos","todos","reyes"],"Daniel 11:33");
+C(11,"Se levantará luego un rey ____, el cual dominará con gran poder y hará su voluntad.","valiente",["justo","sabio","joven"],"Daniel 11:3");
+C(11,"porque lo determinado se ____","cumplirá",["olvidará","repetirá","cambiará"],"Daniel 11:36");
+C(11,"pero llegará a su ____, y no tendrá quien le ayude","fin",["tierra","hora","trono"],"Daniel 11:45");
+C(12,"se levantará ____, el gran príncipe que está de parte de los hijos de tu pueblo","Miguel",["Gabriel","Daniel","Elías"],"Daniel 12:1");
+C(12,"unos para vida ____, y otros para vergüenza y confusión perpetua","eterna",["feliz","larga","nueva"],"Daniel 12:2");
+C(12,"los que enseñan la justicia a la multitud, como las ____ a perpetua eternidad","estrellas",["lámparas","nubes","llamas"],"Daniel 12:3");
+C(12,"cierra las palabras y sella el ____ hasta el tiempo del fin","libro",["pacto","rollo","templo"],"Daniel 12:4");
+C(12,"te levantarás para recibir tu ____ al fin de los días","heredad",["corona","reino","premio"],"Daniel 12:13");
+
+// ---- ¿Quién lo dijo? (citas tal cual del texto)
+W(1,"«Te ruego que hagas la prueba con tus siervos por diez días, y que nos den legumbres a comer, y agua a beber.»","Daniel",["Aspenaz","Melsar","Nabucodonosor"],"Daniel 1:12");
+W(2,"«Sea bendito el nombre de Dios de siglos en siglos, porque suyos son el poder y la sabiduría.»","Daniel",["Nabucodonosor","Arioc","Un mago caldeo"],"Daniel 2:20");
+W(2,"«El asunto lo olvidé; si no me mostráis el sueño y su interpretación, seréis hechos pedazos.»","El rey Nabucodonosor",["Daniel","Arioc","Belsasar"],"Daniel 2:5");
+W(2,"«Ciertamente el Dios vuestro es Dios de dioses, y Señor de los reyes, y el que revela los misterios.»","El rey Nabucodonosor",["Daniel","Darío","Ciro"],"Daniel 2:47");
+W(3,"«Si no, sepas, oh rey, que no serviremos a tus dioses, ni tampoco adoraremos la estatua que has levantado.»","Sadrac, Mesac y Abed-nego",["Daniel y Ananías","Los caldeos","Los sátrapas"],"Daniel 3:17-18");
+W(3,"«He aquí yo veo cuatro varones sueltos, que se pasean en medio del fuego sin sufrir ningún daño.»","El rey Nabucodonosor",["Daniel","Un caldeo","Aspenaz"],"Daniel 3:25");
+W(3,"«Bendito sea el Dios de ellos, de Sadrac, Mesac y Abed-nego, que envió su ángel y libró a sus siervos.»","El rey Nabucodonosor",["Belsasar","Darío","Daniel"],"Daniel 3:28");
+W(4,"«¿No es esta la gran Babilonia que yo edifiqué para casa real con la fuerza de mi poder?»","El rey Nabucodonosor",["Belsasar","Darío","Ciro"],"Daniel 4:30");
+W(4,"«Acepta mi consejo: tus pecados redime con justicia, y tus iniquidades con misericordias para con los oprimidos.»","Daniel",["Sadrac","Aspenaz","Un mago"],"Daniel 4:27");
+W(5,"«Tus dones sean para ti, y tus recompensas dalas a otro; yo leeré la escritura al rey.»","Daniel",["Un caldeo","El rey Darío","La reina"],"Daniel 5:17");
+W(5,"«Rey, para siempre vive; no te turben tus pensamientos, ni palidezca tu rostro.»","La reina",["Daniel","Un príncipe","Un mago"],"Daniel 5:10");
+W(6,"«El Dios tuyo, a quien tú continuamente sirves, él te libre.»","El rey Darío",["Nabucodonosor","Belsasar","Ciro"],"Daniel 6:16");
+W(6,"«Mi Dios envió su ángel, el cual cerró la boca de los leones, para que no me hiciesen daño.»","Daniel",["El rey Darío","Un gobernador","Sadrac"],"Daniel 6:22");
+W(6,"«No hallaremos contra este Daniel ocasión alguna para acusarle, si no la hallamos contra él en relación con la ley de su Dios.»","Los gobernadores y sátrapas",["El rey Darío","Los sacerdotes","Los magos"],"Daniel 6:5");
+W(7,"«Se turbó mi espíritu dentro de mí, y las visiones de mi cabeza me asombraron.»","Daniel",["Belsasar","Gabriel","Nabucodonosor"],"Daniel 7:15");
+W(8,"«Entiende, hijo de hombre, porque la visión es para el tiempo del fin.»","Gabriel",["Miguel","Daniel","Un mago"],"Daniel 8:17");
+W(9,"«Hemos pecado, hemos cometido iniquidad, hemos obrado impíamente, y hemos sido rebeldes.»","Daniel",["Gabriel","El rey Darío","Jeremías"],"Daniel 9:5");
+W(9,"«Daniel, ahora he salido para darte sabiduría y entendimiento.»","Gabriel",["Miguel","Daniel","Jeremías"],"Daniel 9:22");
+W(10,"«Daniel, varón muy amado, está atento a las palabras que te hablaré, y ponte en pie.»","El varón enviado a Daniel",["El rey Ciro","Un sacerdote","Nabucodonosor"],"Daniel 10:11");
+W(10,"«Hable mi señor, porque me has fortalecido.»","Daniel",["Miguel","El rey Ciro","Gabriel"],"Daniel 10:19");
+W(12,"«Señor mío, ¿cuál será el fin de estas cosas?»","Daniel",["Miguel","Gabriel","El rey Darío"],"Daniel 12:8");
+W(12,"«Anda, Daniel, pues estas palabras están cerradas y selladas hasta el tiempo del fin.»","El varón vestido de lino",["Un sacerdote","El rey Ciro","Un profeta"],"Daniel 12:9");
+
+// ---- Verdadero o falso
+T(1,"Daniel propuso en su corazón no contaminarse con la porción de la comida del rey.",true,"Daniel 1:8");
+T(1,"La prueba de legumbres y agua duró veinte días.",false,"Daniel 1:12");
+T(1,"A Daniel el jefe de los eunucos le puso por nombre Beltsasar.",true,"Daniel 1:7");
+T(1,"Daniel y sus compañeros eran de los hijos de Benjamín.",false,"Daniel 1:6");
+T(1,"Daniel continuó hasta el año primero del rey Ciro.",true,"Daniel 1:21");
+T(2,"La cabeza de la imagen era de plata.",false,"Daniel 2:32");
+T(2,"La piedra que hirió a la imagen fue cortada, no con mano.",true,"Daniel 2:34");
+T(2,"Nabucodonosor soñó sueños en el segundo año de su reinado.",true,"Daniel 2:1");
+T(2,"Daniel dijo que los magos de Babilonia son los que revelan los misterios.",false,"Daniel 2:28");
+T(2,"El Dios del cielo levantará un reino que no será jamás destruido.",true,"Daniel 2:44");
+T(3,"La estatua de oro tenía sesenta codos de altura y seis codos de anchura.",true,"Daniel 3:1");
+T(3,"El horno se calentó tres veces más de lo acostumbrado.",false,"Daniel 3:19");
+T(3,"El aspecto del cuarto varón era semejante a hijo de los dioses.",true,"Daniel 3:25");
+T(3,"El fuego quemó el cabello de las cabezas de Sadrac, Mesac y Abed-nego.",false,"Daniel 3:27");
+T(3,"La llama del fuego mató a los hombres que alzaron a Sadrac, Mesac y Abed-nego.",true,"Daniel 3:22");
+T(4,"Nabucodonosor dijo: «¿No es esta la gran Babilonia que yo edifiqué?»",true,"Daniel 4:30");
+T(4,"Siete tiempos pasarían sobre el rey hasta que conociera el dominio del Altísimo.",true,"Daniel 4:32");
+T(4,"El árbol grande del sueño representaba al rey Belsasar.",false,"Daniel 4:22");
+T(4,"Daniel aconsejó al rey redimir sus pecados con justicia.",true,"Daniel 4:27");
+T(4,"A Nabucodonosor nunca le fue devuelta la razón.",false,"Daniel 4:34");
+T(5,"Belsasar hizo un gran banquete a mil de sus príncipes.",true,"Daniel 5:1");
+T(5,"En la pared estaba escrito: MENE, MENE, TEKEL, UPARSIN.",true,"Daniel 5:25");
+T(5,"TEKEL significa: Tu reino ha sido roto, y dado a los medos y a los persas.",false,"Daniel 5:27");
+T(5,"Daniel aceptó los dones que le ofreció el rey Belsasar.",false,"Daniel 5:17");
+T(5,"Darío de Media tomó el reino siendo de sesenta y dos años.",true,"Daniel 5:31");
+T(6,"Darío constituyó sobre el reino ciento veinte sátrapas.",true,"Daniel 6:1");
+T(6,"El edicto prohibía pedir a otro dios o a otro hombre por sesenta días.",false,"Daniel 6:7");
+T(6,"Daniel oraba con las ventanas abiertas hacia Jerusalén.",true,"Daniel 6:10");
+T(6,"Los leones hicieron daño a Daniel.",false,"Daniel 6:22");
+T(6,"El rey selló la piedra del foso con su anillo y con el anillo de sus príncipes.",true,"Daniel 6:17");
+T(7,"Las cuatro bestias grandes subían del mar.",true,"Daniel 7:3");
+T(7,"La primera bestia era como un oso.",false,"Daniel 7:4");
+T(7,"La cuarta bestia tenía diez cuernos.",true,"Daniel 7:7");
+T(7,"Los santos del Altísimo recibirán el reino.",true,"Daniel 7:18");
+T(7,"El vestido del Anciano de días era negro como la noche.",false,"Daniel 7:9");
+T(8,"Daniel estaba en Susa, junto al río Ulai, cuando tuvo la visión.",true,"Daniel 8:2");
+T(8,"El carnero de dos cuernos representa a los reyes de Grecia.",false,"Daniel 8:20-21");
+T(8,"El macho cabrío es el rey de Grecia.",true,"Daniel 8:20-21");
+T(8,"En lugar del gran cuerno quebrado salieron dos cuernos notables.",false,"Daniel 8:8");
+T(8,"Daniel quedó quebrantado y estuvo enfermo algunos días.",true,"Daniel 8:27");
+T(9,"Daniel miró atentamente en los libros el número de los años de que habló Jehová al profeta Jeremías.",true,"Daniel 9:2");
+T(9,"Las desolaciones de Jerusalén se cumplirían en cuarenta años.",false,"Daniel 9:2");
+T(9,"Gabriel vino a Daniel como a la hora del sacrificio de la tarde.",true,"Daniel 9:21");
+T(9,"Daniel buscó a Dios con cantos y música.",false,"Daniel 9:3");
+T(9,"Setenta semanas están determinadas sobre el pueblo de Daniel y su santa ciudad.",true,"Daniel 9:24");
+T(10,"Daniel estuvo afligido por tres semanas.",true,"Daniel 10:2-3");
+T(10,"Daniel estaba a la orilla del río Jordán.",false,"Daniel 10:4");
+T(10,"Miguel, uno de los principales príncipes, vino para ayudar.",true,"Daniel 10:13");
+T(10,"Los hombres que estaban con Daniel también vieron la visión.",false,"Daniel 10:7");
+T(10,"El rostro del varón parecía un relámpago.",true,"Daniel 10:6");
+T(11,"Habrá tres reyes más en Persia, y el cuarto se hará de grandes riquezas.",true,"Daniel 11:2");
+T(11,"El rey valiente que se levantará hará la voluntad de otro rey.",false,"Daniel 11:3");
+T(11,"El pueblo que conoce a su Dios se esforzará y actuará.",true,"Daniel 11:32");
+T(11,"Los sabios del pueblo instruirán a muchos.",true,"Daniel 11:33");
+T(11,"El rey llegará a su fin, y tendrá quien le ayude.",false,"Daniel 11:45");
+T(12,"Se levantará Miguel, el gran príncipe que está de parte de los hijos del pueblo de Daniel.",true,"Daniel 12:1");
+T(12,"Todos los que duermen en el polvo serán despertados para vida eterna.",false,"Daniel 12:2");
+T(12,"A Daniel se le mandó cerrar las palabras y sellar el libro hasta el tiempo del fin.",true,"Daniel 12:4");
+T(12,"Daniel oyó y entendió todo lo que se le dijo.",false,"Daniel 12:8");
+T(12,"Daniel recibiría su heredad al fin de los días.",true,"Daniel 12:13");
+
+[BANK.cloze, BANK.who, BANK.vf].forEach(function(arr){ arr.forEach(function(x){ if (!x.v) console.warn("Sin versículo:", x.r); }); });
+
+// ================== Juego ==================
+var TIME = 30; // segundos para responder
+var TYPES = {
+  mc:    {name: "Opción múltiple",       seg: "Opciones", tok: "--s1"},
+  cloze: {name: "Completa el versículo", seg: "Completa", tok: "--s2"},
+  vf:    {name: "Verdadero o falso",     seg: "V o F",    tok: "--s3"},
+  who:   {name: "¿Quién lo dijo?",       seg: "¿Quién?",  tok: "--s4"},
+  dbl:   {name: "Puntos dobles",         seg: "×2",       tok: "--s5"}
+};
+var SEGS = ["mc", "cloze", "vf", "who", "mc", "cloze", "vf", "dbl"];
 var TEAMS = [
-  {name:"Michelle", cls:"blue", label:"Equipo azul"},
-  {name:"Dalismel", cls:"red", label:"Equipo rojo"}
+  {name: "Michelle", cls: "blue", label: "Equipo azul"},
+  {name: "Dalismel", cls: "red", label: "Equipo rojo"}
 ];
 var $ = function(id){ return document.getElementById(id); };
 var selected = {}; for (var i = 1; i <= 12; i++) selected[i] = true;
-var S = null; // estado de la partida
+var S = null, wheelRot = 0, timerId = null;
+var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-function pool() { return Q.filter(function(x){ return selected[x.c]; }); }
+function filt(type) { return BANK[type].filter(function(x){ return selected[x.c]; }); }
+function total() { return filt("mc").length + filt("cloze").length + filt("vf").length + filt("who").length; }
+
+// ---- ruleta (SVG)
+function buildWheel() {
+  var n = SEGS.length, step = 360 / n, R = 96, h = "";
+  function pt(a, r) { var t = a * Math.PI / 180; return [(100 + r * Math.sin(t)).toFixed(2), (100 - r * Math.cos(t)).toFixed(2)]; }
+  SEGS.forEach(function(k, i){
+    var a0 = i * step, a1 = (i + 1) * step, p0 = pt(a0, R), p1 = pt(a1, R), mid = a0 + step / 2, T = TYPES[k];
+    h += '<path d="M100,100 L' + p0[0] + ',' + p0[1] + ' A' + R + ',' + R + ' 0 0 1 ' + p1[0] + ',' + p1[1] + ' Z" style="fill:var(' + T.tok + ')" stroke="var(--surface)" stroke-width="1.5"/>';
+    var tx = mid <= 180
+      ? '<g transform="rotate(' + (mid - 90) + ' 100 100)"><text x="' + (100 + R - 8) + '" y="104" text-anchor="end">' + T.seg + '</text></g>'
+      : '<g transform="rotate(' + (mid + 90) + ' 100 100)"><text x="' + (100 - R + 8) + '" y="104" text-anchor="start">' + T.seg + '</text></g>';
+    h += tx;
+  });
+  h += '<circle cx="100" cy="100" r="13" fill="var(--surface)" stroke="var(--line)" stroke-width="2"/>';
+  $("wheel").innerHTML = h;
+}
 
 function renderChips() {
   var h = "";
   for (var i = 1; i <= 12; i++) h += '<button type="button" class="chip" data-c="' + i + '" aria-pressed="' + (!!selected[i]) + '">' + i + '</button>';
   $("chips").innerHTML = h;
-  var n = pool().length, sel = $("countSel"), prev = parseInt(sel.value, 10), opts = [];
-  [10, 20, 30, 50, 75, 100].forEach(function(k){ if (k < n) opts.push(k); });
-  opts.push(n);
-  sel.innerHTML = opts.map(function(k){ return '<option value="' + k + '">' + (k === n ? 'Todas (' + k + ')' : k) + '</option>'; }).join("");
-  if (opts.indexOf(prev) > -1) sel.value = prev; else sel.value = n;
-  $("setupInfo").textContent = n ? (n + " preguntas disponibles en los capítulos elegidos.") : "Elige al menos un capítulo.";
+  var n = total(), sel = $("countSel"), prev = parseInt(sel.value, 10), opts = [10, 20, 30, 40, 60];
+  sel.innerHTML = opts.map(function(k){ return '<option value="' + k + '">' + k + ' turnos (' + (k / 2) + ' por equipo)</option>'; }).join("");
+  sel.value = opts.indexOf(prev) > -1 ? prev : 20;
+  $("setupInfo").textContent = n ? (n + " preguntas disponibles: " + filt("mc").length + " de opción múltiple, " + filt("cloze").length + " para completar, " + filt("vf").length + " de verdadero o falso y " + filt("who").length + " de «¿Quién lo dijo?».") : "Elige al menos un capítulo.";
   $("startBtn").disabled = n < 2;
 }
 $("chips").addEventListener("click", function(e){
@@ -676,61 +899,143 @@ function renderBoard() {
   }).join("");
 }
 
-function start() {
-  var n = parseInt($("countSel").value, 10);
-  var list = shuffle(pool()).slice(0, n % 2 ? n - 1 || n : n);
-  S = { list: list, i: 0, turn: 0, score: [0, 0], ok: [0, 0], ko: [0, 0], answered: false, done: false };
-  $("setup").hidden = true; $("final").hidden = true; $("game").hidden = false;
-  showQ();
+// ---- reparto de preguntas sin repetir hasta agotar cada banco
+function draw(type) {
+  var P = S.pools;
+  if (!filt(type).length) type = "mc";
+  if (!P[type].length) P[type] = shuffle(filt(type));
+  return P[type].pop();
 }
 
-function showQ() {
-  var q = S.list[S.i], t = TEAMS[S.turn];
-  S.answered = false;
-  var order = shuffle([0, 1, 2, 3].slice(0, q.o.length));
-  S.cur = { q: q, order: order };
+function start() {
+  S = {total: parseInt($("countSel").value, 10), i: 0, turn: 0, score: [0, 0], ok: [0, 0], ko: [0, 0], answered: false, done: false, pools: {mc: [], cloze: [], vf: [], who: []}};
+  $("setup").hidden = true; $("final").hidden = true; $("game").hidden = false;
+  showWheel();
+}
+
+function showWheel() {
+  stopTimer();
+  var t = TEAMS[S.turn];
   $("panel").hidden = true; document.body.classList.remove("has-panel");
-  $("progTxt").textContent = "Pregunta " + (S.i + 1) + " de " + S.list.length;
-  $("chapTxt").textContent = "Daniel " + q.c;
-  $("bar").style.width = (S.i / S.list.length * 100) + "%";
+  $("qbox").hidden = true; $("wheelbox").hidden = false;
+  $("progTxt").textContent = "Turno " + (S.i + 1) + " de " + S.total;
+  $("chapTxt").textContent = "Daniel 1 al 12";
+  $("bar").style.width = (S.i / S.total * 100) + "%";
   var tn = $("turn"); tn.className = "turn " + t.cls; tn.textContent = "Turno de " + t.name;
-  $("q").textContent = q.q;
-  $("opts").innerHTML = order.map(function(k, idx){
-    return '<button type="button" class="opt" data-k="' + k + '"><span class="ltr">' + "ABCD"[idx] + '</span><span class="tx"></span></button>';
+  $("landed").textContent = "Gira la ruleta para ver qué te toca.";
+  $("spinBtn").disabled = false; $("spinBtn").textContent = "Girar la ruleta";
+  renderBoard();
+  $("spinBtn").focus({preventScroll: true});
+}
+
+$("spinBtn").addEventListener("click", function(){
+  $("spinBtn").disabled = true;
+  var n = SEGS.length, step = 360 / n, idx = Math.floor(Math.random() * n), center = idx * step + step / 2;
+  var jitter = (Math.random() - 0.5) * step * 0.7;
+  var target = 360 * (Math.floor(wheelRot / 360) + (reduce ? 1 : 6)) - center + jitter;
+  var w = $("wheel");
+  w.style.transition = reduce ? "transform .4s linear" : "transform 4.6s cubic-bezier(.12,.62,.12,1)";
+  wheelRot = target; w.style.transform = "rotate(" + target + "deg)";
+  $("landed").textContent = "Girando…";
+  setTimeout(function(){ landed(SEGS[idx]); }, reduce ? 500 : 4800);
+});
+
+function landed(seg) {
+  var mult = 1, type = seg;
+  if (seg === "dbl") {
+    var avail = ["mc", "cloze", "vf", "who"].filter(function(t){ return filt(t).length; });
+    type = avail[Math.floor(Math.random() * avail.length)]; mult = 2;
+    $("landed").textContent = "¡Puntos dobles! Te toca: " + TYPES[type].name;
+  } else {
+    if (!filt(type).length) { type = "mc"; }
+    $("landed").textContent = "Te toca: " + TYPES[type].name;
+  }
+  setTimeout(function(){ showQ(draw(type), mult); }, 1300);
+}
+
+// ---- pregunta con cuenta atrás
+function stopTimer() { if (timerId) { clearInterval(timerId); timerId = null; } }
+function tick(deadline) {
+  var left = Math.max(0, deadline - Date.now()), sec = Math.ceil(left / 1000);
+  $("tnum").textContent = sec;
+  $("tbar").style.width = (left / (TIME * 1000) * 100) + "%";
+  var low = sec <= 10;
+  $("timer").classList.toggle("low", low);
+  if (left <= 0) { stopTimer(); answer(-1); }
+}
+
+function showQ(q, mult) {
+  var t = TEAMS[S.turn];
+  S.answered = false; S.cur = {q: q, mult: mult};
+  $("wheelbox").hidden = true; $("qbox").hidden = false;
+  $("chapTxt").textContent = "Daniel " + q.c;
+  var order = [];
+  for (var i = 0; i < q.o.length; i++) order.push(i);
+  if (q.shuf) order = shuffle(order);
+  S.cur.order = order;
+  $("qtype").textContent = TYPES[q.type].name + (mult === 2 ? " · ×2 puntos" : "");
+  $("qtype").className = "qtype" + (mult === 2 ? " x2" : "");
+  var qe = $("q");
+  if (q.type === "cloze") {
+    var parts = q.text.split("____");
+    qe.innerHTML = "";
+    qe.appendChild(document.createTextNode("«" + parts[0]));
+    var bl = document.createElement("span"); bl.className = "blank"; bl.id = "blank"; bl.textContent = "      "; qe.appendChild(bl);
+    qe.appendChild(document.createTextNode((parts[1] || "") + "»"));
+  } else if (q.type === "vf" || q.type === "who") {
+    qe.textContent = (q.type === "who" ? "" : "") + q.text;
+  } else { qe.textContent = q.q; }
+  $("qhelp").textContent = q.type === "cloze" ? "Elige la palabra que falta, tal cual está en la Biblia." : q.type === "vf" ? "¿Es verdadero o falso lo que dice?" : q.type === "who" ? "¿Quién lo dijo?" : "";
+  $("qhelp").hidden = !$("qhelp").textContent;
+  var o = $("opts"); o.className = q.type === "vf" ? "opts tf" : "opts";
+  o.innerHTML = order.map(function(k, idx){
+    return '<button type="button" class="opt" data-k="' + k + '"><span class="ltr">' + (q.type === "vf" ? (idx ? "F" : "V") : "ABCD"[idx]) + '</span><span class="tx"></span></button>';
   }).join("");
-  Array.prototype.forEach.call($("opts").children, function(b, idx){ b.querySelector(".tx").textContent = q.o[order[idx]]; });
+  Array.prototype.forEach.call(o.children, function(b, idx){ b.querySelector(".tx").textContent = q.o[order[idx]]; });
+  $("panel").hidden = true; document.body.classList.remove("has-panel");
+  var deadline = Date.now() + TIME * 1000;
+  $("timer").classList.remove("low"); $("tnum").textContent = TIME; $("tbar").style.width = "100%";
+  stopTimer(); timerId = setInterval(function(){ tick(deadline); }, 150);
   renderBoard();
 }
 
 $("opts").addEventListener("click", function(e){
   var b = e.target.closest(".opt"); if (!b || S.answered) return;
-  S.answered = true;
-  var q = S.cur.q, k = parseInt(b.getAttribute("data-k"), 10), good = k === 0, t = TEAMS[S.turn];
+  answer(parseInt(b.getAttribute("data-k"), 10));
+});
+
+function answer(k) {
+  if (S.answered) return;
+  S.answered = true; stopTimer();
+  var q = S.cur.q, mult = S.cur.mult, good = k === q.ans, t = TEAMS[S.turn], timeout = k === -1, pts = 10 * mult;
   Array.prototype.forEach.call($("opts").children, function(x){
     var xk = parseInt(x.getAttribute("data-k"), 10); x.disabled = true;
-    if (xk === 0) x.classList.add("right"); else if (x === b) x.classList.add("wrong"); else x.classList.add("dim");
-    if (xk === 0) x.querySelector(".ltr").textContent = "✓"; else if (x === b) x.querySelector(".ltr").textContent = "✗";
+    if (xk === q.ans) { x.classList.add("right"); x.querySelector(".ltr").textContent = "✓"; }
+    else if (xk === k) { x.classList.add("wrong"); x.querySelector(".ltr").textContent = "✗"; }
+    else x.classList.add("dim");
   });
-  if (good) { S.score[S.turn] += 10; S.ok[S.turn]++; } else { S.ko[S.turn]++; }
+  var bl = $("blank"); if (bl) { bl.textContent = q.o[q.ans]; bl.classList.add("filled"); }
+  if (good) { S.score[S.turn] += pts; S.ok[S.turn]++; } else { S.ko[S.turn]++; }
   var v = $("verdict");
   v.className = "verdict " + (good ? "ok" : "ko");
-  v.textContent = good ? ("¡Correcto, " + t.name + "! +10 puntos") : ("Incorrecto, " + t.name + ". La respuesta era: " + q.o[0]);
+  v.textContent = good ? ("¡Correcto, " + t.name + "! +" + pts + " puntos")
+    : (timeout ? ("¡Se acabó el tiempo, " + t.name + "! ") : ("Incorrecto, " + t.name + ". ")) + "La respuesta era: " + q.o[q.ans];
   $("ref").textContent = q.r + " (RVR1960)";
   $("verse").textContent = "“" + q.v + "”";
-  $("nextBtn").textContent = S.i === S.list.length - 1 ? "Ver resultado" : "Siguiente pregunta";
+  $("nextBtn").textContent = S.i === S.total - 1 ? "Ver resultado" : "Siguiente turno";
   $("panel").hidden = false; document.body.classList.add("has-panel");
   renderBoard();
   $("nextBtn").focus({preventScroll: true});
-});
+}
 
 $("nextBtn").addEventListener("click", function(){
-  if (S.i === S.list.length - 1) return finish();
-  S.i++; S.turn = 1 - S.turn; showQ();
+  if (S.i === S.total - 1) return finish();
+  S.i++; S.turn = 1 - S.turn; showWheel();
   window.scrollTo(0, 0);
 });
 
 function finish() {
-  S.done = true;
+  S.done = true; stopTimer();
   $("panel").hidden = true; document.body.classList.remove("has-panel");
   $("game").hidden = true; $("final").hidden = false;
   var a = S.score[0], b = S.score[1], w = $("winner");
@@ -751,7 +1056,8 @@ $("themeBtn").addEventListener("click", function(){
   r.setAttribute("data-theme", dark ? "light" : "dark");
 });
 
-renderChips(); renderBoard();
+buildWheel(); renderChips(); renderBoard();
+
 </script>
 </body>
 
