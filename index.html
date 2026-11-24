@@ -139,6 +139,7 @@ select { font: inherit; background: var(--bg); color: var(--fg); border: 2px sol
 .hint { color: var(--muted); font-size: .9rem; margin: 0; }
 .winner { font-family: var(--font-display); font-size: clamp(1.4rem, 5vw, 1.9rem); margin: 0; text-wrap: balance; }
 .winner.blue { color: var(--blue); } .winner.red { color: var(--red); }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .theme { align-self: flex-end; background: transparent; border: 2px solid var(--line); border-radius: 99px; padding: 6px 12px; font-size: .8rem; font-weight: 700; color: var(--muted); }
 header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -152,7 +153,7 @@ header { display: flex; justify-content: space-between; align-items: flex-start;
       <h1>Daniel 1 al 12</h1>
       <p class="sub">Reina-Valera 1960 · Michelle contra Dalismel · ruleta y 30 segundos</p>
     </div>
-    <button class="theme" id="themeBtn" type="button" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
+    <div class="tools"><button class="theme" id="soundBtn" type="button" aria-pressed="true">Sonido: sí</button><button class="theme" id="themeBtn" type="button" aria-label="Cambiar entre tema claro y oscuro">Tema</button></div>
   </header>
 
   <section class="board" id="board" aria-label="Marcador"></section>
@@ -853,6 +854,88 @@ var selected = {}; for (var i = 1; i <= 12; i++) selected[i] = true;
 var S = null, wheelRot = 0, timerId = null;
 var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+// ---- sonido (todo se genera con Web Audio, sin archivos)
+var AC = null, masterG, musicG, sfxG, soundOn = true, musicTimer = null, chordI = 0, lastSec = 0;
+var MUSIC_VOL = 0.045;
+function audio() {
+  if (!AC) {
+    try {
+      AC = new (window.AudioContext || window.webkitAudioContext)();
+      masterG = AC.createGain(); masterG.connect(AC.destination);
+      musicG = AC.createGain(); musicG.gain.value = soundOn ? MUSIC_VOL : 0; musicG.connect(masterG);
+      sfxG = AC.createGain(); sfxG.gain.value = 0.5; sfxG.connect(masterG);
+    } catch (e) { AC = null; }
+  }
+  if (AC && AC.state === "suspended") AC.resume();
+  return AC;
+}
+function tone(freq, t0, dur, type, vol, dest, f2) {
+  var o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t0);
+  if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(vol, t0 + Math.min(0.02, dur / 3));
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(dest); o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function sfx(fn) { if (soundOn && audio()) { try { fn(AC.currentTime + 0.01); } catch (e) {} } }
+
+// música ambiental: acordes suaves y un arpegio lento, muy bajita
+var CHORDS = [[220, 261.63, 329.63], [174.61, 220, 261.63], [261.63, 329.63, 392], [196, 246.94, 293.66]];
+function musicBar() {
+  if (!AC || !soundOn) return;
+  var t = AC.currentTime + 0.05, ch = CHORDS[chordI % CHORDS.length]; chordI++;
+  ch.forEach(function(f){
+    var o = AC.createOscillator(), g = AC.createGain();
+    o.type = "sine"; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.5, t + 1.2); g.gain.linearRampToValueAtTime(0.0001, t + 4.4);
+    o.connect(g); g.connect(musicG); o.start(t); o.stop(t + 4.5);
+  });
+  [0, 1, 2, 1, 2, 0, 2, 1].forEach(function(n, i){ tone(ch[n] * 2, t + 0.3 + i * 0.5, 1.4, "triangle", 0.22, musicG); });
+}
+function startMusic() {
+  if (!audio() || musicTimer) return;
+  musicBar(); musicTimer = setInterval(musicBar, 4000);
+}
+function setSound(on) {
+  soundOn = on;
+  $("soundBtn").setAttribute("aria-pressed", on);
+  $("soundBtn").textContent = on ? "Sonido: sí" : "Sonido: no";
+  if (AC) musicG.gain.setTargetAtTime(on ? MUSIC_VOL : 0, AC.currentTime, 0.2);
+  if (on) startMusic();
+}
+document.addEventListener("visibilitychange", function(){
+  if (!AC) return;
+  if (document.hidden) AC.suspend(); else if (soundOn) AC.resume();
+});
+
+// ruleta: arranque, clics mientras gira (cada vez más espaciados) y parada
+function sfxSpinStart() { sfx(function(t){ tone(180, t, 0.45, "sawtooth", 0.12, sfxG, 700); tone(360, t, 0.45, "triangle", 0.08, sfxG, 1100); }); }
+function sfxWheelTicks(ms, totalDeg, stepDeg) {
+  sfx(function(t0){
+    var n = Math.max(6, Math.round(totalDeg / stepDeg));
+    for (var k = 1; k <= n; k++) {
+      var x = 1 - Math.pow(1 - k / n, 1 / 3.5), t = t0 + 0.35 + x * (ms / 1000 - 0.35);
+      tone(k > n - 4 ? 1000 : 1500, t, 0.03, "square", k > n - 4 ? 0.2 : 0.12, sfxG);
+    }
+  });
+}
+function sfxWheelStop() { sfx(function(t){ tone(659.25, t, 0.7, "sine", 0.25, sfxG); tone(987.77, t + 0.12, 0.9, "sine", 0.2, sfxG); tone(1318.5, t + 0.24, 1.0, "sine", 0.12, sfxG); }); }
+function sfxDouble() { sfx(function(t){ [784, 988, 1175, 1568].forEach(function(f, i){ tone(f, t + i * 0.08, 0.3, "triangle", 0.15, sfxG); }); }); }
+
+// cronómetro: tic cada segundo, más agudo y rápido al final; zumbido al acabarse
+function sfxTick(sec) {
+  sfx(function(t){
+    if (sec <= 5) { tone(1100, t, 0.09, "square", 0.2, sfxG); tone(1100, t + 0.2, 0.09, "square", 0.14, sfxG); }
+    else if (sec <= 10) tone(900, t, 0.07, "square", 0.16, sfxG);
+    else tone(520, t, 0.04, "sine", 0.07, sfxG);
+  });
+}
+function sfxBuzz() { sfx(function(t){ tone(160, t, 0.7, "sawtooth", 0.22, sfxG, 110); tone(165, t, 0.7, "square", 0.1, sfxG, 112); }); }
+function sfxRight() { sfx(function(t){ [523.25, 659.25, 783.99, 1046.5].forEach(function(f, i){ tone(f, t + i * 0.09, 0.35, "triangle", 0.2, sfxG); }); }); }
+function sfxWrong() { sfx(function(t){ tone(311, t, 0.3, "triangle", 0.22, sfxG, 260); tone(233, t + 0.22, 0.5, "triangle", 0.22, sfxG, 180); }); }
+
+
 function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
 function filt(type) { return BANK[type].filter(function(x){ return selected[x.c]; }); }
 function total() { return filt("mc").length + filt("cloze").length + filt("vf").length + filt("who").length; }
@@ -935,16 +1018,21 @@ $("spinBtn").addEventListener("click", function(){
   var target = 360 * (Math.floor(wheelRot / 360) + (reduce ? 1 : 6)) - center + jitter;
   var w = $("wheel");
   w.style.transition = reduce ? "transform .4s linear" : "transform 4.6s cubic-bezier(.12,.62,.12,1)";
+  var spun = target - wheelRot;
   wheelRot = target; w.style.transform = "rotate(" + target + "deg)";
   $("landed").textContent = "Girando…";
+  var ms = reduce ? 400 : 4600;
+  sfxSpinStart(); sfxWheelTicks(ms, spun, step);
   setTimeout(function(){ landed(SEGS[idx]); }, reduce ? 500 : 4800);
 });
 
 function landed(seg) {
   var mult = 1, type = seg;
+  sfxWheelStop();
   if (seg === "dbl") {
     var avail = ["mc", "cloze", "vf", "who"].filter(function(t){ return filt(t).length; });
     type = avail[Math.floor(Math.random() * avail.length)]; mult = 2;
+    setTimeout(sfxDouble, 500);
     $("landed").textContent = "¡Puntos dobles! Te toca: " + TYPES[type].name;
   } else {
     if (!filt(type).length) { type = "mc"; }
@@ -960,8 +1048,9 @@ function tick(deadline) {
   $("tnum").textContent = sec;
   $("tbar").style.width = (left / (TIME * 1000) * 100) + "%";
   var low = sec <= 10;
+  if (sec !== lastSec) { lastSec = sec; if (left > 0) sfxTick(sec); }
   $("timer").classList.toggle("low", low);
-  if (left <= 0) { stopTimer(); answer(-1); }
+  if (left <= 0) { stopTimer(); sfxBuzz(); answer(-1); }
 }
 
 function showQ(q, mult) {
@@ -993,7 +1082,7 @@ function showQ(q, mult) {
   }).join("");
   Array.prototype.forEach.call(o.children, function(b, idx){ b.querySelector(".tx").textContent = q.o[order[idx]]; });
   $("panel").hidden = true; document.body.classList.remove("has-panel");
-  var deadline = Date.now() + TIME * 1000;
+  var deadline = Date.now() + TIME * 1000; lastSec = TIME;
   $("timer").classList.remove("low"); $("tnum").textContent = TIME; $("tbar").style.width = "100%";
   stopTimer(); timerId = setInterval(function(){ tick(deadline); }, 150);
   renderBoard();
@@ -1015,7 +1104,7 @@ function answer(k) {
     else x.classList.add("dim");
   });
   var bl = $("blank"); if (bl) { bl.textContent = q.o[q.ans]; bl.classList.add("filled"); }
-  if (good) { S.score[S.turn] += pts; S.ok[S.turn]++; } else { S.ko[S.turn]++; }
+  if (good) { S.score[S.turn] += pts; S.ok[S.turn]++; sfxRight(); } else { S.ko[S.turn]++; if (!timeout) sfxWrong(); }
   var v = $("verdict");
   v.className = "verdict " + (good ? "ok" : "ko");
   v.textContent = good ? ("¡Correcto, " + t.name + "! +" + pts + " puntos")
@@ -1044,11 +1133,12 @@ function finish() {
   $("finalInfo").textContent = TEAMS[0].name + ": " + S.ok[0] + " bien, " + S.ko[0] + " mal. " + TEAMS[1].name + ": " + S.ok[1] + " bien, " + S.ko[1] + " mal.";
   renderBoard();
 }
-$("againBtn").addEventListener("click", start);
+$("againBtn").addEventListener("click", function(){ startMusic(); start(); });
 $("menuBtn").addEventListener("click", function(){
   S = null; $("final").hidden = true; $("setup").hidden = false; renderBoard(); renderChips();
 });
-$("startBtn").addEventListener("click", start);
+$("startBtn").addEventListener("click", function(){ startMusic(); start(); });
+$("soundBtn").addEventListener("click", function(){ audio(); setSound(!soundOn); });
 
 $("themeBtn").addEventListener("click", function(){
   var r = document.documentElement, dark = r.getAttribute("data-theme") === "dark" ||
