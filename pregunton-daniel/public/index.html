@@ -123,6 +123,9 @@ input:focus,select:focus{border-color:var(--gold);outline:none;box-shadow:0 0 0 
 .clues{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .clues li{position:relative;padding-left:30px;font-size:1.15rem;line-height:1.35;font-weight:800}
 .clues li::before{content:"";position:absolute;left:2px;top:.32em;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle,var(--night) 0 3px,var(--gold) 4px);box-shadow:0 0 0 2px var(--gold-deep)}
+.rtag{margin:0;padding:8px 14px;border-radius:12px;font-weight:800;font-size:.95rem;text-align:center}
+.rtag.done{background:rgba(92,197,147,.16);color:var(--ok)}
+.rtag.open{background:rgba(235,187,77,.16);color:var(--gold)}
 .clues .src{display:inline-block;margin-left:4px;font-family:var(--font-display);font-weight:600;font-size:.78rem;letter-spacing:.04em;color:var(--gold);white-space:nowrap}
 .ring{position:relative;width:96px;height:96px}
 .ring svg{width:96px;height:96px;transform:rotate(-90deg)}
@@ -420,7 +423,7 @@ const loadingHtml = () => `<div class="card center stack"><div style="width:84px
 function lvlTile(kind, lv){
   const pool = poolFor(kind, lv); const done = pool.filter(q=>state.items[q.id]).length;
   const open = isOpen(kind) && pool.length>0; const full = pool.length>0 && done>=pool.length;
-  const label = !pool.length ? 'Sin preguntas' : (!isOpen(kind) ? 'Cerrado' : (full ? '¡Completo!' : done+' de '+pool.length));
+  const label = !pool.length ? 'Sin preguntas' : (!isOpen(kind) ? 'Cerrado' : (full ? '¡Completo! Repasar' : done+' de '+pool.length));
   const inner = `<span class="stars" aria-hidden="true">${'★'.repeat(LEVELS[lv].stars)}</span><b>${LEVELS[lv].name}</b><span class="of">${label}</span><span class="bar" aria-hidden="true"><i style="width:${pool.length?Math.round(done*100/pool.length):0}%"></i></span>`;
   return open ? `<a class="lvl ${lv}" href="${hashFor(kind,lv)}" aria-label="${KIND[kind].name}, nivel ${LEVELS[lv].name}. ${label}">${inner}</a>`
               : `<div class="lvl ${lv} off" aria-disabled="true">${inner}</div>`;
@@ -488,10 +491,27 @@ function renderInicio(){
 const G = { phase:'loading', q:null, deadline:0, secs:30, token:null, tick:null, opts:[], last:null, err:'' };
 function stopTick(){ if (G.tick){ clearInterval(G.tick); G.tick=null; } }
 const curPool = () => poolFor(R.kind, R.level);
-function nextQuestion(){ return shuffle(curPool(), hash(PID+R.name)).find(q => !state.items[q.id]); }
+/* Repaso: volver a jugar un nivel ya terminado. Solo suma puntos lo que antes estaba mal. */
+const rpAll = () => lsGet('pd_rp', {});
+const rpGet = () => rpAll()[R.name] || null;
+const rpSave = rp => { const a = rpAll(); if (rp) a[R.name] = rp; else delete a[R.name]; lsSet('pd_rp', a); };
+const unanswered = () => shuffle(curPool(), hash(PID+R.name)).find(q => !state.items[q.id]);
+function nextQuestion(){
+  const rp = rpGet();
+  if (rp) return shuffle(curPool(), hash(PID+R.name+'#'+rp.round)).find(q => !rp.done.includes(q.id));
+  return unanswered();
+}
+function startReplay(){ const rp = rpGet(); rpSave({ round:(rp?rp.round:0)+1, done:[], log:[] }); G.phase='loading'; G.last=null; renderGame(); }
+function rpTag(q){
+  if (!rpGet()) return '';
+  const p = state.items[q.id];
+  if (p && p.ok) return '<p class="rtag done">✓ Ya la acertaste: no suma puntos</p>';
+  if (p) return '<p class="rtag open">↻ La fallaste antes: si aciertas, suma</p>';
+  return '';
+}
 function updateGameScore(){ const el = $('#gScore'); if (el) el.textContent = sumPts(state.items); }
 const optsFor = q => shuffle(q.o, hash(PID+q.id));
-const topBar = (extra) => `<div class="gtop"><a class="back" href="#inicio">← Salir</a><span class="chip ${R.level}">${KIND[R.kind].name} · ${LEVELS[R.level].name}</span>${extra||''}<span class="chip"><b id="gScore">${sumPts(state.items)}</b> pts</span></div>`;
+const topBar = (extra) => `<div class="gtop"><a class="back" href="#inicio">← Salir</a><span class="chip ${R.level}">${KIND[R.kind].name} · ${LEVELS[R.level].name}${rpGet()?' · Repaso':''}</span>${extra||''}<span class="chip"><b id="gScore">${sumPts(state.items)}</b> pts</span></div>`;
 
 function renderGame(){
   const root = $('#v-juego'); stopTick();
@@ -503,7 +523,7 @@ function renderGame(){
   }
   // ¿había una pregunta en curso (por ejemplo, si recargaste la página)?
   const cur = lsGet('pd_cur', null);
-  if (G.phase!=='question' && G.phase!=='feedback' && G.phase!=='sending' && cur && cur.pid===PID && !state.items[cur.q] && qById[cur.q]) {
+  if (G.phase!=='question' && G.phase!=='feedback' && G.phase!=='sending' && cur && cur.pid===PID && (!state.items[cur.q] || cur.rp) && qById[cur.q]) {
     const cq = qById[cur.q];
     if (cq.k!==R.kind || cq.lv!==R.level) { location.hash = hashFor(cq.k, cq.lv); return; }
     G.q = cq; G.deadline = cur.deadline; G.secs = cur.secs; G.token = cur.token; G.opts = optsFor(cq);
@@ -511,6 +531,7 @@ function renderGame(){
     G.phase='question'; renderQuestion(); startTick(); return;
   }
   if (G.phase==='feedback' && G.last) { renderFeedback(); return; }
+  if (rpGet() && !nextQuestion() && unanswered()) rpSave(null);   // llegaron preguntas nuevas: vuelve al juego normal
   const pool = curPool(); const nxt = nextQuestion();
   if (!nxt) { G.phase='done'; return renderDone(pool); }
   if (!isOpen(R.kind)) {
@@ -534,7 +555,7 @@ async function beginQuestion(q){
   try {
     const j = await api('start', { qid:q.id });
     G.q = q; G.secs = j.secs; G.token = j.token; G.deadline = Date.now() + j.left*1000; G.opts = optsFor(q); G.last = null; G.err=''; G.phase='question';
-    lsSet('pd_cur', { pid:PID, q:q.id, token:j.token, deadline:G.deadline, secs:G.secs });
+    lsSet('pd_cur', { pid:PID, q:q.id, token:j.token, deadline:G.deadline, secs:G.secs, rp: !!rpGet() });
     renderQuestion(); startTick();
   } catch(e){
     if (btn) btn.disabled = false;
@@ -545,10 +566,12 @@ async function beginQuestion(q){
 }
 function renderQuestion(){
   const root = $('#v-juego'); const q = G.q; const pool = poolFor(q.k, q.lv);
-  const doneNow = pool.filter(x=>state.items[x.id]).length;
+  const rp = rpGet();
+  const doneNow = rp ? rp.done.length : pool.filter(x=>state.items[x.id]).length;
   const total = Math.max(pool.length, doneNow+1);
   root.innerHTML = `
     <div class="game">${topBar(`<span class="chip">${doneNow+1} / ${total}</span>`)}
+      ${rpTag(q)}
       <div class="card gold qcard">
         ${q.k==='p'
           ? `<div><span class="cite">Según la Reina Valera 1960, en el libro de Daniel, este personaje:</span><p class="whoami">¿Quién soy?</p><ul class="clues">${q.cl.map((c,i)=>`<li>${esc(c)} <span class="src">${esc(srcOf(q.rf[i]))}</span></li>`).join('')}</ul></div>`
@@ -571,6 +594,7 @@ function updateTick(){
   ring.classList.toggle('low', left<=8);
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden) updateTick(); });
+document.addEventListener('click', e => { if (e.target && e.target.id==='againBtn') startReplay(); });
 document.addEventListener('keydown', ev => {
   if (!R.game) return;
   if (G.phase==='question') { const i = ['1','2','3','4'].indexOf(ev.key); if (i>-1 && G.opts[i]) finalize(G.opts[i], false); }
@@ -594,19 +618,23 @@ async function finalize(pick, timedOut){
     return;
   }
   lsSet('pd_cur', null);
-  applyMe(j.me); state.items[G.q.id] = j.item;
+  applyMe(j.me);
+  if (!state.items[G.q.id]) state.items[G.q.id] = j.item;
+  const rp = rpGet();
+  if (rp) { if (!rp.done.includes(G.q.id)) rp.done.push(G.q.id); rp.log = (rp.log||[]).concat([{ id:G.q.id, ok:j.item.ok, pts:j.item.pts }]); rpSave(rp); }
   G.phase = 'feedback';
   G.last = { q:G.q, item:j.item, pick:j.item.to ? null : pick, opts:G.opts, correct:j.correct, reveal:j.reveal };
   renderFeedback();
 }
 function renderFeedback(){
   const root = $('#v-juego'); const { q, item, pick, opts, correct, reveal } = G.last;
-  const left = poolFor(q.k, q.lv).filter(x=>!state.items[x.id]).length;
+  const rp0 = rpGet();
+  const left = rp0 ? poolFor(q.k, q.lv).length - rp0.done.length : poolFor(q.k, q.lv).filter(x=>!state.items[x.id]).length;
   const title = item.ok ? '¡Correcto!' : item.to ? '¡Se acabó el tiempo!' : 'No fue esa';
   root.innerHTML = `
     <div class="game fade">${topBar()}
       <div class="card gold stack" style="gap:14px">
-        <div class="verdict ${item.ok?'ok':'bad'}">${LION('lion')}<div><h2>${title}</h2><p class="muted">${item.ok?'+'+item.pts+' puntos':'0 puntos'}</p></div></div>
+        <div class="verdict ${item.ok?'ok':'bad'}">${LION('lion')}<div><h2>${title}</h2><p class="muted">${item.ok ? (item.pts>0 ? '+'+item.pts+' puntos' : 'Ya la tenías: 0 puntos') : '0 puntos'}</p></div></div>
         <div class="opts">${opts.map((o,i)=>`<div class="opt ${o===correct?'right':(o===pick?'wrong':'dim')}"><span class="ltr">${'ABCD'[i]}</span><span>${esc(o)}${o===correct?' <span class="sr">(respuesta correcta)</span>':''}${o===pick&&o!==correct?' <span class="sr">(tu respuesta)</span>':''}</span></div>`).join('')}</div>
         ${q.k==='p' && reveal
           ? `<div class="whois"><span class="muted small">Era</span><b>${esc(correct)}</b><p>${esc(reveal.d)}</p></div><div class="verse"><span class="ref">Daniel ${esc(reveal.kv.r)}</span>«${esc(reveal.kv.t)}»</div>`
@@ -625,14 +653,19 @@ function renderFeedback(){
 function renderDone(pool){
   const items = pool.map(q=>state.items[q.id]).filter(Boolean);
   const ok = items.filter(x=>x.ok).length;
+  const rp = rpGet(); const log = rp ? (rp.log||[]) : [];
+  const rOk = log.filter(x=>x.ok).length, rPts = log.reduce((a,x)=>a+(x.pts||0),0);
   const mine = state.me ? rankList(state.board.slice(),'pts').find(x=>x.id===state.me.id) : null;
   $('#v-juego').innerHTML = `
     <div class="game fade">${topBar()}
       <div class="card gold center stack"><div style="width:120px">${LION('lion')}</div>
-        <h1 style="font-size:clamp(1.8rem,6vw,2.5rem)">¡Terminaste!</h1>
-        <div class="stat"><div><b>${ok}/${pool.length}</b><span class="muted small">correctas</span></div><div><b>${sumPts(state.items)}</b><span class="muted small">puntos</span></div></div>
+        <h1 style="font-size:clamp(1.8rem,6vw,2.5rem)">${rp?'¡Repaso terminado!':'¡Terminaste!'}</h1>
+        <div class="stat">${rp
+          ? `<div><b>${rOk}/${pool.length}</b><span class="muted small">bien en el repaso</span></div><div><b>+${rPts}</b><span class="muted small">puntos nuevos</span></div>`
+          : `<div><b>${ok}/${pool.length}</b><span class="muted small">correctas</span></div><div><b>${sumPts(state.items)}</b><span class="muted small">puntos</span></div>`}</div>
+        <p class="muted small" style="max-width:26em">Si repasas, solo suman las que antes fallaste y ahora aciertas.</p>
         ${mine && mine.pts>0 ? `<p style="font-size:1.2rem">Vas en el <b>${ord(mine.rank)} lugar</b></p>`:''}
-        <div class="row" style="justify-content:center"><a class="btn big" href="#inicio">Elegir otro</a><a class="btn ghost" href="#posiciones">Posiciones</a></div>
+        <div class="row" style="justify-content:center"><button class="btn big" id="againBtn" type="button">Jugar otra vez</button><a class="btn ghost" href="#inicio">Elegir otro</a><a class="btn ghost" href="#posiciones">Posiciones</a></div>
       </div>
     </div>`;
 }
@@ -777,7 +810,7 @@ function detailHtml(a){
   if (!ids.length) return '<p class="muted small">Todavía no responde nada.</p>';
   return '<div class="detail">'+ids.map(id => { const it=a.items[id], q=qById[id]; if(!q) return '';
     const tag = it.ok ? '<span class="tag ok">✓ Bien</span>' : it.to ? '<span class="tag to">⏱ Sin tiempo</span>' : '<span class="tag bad">✗ Mal</span>';
-    return `<div class="drow"><b>${esc(qLabel(q))}</b>${tag}<span>${it.to?'No alcanzó a responder':'Respondió: '+esc(it.pick)}</span><span class="muted" style="text-align:right">${it.sec} s · ${it.pts} pts</span></div>`; }).join('')+'</div>';
+    return `<div class="drow"><b>${esc(qLabel(q))}</b>${tag}<span>${it.to?'No alcanzó a responder':'Respondió: '+esc(it.pick)}</span><span class="muted" style="text-align:right">${it.sec} s · ${it.pts} pts${it.att>1?' · intento '+it.att:''}</span></div>`; }).join('')+'</div>';
 }
 function exportCsv(){
   const cell = v => { v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };

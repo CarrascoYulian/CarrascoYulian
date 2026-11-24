@@ -32,7 +32,7 @@ assert.ok(ptsFor(25000, 30, 'alto') > ptsFor(25000, 30, 'medio'));
 // repetir la misma respuesta no suma otra vez
 r = await ok({ a: 'answer', pid: pidA, qid: q1, token: s.token, pick: ANSWERS[q1].a });
 assert.equal(r.dup, true); assert.equal(r.me.pts, pts1);
-await err({ a: 'start', pid: pidA, qid: q1 }, 409, 'answered');
+// (repetir una pregunta ya respondida es un repaso: ver más abajo)
 
 // respuesta incorrecta
 s = await ok({ a: 'start', pid: pidA, qid: q2 });
@@ -107,11 +107,36 @@ const quizQ = qids.find(q => ANSWERS[q].c === 4 && !ANSWERS[q].k);
 await ok({ a: 'start', pid: pidB, qid: quizQ }); // las preguntas siguen abiertas
 assert.ok((await ok({ a: 'admin_players', pin: '123456' })).cardNames[card] === ANSWERS[card].a);
 
+// repaso: solo suma lo que antes estaba mal
+{
+  const pidC = 'c'.repeat(24);
+  await ok({ a: 'admin_cfg', pin: '123456', cfg: { ...c, open: true, cards: true } });
+  await ok({ a: 'join', pid: pidC, name: 'Repasa', team: 't1' });
+  const [ra, rb] = qids.filter(q => ANSWERS[q].c === 4 && !ANSWERS[q].k);
+  const play = async (qid, pick) => { const t = await ok({ a: 'start', pid: pidC, qid }); clock += 4000; return ok({ a: 'answer', pid: pidC, qid, token: t.token, pick }); };
+  // 1.er intento: ra mal, rb bien
+  let x = await play(ra, 'mal'); assert.equal(x.item.ok, 0); assert.equal(x.me.pts, 0);
+  x = await play(rb, ANSWERS[rb].a); const ptsB = x.item.pts; assert.ok(ptsB > 0); assert.equal(x.me.pts, ptsB);
+  // repaso: rb ya estaba bien, no suma otra vez
+  x = await play(rb, ANSWERS[rb].a); assert.equal(x.item.ok, 1); assert.equal(x.item.pts, 0); assert.equal(x.me.pts, ptsB); assert.equal(x.me.items[rb].att, 2);
+  // repaso: ra sigue mal, no suma
+  x = await play(ra, 'otra vez mal'); assert.equal(x.item.ok, 0); assert.equal(x.me.pts, ptsB); assert.equal(x.me.items[ra].ok, 0);
+  // repaso: ra ahora bien, sí suma
+  x = await play(ra, ANSWERS[ra].a); const ptsA = x.item.pts; assert.ok(ptsA > 0); assert.equal(x.me.pts, ptsB + ptsA); assert.equal(x.me.items[ra].ok, 1);
+  // y repetirla otra vez ya no suma
+  x = await play(ra, ANSWERS[ra].a); assert.equal(x.item.pts, 0); assert.equal(x.me.pts, ptsB + ptsA);
+  // el mismo intento enviado dos veces no se cuenta dos veces
+  const t2 = await ok({ a: 'start', pid: pidC, qid: ra }); clock += 2000;
+  const y1 = await ok({ a: 'answer', pid: pidC, qid: ra, token: t2.token, pick: 'mal' });
+  const y2 = await ok({ a: 'answer', pid: pidC, qid: ra, token: t2.token, pick: 'mal' });
+  assert.equal(y2.dup, true); assert.equal(y1.me.items[ra].att, y2.me.items[ra].att);
+}
+
 // quitar jugador
 const rm = (await ok({ a: 'admin_players', pin: '123456' })).players.find(p => p.name === 'Beto');
 await ok({ a: 'admin_remove', pin: '123456', id: rm.id });
 await err({ a: 'admin_remove', pin: '123456', id: rm.id }, 404, 'no_player');
-assert.equal((await ok({ a: 'admin_players', pin: '123456' })).players.length, 1);
+assert.equal((await ok({ a: 'admin_players', pin: '123456' })).players.length, 2);
 
 // acciones inválidas
 await err({ a: 'nada' }, 400, 'bad_action');

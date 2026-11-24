@@ -103,18 +103,27 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
     const key = ANSWERS[qid];
     if (!key) throw new HttpError(400, 'Pregunta desconocida.', 'bad_q');
     const reveal = key.k === 'p' ? { d: key.d, kv: key.kv, refs: key.refs } : undefined;
-    if (pl.items && pl.items[qid]) return { item: pl.items[qid], correct: key.a, reveal, me: meView(pl), dup: true };
     const t = readToken(tok, pid, qid);
     if (!t) throw new HttpError(400, 'La pregunta no se inició bien. Vuelve a empezarla.', 'bad_token');
+    const prev = pl.items && pl.items[qid];
+    // Mismo intento enviado dos veces (por ejemplo, tras un corte de internet): no se vuelve a contar.
+    if (prev && prev.st === t.t) return { item: prev.la || prev, correct: key.a, reveal, me: meView(pl), dup: true };
     const elapsed = now() - t.t, limit = t.secs * 1000;
     if (forceTimeout && elapsed < limit - 1500) throw new HttpError(409, 'Todavía queda tiempo.', 'not_yet');
     const timedOut = forceTimeout || elapsed > limit + GRACE_MS;
     const ok = !timedOut && pick === key.a;
-    const item = { ok: ok ? 1 : 0, pick: timedOut ? '' : String(pick || '').slice(0, 200), sec: Math.round(Math.min(t.secs, Math.max(0, elapsed / 1000)) * 10) / 10, pts: ok ? ptsFor(limit - elapsed, t.secs, key.lv) : 0, to: timedOut ? 1 : 0 };
-    pl.items = Object.assign({}, pl.items, { [qid]: item });
+    const base = { ok: ok ? 1 : 0, pick: timedOut ? '' : String(pick || '').slice(0, 200), sec: Math.round(Math.min(t.secs, Math.max(0, elapsed / 1000)) * 10) / 10, to: timedOut ? 1 : 0 };
+    // Repaso: solo suma una pregunta que nunca se había acertado. Lo que ya estaba bien no suma otra vez.
+    const earned = ok && !(prev && prev.ok) ? ptsFor(limit - elapsed, t.secs, key.lv) : 0;
+    const la = { ...base, pts: earned };            // lo que se le muestra por este intento
+    const att = ((prev && prev.att) || (prev ? 1 : 0)) + 1;
+    const stored = !prev || (!prev.ok && ok)
+      ? { ...base, pts: earned, st: t.t, att, la }  // primer intento, o una fallada que ahora acertó
+      : { ...prev, st: t.t, att, la };              // ya estaba bien (o sigue mal): se conserva
+    pl.items = Object.assign({}, pl.items, { [qid]: stored });
     pl.pts = sumPts(pl.items); pl.n = Object.keys(pl.items).length; pl.t = now();
     await savePlayer(pl);
-    return { item, correct: key.a, reveal, me: meView(pl) };
+    return { item: la, correct: key.a, reveal, me: meView(pl) };
   }
 
   const actions = {
@@ -140,7 +149,7 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
       if (!key) throw new HttpError(400, 'Pregunta desconocida.', 'bad_q');
       const cfg = await loadCfg();
       if (!cfg.open) throw new HttpError(409, 'El juego está cerrado por ahora.', 'closed');
-      if (pl.items && pl.items[qid]) throw new HttpError(409, 'Esa pregunta ya la respondiste.', 'answered');
+      // Se puede volver a jugar una pregunta ya respondida (repaso); el servidor decide si suma puntos al responder.
       if (key.k === 'p') {
         if (!cfg.cards) throw new HttpError(409, 'Las tarjetas están cerradas por ahora.', 'closed');
       } else if (key.c < cfg.from || key.c > cfg.to) throw new HttpError(409, 'Esa pregunta no está en la ronda actual.', 'out_of_round');
