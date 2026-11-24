@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daniel 1 al 12</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Nunito+Sans:wght@400;600;700;800&display=swap">
+<style>
+/* Concepto: tablero de dos equipos arriba, pregunta al centro, panel de cita bíblica fijo abajo. Azul = Michelle, rojo = Dalismel. */
+:root {
+  --bg: #eef1f8;
+  --surface: #ffffff;
+  --fg: #151a30;
+  --muted: #5b6380;
+  --line: #d6dbea;
+  --blue: #1c5fd4;
+  --blue-soft: #dde8fc;
+  --red: #cc2b38;
+  --red-soft: #fbe0e3;
+  --good: #167a45;
+  --good-soft: #d9f2e4;
+  --bad: #a65a10;
+  --bad-soft: #fbead2;
+  --gold: #8a6a1c;
+  --on-team: #ffffff;
+  --font-display: "Cinzel", Georgia, serif;
+  --font-body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-verse: "Lora", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1120; --surface: #171d34; --fg: #e8ebf7; --muted: #99a2c0; --line: #2b3357;
+    --blue: #6a9cff; --blue-soft: #1a2b57; --red: #ff6c77; --red-soft: #4b1e29;
+    --good: #52cf8d; --good-soft: #14392a; --bad: #f2b255; --bad-soft: #43301a; --gold: #e2c26b;
+    --on-team: #0d1120;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1120; --surface: #171d34; --fg: #e8ebf7; --muted: #99a2c0; --line: #2b3357;
+  --blue: #6a9cff; --blue-soft: #1a2b57; --red: #ff6c77; --red-soft: #4b1e29;
+  --good: #52cf8d; --good-soft: #14392a; --bad: #f2b255; --bad-soft: #43301a; --gold: #e2c26b;
+  --on-team: #0d1120;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 28px;
+}
+body.has-panel { padding-bottom: 330px; }
+.wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--font-display); font-size: clamp(1.5rem, 5vw, 2rem); margin: 0; letter-spacing: .04em; text-wrap: balance; }
+.sub { color: var(--muted); margin: 4px 0 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* marcador */
+.board { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.team { background: var(--surface); border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; min-width: 0; transition: border-color .2s, background .2s; }
+.team .nm { font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+.team .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.team .pts { font-size: 2.2rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.team .det { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.team.blue .dot { background: var(--blue); } .team.blue .pts { color: var(--blue); }
+.team.red .dot { background: var(--red); } .team.red .pts { color: var(--red); }
+.team.blue.on { border-color: var(--blue); background: var(--blue-soft); }
+.team.red.on { border-color: var(--red); background: var(--red-soft); }
+.team .tag { font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); height: 1em; }
+.team.on .tag { color: var(--fg); }
+
+/* tarjeta */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+.meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: .85rem; color: var(--muted); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+.bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--gold); width: 0; transition: width .3s; }
+.turn { font-weight: 800; font-size: 1rem; }
+.turn.blue { color: var(--blue); } .turn.red { color: var(--red); }
+.q { font-family: var(--font-verse); font-size: clamp(1.2rem, 4vw, 1.5rem); line-height: 1.35; margin: 0; text-wrap: balance; }
+.opts { display: grid; gap: 10px; }
+.opt { display: flex; gap: 12px; align-items: center; text-align: left; background: var(--bg); border: 2px solid var(--line); border-radius: 12px; padding: 12px 14px; min-height: 52px; transition: border-color .15s, background .15s; }
+.opt:hover:not(:disabled) { border-color: var(--fg); }
+.opt .ltr { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: .9rem; background: var(--surface); border: 2px solid var(--line); }
+.opt .tx { min-width: 0; overflow-wrap: anywhere; }
+.opt:disabled { cursor: default; }
+.opt.right { border-color: var(--good); background: var(--good-soft); }
+.opt.right .ltr { background: var(--good); color: var(--surface); border-color: var(--good); }
+.opt.wrong { border-color: var(--bad); background: var(--bad-soft); border-style: dashed; }
+.opt.wrong .ltr { background: var(--bad); color: var(--surface); border-color: var(--bad); }
+.opt.dim { opacity: .55; }
+
+/* panel inferior con la cita */
+.panel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 3px solid var(--gold); box-shadow: 0 -8px 24px rgba(0,0,0,.14);
+  padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px)); padding-top: 14px; padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px)); }
+.panel-in { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 8px; }
+.verdict { font-weight: 800; font-size: 1.05rem; }
+.verdict.ok { color: var(--good); } .verdict.ko { color: var(--bad); }
+.ref { font-family: var(--font-display); font-weight: 700; color: var(--gold); letter-spacing: .05em; font-size: 1rem; }
+.verse { font-family: var(--font-verse); font-style: italic; margin: 0; max-height: 26vh; overflow-y: auto; line-height: 1.5; }
+.btn { background: var(--fg); color: var(--bg); border: 0; border-radius: 12px; padding: 12px 20px; font-weight: 800; min-height: 48px; align-self: flex-start; }
+.btn.alt { background: transparent; color: var(--fg); border: 2px solid var(--line); }
+.btn.blue { background: var(--blue); color: var(--on-team); }
+
+/* inicio y final */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 2px solid var(--line); background: var(--bg); border-radius: 99px; min-width: 48px; min-height: 44px; padding: 6px 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+label.lb { font-weight: 800; }
+select { font: inherit; background: var(--bg); color: var(--fg); border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px; min-height: 44px; }
+.hint { color: var(--muted); font-size: .9rem; margin: 0; }
+.winner { font-family: var(--font-display); font-size: clamp(1.4rem, 5vw, 1.9rem); margin: 0; text-wrap: balance; }
+.winner.blue { color: var(--blue); } .winner.red { color: var(--red); }
+.theme { align-self: flex-end; background: transparent; border: 2px solid var(--line); border-radius: 99px; padding: 6px 12px; font-size: .8rem; font-weight: 700; color: var(--muted); }
+header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Daniel 1 al 12</h1>
+      <p class="sub">Reina-Valera 1960 · Michelle contra Dalismel</p>
+    </div>
+    <button class="theme" id="themeBtn" type="button" aria-label="Cambiar entre tema claro y oscuro">Tema</button>
+  </header>
+
+  <section class="board" id="board" aria-label="Marcador"></section>
+
+  <section class="card" id="setup">
+    <div>
+      <label class="lb">Capítulos de Daniel</label>
+      <p class="hint">Toca los capítulos que quieren repasar.</p>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="row">
+      <button class="btn alt" type="button" id="allBtn">Todos</button>
+      <label class="lb" for="countSel">Preguntas</label>
+      <select id="countSel"></select>
+    </div>
+    <p class="hint" id="setupInfo"></p>
+    <button class="btn blue" type="button" id="startBtn">Empezar el juego</button>
+  </section>
+
+  <section class="card" id="game" hidden>
+    <div class="meta"><span id="progTxt"></span><span id="chapTxt"></span></div>
+    <div class="bar"><i id="bar"></i></div>
+    <div class="turn" id="turn"></div>
+    <h2 class="q" id="q"></h2>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <section class="card" id="final" hidden>
+    <h2 class="winner" id="winner"></h2>
+    <p class="hint" id="finalInfo"></p>
+    <div class="row">
+      <button class="btn blue" type="button" id="againBtn">Jugar otra vez</button>
+      <button class="btn alt" type="button" id="menuBtn">Cambiar capítulos</button>
+    </div>
+  </section>
+</div>
+
+<div class="panel" id="panel" hidden role="status" aria-live="polite">
+  <div class="panel-in">
+    <div class="verdict" id="verdict"></div>
+    <div class="ref" id="ref"></div>
+    <p class="verse" id="verse"></p>
+    <button class="btn" type="button" id="nextBtn">Siguiente</button>
+  </div>
+</div>
+
+<script>
+// Cada pregunta: c = capítulo, q = pregunta, o = opciones (la primera es la correcta), r = cita, v = texto RVR1960
+var Q = [
+// ---------- Daniel 1
+{c:1,q:"¿Qué propuso Daniel en su corazón cuando llegó a Babilonia?",o:["No contaminarse con la porción de la comida del rey ni con su vino","Orar tres veces al día frente a una ventana","No aprender las letras de los caldeos","Huir de regreso a Jerusalén"],r:"Daniel 1:8",v:"Pero Daniel propuso en su corazón no contaminarse con la porción de la comida del rey, ni con el vino que él bebía; pidió, por tanto, al jefe de los eunucos que no se le obligase a contaminarse."},
+{c:1,q:"¿Qué nombre le puso el jefe de los eunucos a Daniel?",o:["Beltsasar","Sadrac","Mesac","Abed-nego"],r:"Daniel 1:7",v:"A los cuales el jefe de los eunucos puso nombres: puso a Daniel, Beltsasar; a Ananías, Sadrac; a Misael, Mesac; y a Azarías, Abed-nego."},
+{c:1,q:"¿Cuántos días duró la prueba de comer legumbres y beber agua?",o:["Diez días","Tres días","Siete días","Veintiún días"],r:"Daniel 1:12",v:"Te ruego que hagas la prueba con tus siervos por diez días, y que nos den legumbres a comer, y agua a beber."},
+{c:1,q:"¿En qué tuvo entendimiento Daniel, por don de Dios?",o:["En toda visión y sueños","Solo en la música","En la guerra y las batallas","En la construcción de ciudades"],r:"Daniel 1:17",v:"A estos cuatro muchachos Dios les dio conocimiento e inteligencia en todas las letras y ciencia; y Daniel tuvo entendimiento en toda visión y sueños."},
+{c:1,q:"¿Qué hizo Dios con Daniel delante del jefe de los eunucos?",o:["Lo puso en gracia y en buena voluntad","Lo puso en prisión","Lo envió de regreso a su tierra","Lo dejó sin protección"],r:"Daniel 1:9",v:"Y puso Dios a Daniel en gracia y en buena voluntad con el jefe de los eunucos."},
+// ---------- Daniel 2
+{c:2,q:"En el sueño de la estatua, ¿qué parte representaba al rey Nabucodonosor?",o:["La cabeza de oro","El pecho de plata","Los pies de hierro y barro","Las piernas de hierro"],r:"Daniel 2:38",v:"y todo lugar donde habitan hijos de hombres, bestias del campo y aves del cielo, él los ha entregado en tu mano, y te ha dado el dominio sobre todo; tú eres aquella cabeza de oro."},
+{c:2,q:"¿Qué hirió a la estatua en sus pies de hierro y de barro?",o:["Una piedra cortada, no con mano","Un rayo del cielo","Un terremoto","Una espada de fuego"],r:"Daniel 2:34",v:"Estabas mirando, hasta que una piedra fue cortada, no con mano, e hirió a la imagen en sus pies de hierro y de barro cocido, y los desmenuzó."},
+{c:2,q:"Según Daniel, ¿quién revela los misterios?",o:["Un Dios en los cielos","Los magos y astrólogos","Los adivinos de Babilonia","Los sabios del rey"],r:"Daniel 2:28",v:"Pero hay un Dios en los cielos, el cual revela los misterios, y él ha hecho saber al rey Nabucodonosor lo que ha de acontecer en los postreros días. Tu sueño, y las visiones de tu cabeza sobre tu cama, son esto:"},
+{c:2,q:"¿Cómo llamó el rey Nabucodonosor al Dios de Daniel?",o:["Dios de dioses y Señor de los reyes","Dios de los ejércitos","El Dios de Abraham","Rey de la tierra"],r:"Daniel 2:47",v:"El rey habló a Daniel, y dijo: Ciertamente el Dios vuestro es Dios de dioses, y Señor de los reyes, y el que revela los misterios, pues pudiste revelar este misterio."},
+{c:2,q:"¿Cómo será el reino que levantará el Dios del cielo?",o:["Un reino que no será jamás destruido","Un reino que durará mil años","Un reino que pasará a otro pueblo","Un reino de oro y plata"],r:"Daniel 2:44",v:"Y en los días de estos reyes el Dios del cielo levantará un reino que no será jamás destruido, ni será el reino dejado a otro pueblo; desmenuzará y consumirá a todos estos reinos, pero él permanecerá para siempre."},
+// ---------- Daniel 3
+{c:3,q:"¿Cuánto medía de alto la estatua de oro que hizo Nabucodonosor?",o:["Sesenta codos","Seis codos","Cien codos","Treinta codos"],r:"Daniel 3:1",v:"El rey Nabucodonosor hizo una estatua de oro, cuya altura era de sesenta codos, y su anchura de seis codos; la levantó en el campo de Dura, en la provincia de Babilonia."},
+{c:3,q:"¿Cuántas veces más se calentó el horno de fuego de lo acostumbrado?",o:["Siete veces más","Tres veces más","Diez veces más","Doce veces más"],r:"Daniel 3:19",v:"Entonces Nabucodonosor se llenó de ira, y se demudó el aspecto de su rostro contra Sadrac, Mesac y Abed-nego, y ordenó que el horno se calentase siete veces más de lo acostumbrado."},
+{c:3,q:"¿Qué respondieron Sadrac, Mesac y Abed-nego al rey?",o:["Que Dios podía librarlos, y si no, no adorarían la estatua","Que adorarían la estatua para salvar la vida","Que pedirían perdón al rey","Que no tenían nada que responder"],r:"Daniel 3:17-18",v:"He aquí nuestro Dios a quien servimos puede librarnos del horno de fuego ardiendo; y de tu mano, oh rey, nos librará. Y si no, sepas, oh rey, que no serviremos a tus dioses, ni tampoco adoraremos la estatua que has levantado."},
+{c:3,q:"¿A quién se parecía el cuarto varón que se paseaba en el fuego?",o:["A hijo de los dioses","A un ángel con espada","A Daniel","A Nabucodonosor"],r:"Daniel 3:25",v:"Él respondió: He aquí yo veo cuatro varones sueltos, que se pasean en medio del fuego sin sufrir ningún daño; y el aspecto del cuarto es semejante a hijo de los dioses."},
+// ---------- Daniel 4
+{c:4,q:"¿Qué dijo el rey mientras se paseaba sobre el palacio de Babilonia?",o:["¿No es esta la gran Babilonia que yo edifiqué?","Bendito sea el Dios de Daniel","He pecado contra el Altísimo","Mi reino terminará pronto"],r:"Daniel 4:30",v:"Habló el rey y dijo: ¿No es esta la gran Babilonia que yo edifiqué para casa real con la fuerza de mi poder, y para gloria de mi majestad?"},
+{c:4,q:"¿Cuántos tiempos pasarían sobre el rey hasta que conociera que el Altísimo tiene el dominio?",o:["Siete tiempos","Tres tiempos","Cuarenta tiempos","Doce tiempos"],r:"Daniel 4:32",v:"y te echarán de entre los hombres, y con las bestias del campo será tu morada, y como a los bueyes te apacentarán; y siete tiempos pasarán sobre ti, hasta que conozcas que el Altísimo tiene el dominio en el reino de los hombres, y que lo da a quien él quiere."},
+{c:4,q:"¿Qué consejo le dio Daniel al rey?",o:["Redimir sus pecados con justicia y tener misericordia de los oprimidos","Construir otro templo","Hacer guerra contra Egipto","Ofrecer incienso a sus dioses"],r:"Daniel 4:27",v:"Por tanto, oh rey, acepta mi consejo: tus pecados redime con justicia, y tus iniquidades con misericordias para con los oprimidos, pues tal vez será eso una prolongación de tu tranquilidad."},
+{c:4,q:"Al final, ¿a quién alabó, engrandeció y glorificó Nabucodonosor?",o:["Al Rey del cielo","A Bel, dios de Babilonia","A Daniel","A la estatua de oro"],r:"Daniel 4:37",v:"Ahora yo Nabucodonosor alabo, engrandezco y glorifico al Rey del cielo, porque todas sus obras son verdaderas, y sus caminos justos; y humilla a los que andan con soberbia."},
+// ---------- Daniel 5
+{c:5,q:"¿A cuántos de sus príncipes hizo Belsasar un gran banquete?",o:["A mil","A cien","A setenta","A doce"],r:"Daniel 5:1",v:"El rey Belsasar hizo un gran banquete a mil de sus príncipes, y en presencia de los mil bebía vino."},
+{c:5,q:"¿Qué palabras estaban escritas en la pared?",o:["Mene, Mene, Tekel, Uparsin","Aleluya, Amén, Gloria, Paz","Santo, Santo, Santo","Alfa, Omega, Principio, Fin"],r:"Daniel 5:25",v:"Y la escritura que trazó es: MENE, MENE, TEKEL, UPARSIN."},
+{c:5,q:"¿Qué significa «Tekel»?",o:["Pesado has sido en balanza, y fuiste hallado falto","Contado ha Dios tu reino y le ha puesto fin","Tu reino fue dividido","Has sido hallado justo"],r:"Daniel 5:27",v:"TEKEL: Pesado has sido en balanza, y fuiste hallado falto."},
+{c:5,q:"¿Qué ocurrió con Belsasar esa misma noche?",o:["Fue muerto, y Darío de Media tomó el reino","Se arrepintió y pidió perdón","Huyó de Babilonia","Hizo a Daniel rey"],r:"Daniel 5:30-31",v:"La misma noche fue muerto Belsasar, rey de los caldeos. Y Darío de Media tomó el reino, siendo de sesenta y dos años."},
+// ---------- Daniel 6
+{c:6,q:"¿Contra qué buscaban los gobernadores una ocasión para acusar a Daniel?",o:["La ley de su Dios","Sus gastos como gobernador","Su ausencia del palacio","Su amistad con el rey"],r:"Daniel 6:5",v:"Entonces dijeron aquellos hombres: No hallaremos contra este Daniel ocasión alguna para acusarle, si no la hallamos contra él en relación con la ley de su Dios."},
+{c:6,q:"¿Cuántas veces al día se arrodillaba Daniel a orar, con las ventanas abiertas hacia Jerusalén?",o:["Tres veces","Una vez","Siete veces","Dos veces"],r:"Daniel 6:10",v:"Cuando Daniel supo que el edicto había sido firmado, entró en su casa, y abiertas las ventanas de su cámara que daban hacia Jerusalén, se arrodillaba tres veces al día, y oraba y daba gracias delante de su Dios, como solía hacerlo antes."},
+{c:6,q:"¿Quién cerró la boca de los leones para que no hicieran daño a Daniel?",o:["El ángel que envió su Dios","El rey Darío","Los príncipes","Un profeta"],r:"Daniel 6:22",v:"Mi Dios envió su ángel, el cual cerró la boca de los leones, para que no me hiciesen daño, porque ante él fui hallado inocente; y aun delante de ti, oh rey, yo no he hecho nada malo."},
+{c:6,q:"¿Por qué no se halló ninguna lesión en Daniel?",o:["Porque había confiado en su Dios","Porque los leones estaban dormidos","Porque el foso era poco profundo","Porque el rey lo ordenó"],r:"Daniel 6:23",v:"Fue entonces el rey muy contento a causa de él, y mandó sacar a Daniel del foso; y fue Daniel sacado del foso, y ninguna lesión se halló en él, porque había confiado en su Dios."},
+// ---------- Daniel 7
+{c:7,q:"¿De dónde subían las cuatro bestias grandes de la visión de Daniel?",o:["Del mar","De la tierra","Del desierto","Del monte"],r:"Daniel 7:3",v:"Y cuatro bestias grandes, diferentes la una de la otra, subían del mar."},
+{c:7,q:"¿Cómo era la primera bestia?",o:["Como león, con alas de águila","Como oso, con tres costillas","Como leopardo, con cuatro alas","Como toro, con diez cuernos"],r:"Daniel 7:4",v:"La primera era como león, y tenía alas de águila. Yo estaba mirando hasta que sus alas fueron arrancadas, y fue levantada del suelo y se puso en pie como un hombre, y le fue dado corazón de hombre."},
+{c:7,q:"¿Cómo era el vestido del Anciano de días?",o:["Blanco como la nieve","Rojo como la sangre","Azul como el cielo","De púrpura y oro"],r:"Daniel 7:9",v:"Estuve mirando hasta que fueron puestos tronos, y se sentó un Anciano de días, cuyo vestido era blanco como la nieve, y el pelo de su cabeza como lana limpia; su trono llama de fuego, y las ruedas del mismo, fuego ardiente."},
+{c:7,q:"¿Con qué venía uno como un hijo de hombre hasta el Anciano de días?",o:["Con las nubes del cielo","Con un carro de fuego","Con un ejército de ángeles","Con un torbellino"],r:"Daniel 7:13-14",v:"Miraba yo en la visión de la noche, y he aquí con las nubes del cielo venía uno como un hijo de hombre, que vino hasta el Anciano de días, y le hicieron acercarse delante de él. Y le fue dado dominio, gloria y reino, para que todos los pueblos, naciones y lenguas le sirvieran; su dominio es dominio eterno, que nunca pasará, y su reino uno que no será destruido."},
+// ---------- Daniel 8
+{c:8,q:"¿A qué reyes representa el carnero de dos cuernos?",o:["A los reyes de Media y de Persia","A los reyes de Egipto","A los reyes de Babilonia","A los reyes de Asiria"],r:"Daniel 8:20-21",v:"Aquel carnero que viste, que tenía dos cuernos, representa a los reyes de Media y de Persia. El macho cabrío es el rey de Grecia; y el cuerno grande que tenía entre sus ojos es el rey primero."},
+{c:8,q:"¿Qué ángel recibió la orden de enseñar a Daniel la visión?",o:["Gabriel","Miguel","Rafael","Uriel"],r:"Daniel 8:16",v:"Y oí una voz de hombre entre las riberas del Ulai, que gritó y dijo: Gabriel, enseña a éste la visión."},
+{c:8,q:"¿Cuántas tardes y mañanas pasarían hasta que el santuario fuera purificado?",o:["Dos mil trescientas","Mil doscientas sesenta","Setenta","Tres mil seiscientas"],r:"Daniel 8:14",v:"Y él me dijo: Hasta dos mil trescientas tardes y mañanas; luego el santuario será purificado."},
+{c:8,q:"¿Cómo quedó Daniel después de ver la visión?",o:["Quebrantado y enfermo algunos días","Lleno de gozo y fuerza","Sin ningún temor","Dormido por tres días"],r:"Daniel 8:27",v:"Y yo, Daniel, quedé quebrantado, y estuve enfermo algunos días; y cuando convalecí, atendí los negocios del rey; pero estaba espantado a causa de la visión, y no la entendía."},
+// ---------- Daniel 9
+{c:9,q:"¿En cuántos años se cumplirían las desolaciones de Jerusalén, según Jeremías?",o:["Setenta años","Cuarenta años","Cien años","Siete años"],r:"Daniel 9:2",v:"en el año primero de su reinado, yo Daniel miré atentamente en los libros el número de los años de que habló Jehová al profeta Jeremías, que habían de cumplirse las desolaciones de Jerusalén en setenta años."},
+{c:9,q:"¿Cómo buscó Daniel a Dios en su oración?",o:["En ayuno, cilicio y ceniza","Con cánticos y arpas","Con holocaustos y ofrendas","En silencio y soledad en el monte"],r:"Daniel 9:3",v:"Y volví mi rostro a Dios el Señor, buscándole en oración y ruego, en ayuno, cilicio y ceniza."},
+{c:9,q:"¿A qué hora vino Gabriel a Daniel mientras este oraba?",o:["A la hora del sacrificio de la tarde","A la medianoche","Al amanecer","Al mediodía"],r:"Daniel 9:21",v:"aún estaba hablando en oración, cuando el varón Gabriel, a quien había visto en la visión al principio, volando con presteza, vino a mí como a la hora del sacrificio de la tarde."},
+{c:9,q:"¿Cuántas semanas están determinadas sobre el pueblo de Daniel y la santa ciudad?",o:["Setenta semanas","Siete semanas","Sesenta y dos semanas","Cuarenta semanas"],r:"Daniel 9:24",v:"Setenta semanas están determinadas sobre tu pueblo y sobre tu santa ciudad, para terminar la prevaricación, poner fin al pecado, y expiar la iniquidad, para traer la justicia perpetua, y sellar la visión y la profecía, y ungir al Santo de los santos."},
+// ---------- Daniel 10
+{c:10,q:"¿Cuántas semanas estuvo Daniel afligido, sin comer manjar delicado ni carne ni vino?",o:["Tres semanas","Una semana","Siete semanas","Cuarenta días"],r:"Daniel 10:2-3",v:"En aquellos días yo Daniel estuve afligido por tres semanas. No comí manjar delicado, ni entró en mi boca carne ni vino, ni me ungí con ungüento, hasta que se cumplieron las tres semanas enteras."},
+{c:10,q:"¿A orillas de qué río estaba Daniel cuando tuvo la visión?",o:["El gran río Hidekel","El río Jordán","El río Quebar","El río Nilo"],r:"Daniel 10:4",v:"Y a los veinticuatro días del mes primero estaba yo a la orilla del gran río Hidekel."},
+{c:10,q:"¿Quién vino a ayudar al ángel cuando el príncipe del reino de Persia se le opuso?",o:["Miguel, uno de los principales príncipes","Gabriel","Elías","Un querubín"],r:"Daniel 10:13",v:"Pero el príncipe del reino de Persia se me opuso durante veintiún días; y he aquí Miguel, uno de los principales príncipes, vino para ayudarme, y quedé allí con los reyes de Persia."},
+{c:10,q:"¿Desde qué momento fueron oídas las palabras de Daniel?",o:["Desde el primer día que dispuso su corazón a entender y a humillarse","Desde que terminó los tres años de ayuno","Desde que llegó a Babilonia","Desde que el rey lo nombró gobernador"],r:"Daniel 10:12",v:"Entonces me dijo: Daniel, no temas; porque desde el primer día que dispusiste tu corazón a entender y a humillarte en la presencia de tu Dios, fueron oídas tus palabras; y a causa de tus palabras yo he venido."},
+// ---------- Daniel 11
+{c:11,q:"¿Cuántos reyes más habría en Persia, y cómo sería el cuarto?",o:["Tres reyes, y el cuarto se haría de grandes riquezas","Siete reyes, y el último sería justo","Doce reyes, y el cuarto sería pobre","Un solo rey de gran poder"],r:"Daniel 11:2",v:"Y ahora yo te mostraré la verdad. He aquí que habrá tres reyes en Persia, y el cuarto se hará de grandes riquezas más que todos; y al hacerse fuerte con sus riquezas, levantará a todos contra el reino de Grecia."},
+{c:11,q:"¿Cómo sería el rey que se levantaría luego, que dominaría con gran poder?",o:["Un rey valiente","Un rey anciano","Un rey pacífico","Un rey niño"],r:"Daniel 11:3",v:"Se levantará luego un rey valiente, el cual dominará con gran poder y hará su voluntad."},
+{c:11,q:"¿Qué hará el pueblo que conoce a su Dios?",o:["Se esforzará y actuará","Huirá al desierto","Guardará silencio","Se esconderá en las cuevas"],r:"Daniel 11:32",v:"Con lisonjas seducirá a los que violan el pacto; mas el pueblo que conoce a su Dios se esforzará y actuará."},
+{c:11,q:"¿Qué le sucederá finalmente al rey que plantó sus tiendas entre los mares y el monte glorioso y santo?",o:["Llegará a su fin, y no tendrá quien le ayude","Se convertirá al Dios de Daniel","Reinará para siempre","Será llevado cautivo a Egipto"],r:"Daniel 11:45",v:"Y plantará las tiendas de su palacio entre los mares y el monte glorioso y santo; pero llegará a su fin, y no tendrá quien le ayude."},
+// ---------- Daniel 12
+{c:12,q:"¿Quién se levantará en aquel tiempo como el gran príncipe a favor del pueblo de Daniel?",o:["Miguel","Gabriel","Elías","Moisés"],r:"Daniel 12:1",v:"En aquel tiempo se levantará Miguel, el gran príncipe que está de parte de los hijos de tu pueblo; y será tiempo de angustia, cual nunca fue desde que hubo gente hasta entonces; pero en aquel tiempo será libertado tu pueblo, todos los que se hallen escritos en el libro."},
+{c:12,q:"¿Qué pasará con muchos de los que duermen en el polvo de la tierra?",o:["Serán despertados, unos para vida eterna y otros para vergüenza perpetua","Dormirán hasta el fin de los siglos","Serán transformados en ángeles","Serán olvidados para siempre"],r:"Daniel 12:2",v:"Y muchos de los que duermen en el polvo de la tierra serán despertados, unos para vida eterna, y otros para vergüenza y confusión perpetua."},
+{c:12,q:"¿Cómo resplandecerán los que enseñan la justicia a la multitud?",o:["Como las estrellas a perpetua eternidad","Como el sol del mediodía","Como la luna llena","Como el oro refinado"],r:"Daniel 12:3",v:"Los entendidos resplandecerán como el resplandor del firmamento; y los que enseñan la justicia a la multitud, como las estrellas a perpetua eternidad."},
+{c:12,q:"¿Qué se le mandó a Daniel hacer con las palabras hasta el tiempo del fin?",o:["Cerrarlas y sellar el libro","Predicarlas en las plazas","Enterrarlas en una cueva","Entregarlas al rey"],r:"Daniel 12:4",v:"Pero tú, Daniel, cierra las palabras y sella el libro hasta el tiempo del fin. Muchos correrán de aquí para allá, y la ciencia se aumentará."},
+{c:12,q:"¿Qué recibiría Daniel al fin de los días?",o:["Su heredad","Una corona de oro","Un reino en Babilonia","Una nueva ciudad"],r:"Daniel 12:13",v:"Y tú irás hasta el fin, y reposarás, y te levantarás para recibir tu heredad al fin de los días."}
+];
+
+var TEAMS = [
+  {name:"Michelle", cls:"blue", label:"Equipo azul"},
+  {name:"Dalismel", cls:"red", label:"Equipo rojo"}
+];
+var $ = function(id){ return document.getElementById(id); };
+var selected = {}; for (var i = 1; i <= 12; i++) selected[i] = true;
+var S = null; // estado de la partida
+
+function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+function pool() { return Q.filter(function(x){ return selected[x.c]; }); }
+
+function renderChips() {
+  var h = "";
+  for (var i = 1; i <= 12; i++) h += '<button type="button" class="chip" data-c="' + i + '" aria-pressed="' + (!!selected[i]) + '">' + i + '</button>';
+  $("chips").innerHTML = h;
+  var n = pool().length, sel = $("countSel"), prev = parseInt(sel.value, 10), opts = [];
+  [10, 20, 30].forEach(function(k){ if (k < n) opts.push(k); });
+  opts.push(n);
+  sel.innerHTML = opts.map(function(k){ return '<option value="' + k + '">' + (k === n ? 'Todas (' + k + ')' : k) + '</option>'; }).join("");
+  if (opts.indexOf(prev) > -1) sel.value = prev; else sel.value = n;
+  $("setupInfo").textContent = n ? (n + " preguntas disponibles en los capítulos elegidos.") : "Elige al menos un capítulo.";
+  $("startBtn").disabled = n < 2;
+}
+$("chips").addEventListener("click", function(e){
+  var b = e.target.closest(".chip"); if (!b) return;
+  var c = b.getAttribute("data-c"); selected[c] = !selected[c]; renderChips();
+});
+$("allBtn").addEventListener("click", function(){ for (var i = 1; i <= 12; i++) selected[i] = true; renderChips(); });
+
+function renderBoard() {
+  $("board").innerHTML = TEAMS.map(function(t, i){
+    var on = S && !S.done && S.turn === i;
+    return '<div class="team ' + t.cls + (on ? ' on' : '') + '"><div class="tag">' + (on ? 'Su turno' : '') + '</div>' +
+      '<div class="nm"><span class="dot"></span>' + t.name + '</div>' +
+      '<div class="pts">' + (S ? S.score[i] : 0) + '</div>' +
+      '<div class="det">' + t.label + ' · ' + (S ? S.ok[i] : 0) + ' bien · ' + (S ? S.ko[i] : 0) + ' mal</div></div>';
+  }).join("");
+}
+
+function start() {
+  var n = parseInt($("countSel").value, 10);
+  var list = shuffle(pool()).slice(0, n % 2 ? n - 1 || n : n);
+  S = { list: list, i: 0, turn: 0, score: [0, 0], ok: [0, 0], ko: [0, 0], answered: false, done: false };
+  $("setup").hidden = true; $("final").hidden = true; $("game").hidden = false;
+  showQ();
+}
+
+function showQ() {
+  var q = S.list[S.i], t = TEAMS[S.turn];
+  S.answered = false;
+  var order = shuffle([0, 1, 2, 3].slice(0, q.o.length));
+  S.cur = { q: q, order: order };
+  $("panel").hidden = true; document.body.classList.remove("has-panel");
+  $("progTxt").textContent = "Pregunta " + (S.i + 1) + " de " + S.list.length;
+  $("chapTxt").textContent = "Daniel " + q.c;
+  $("bar").style.width = (S.i / S.list.length * 100) + "%";
+  var tn = $("turn"); tn.className = "turn " + t.cls; tn.textContent = "Turno de " + t.name;
+  $("q").textContent = q.q;
+  $("opts").innerHTML = order.map(function(k, idx){
+    return '<button type="button" class="opt" data-k="' + k + '"><span class="ltr">' + "ABCD"[idx] + '</span><span class="tx"></span></button>';
+  }).join("");
+  Array.prototype.forEach.call($("opts").children, function(b, idx){ b.querySelector(".tx").textContent = q.o[order[idx]]; });
+  renderBoard();
+}
+
+$("opts").addEventListener("click", function(e){
+  var b = e.target.closest(".opt"); if (!b || S.answered) return;
+  S.answered = true;
+  var q = S.cur.q, k = parseInt(b.getAttribute("data-k"), 10), good = k === 0, t = TEAMS[S.turn];
+  Array.prototype.forEach.call($("opts").children, function(x){
+    var xk = parseInt(x.getAttribute("data-k"), 10); x.disabled = true;
+    if (xk === 0) x.classList.add("right"); else if (x === b) x.classList.add("wrong"); else x.classList.add("dim");
+    if (xk === 0) x.querySelector(".ltr").textContent = "✓"; else if (x === b) x.querySelector(".ltr").textContent = "✗";
+  });
+  if (good) { S.score[S.turn] += 10; S.ok[S.turn]++; } else { S.ko[S.turn]++; }
+  var v = $("verdict");
+  v.className = "verdict " + (good ? "ok" : "ko");
+  v.textContent = good ? ("¡Correcto, " + t.name + "! +10 puntos") : ("Incorrecto, " + t.name + ". La respuesta era: " + q.o[0]);
+  $("ref").textContent = q.r + " (RVR1960)";
+  $("verse").textContent = "“" + q.v + "”";
+  $("nextBtn").textContent = S.i === S.list.length - 1 ? "Ver resultado" : "Siguiente pregunta";
+  $("panel").hidden = false; document.body.classList.add("has-panel");
+  renderBoard();
+  $("nextBtn").focus({preventScroll: true});
+});
+
+$("nextBtn").addEventListener("click", function(){
+  if (S.i === S.list.length - 1) return finish();
+  S.i++; S.turn = 1 - S.turn; showQ();
+  window.scrollTo(0, 0);
+});
+
+function finish() {
+  S.done = true;
+  $("panel").hidden = true; document.body.classList.remove("has-panel");
+  $("game").hidden = true; $("final").hidden = false;
+  var a = S.score[0], b = S.score[1], w = $("winner");
+  if (a === b) { w.className = "winner"; w.textContent = "¡Empate a " + a + " puntos!"; }
+  else { var i = a > b ? 0 : 1; w.className = "winner " + TEAMS[i].cls; w.textContent = "¡Gana " + TEAMS[i].name + " con " + S.score[i] + " puntos!"; }
+  $("finalInfo").textContent = TEAMS[0].name + ": " + S.ok[0] + " bien, " + S.ko[0] + " mal. " + TEAMS[1].name + ": " + S.ok[1] + " bien, " + S.ko[1] + " mal.";
+  renderBoard();
+}
+$("againBtn").addEventListener("click", start);
+$("menuBtn").addEventListener("click", function(){
+  S = null; $("final").hidden = true; $("setup").hidden = false; renderBoard(); renderChips();
+});
+$("startBtn").addEventListener("click", start);
+
+$("themeBtn").addEventListener("click", function(){
+  var r = document.documentElement, dark = r.getAttribute("data-theme") === "dark" ||
+    (!r.getAttribute("data-theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+  r.setAttribute("data-theme", dark ? "light" : "dark");
+});
+
+renderChips(); renderBoard();
+</script>
+</body>
+
+</html>
