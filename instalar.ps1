@@ -36,4 +36,7 @@ Write-Host 'Listo. En el Escritorio hay dos accesos:' -ForegroundColor Green
 Write-Host '  - Ruletas Daniel               (ventana normal)'
 Write-Host '  - Ruletas Daniel (Proyector)   (pantalla completa)'
 Write-Host ''
-Write-Host 'Para fijarlo en la barra de tareas: abre la app, clic derecho en su icono de la barra > "Anclar a la barra de tareas".'
+Write-Host "La app se abrio. Ahora: clic derecho en su icono de la barra de tareas > Anclar a la barra de tareas." -ForegroundColor Yellow
+
+# Abre la aplicación ahora para que su icono aparezca en la barra de tareas y puedas fijarlo.
+Start-Process -FilePath $nav -ArgumentList "--user-data-dir=`"$perfil`" --app=`"$url`" --no-first-run"

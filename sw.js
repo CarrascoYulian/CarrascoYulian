@@ -1,5 +1,5 @@
 /* Service worker: guarda la app en el equipo para usarla sin internet. */
-const CACHE = 'ruletas-daniel-v2';
+const CACHE = 'ruletas-daniel-v3';
 const FILES = ['./', './index.html', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/favicon.png'];
 
