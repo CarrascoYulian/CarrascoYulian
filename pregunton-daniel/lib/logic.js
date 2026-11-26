@@ -43,7 +43,18 @@ const cleanName = s => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f<
 
 class HttpError extends Error { constructor(status, msg, code) { super(msg); this.status = status; this.code = code; } }
 
-export function createGame(store, env = process.env, now = () => Date.now()) {
+/** Une dos copias de un jugador: se queda con lo mejor de cada pregunta y recalcula los puntos. */
+export function mergePlayers(a, b) {
+  const items = { ...(a.items || {}) };
+  for (const [qid, it] of Object.entries(b.items || {})) {
+    const cur = items[qid];
+    if (!cur || (it.ok && !cur.ok) || (it.ok === cur.ok && (it.pts || 0) > (cur.pts || 0))) items[qid] = it;
+  }
+  const pts = Object.values(items).reduce((s, x) => s + (x.pts || 0), 0);
+  return { ...a, items, pts, n: Object.keys(items).length, t: Math.max(a.t || 0, b.t || 0) };
+}
+
+export function createGame(store, env = process.env, now = () => Date.now(), legacy = null) {
   const secret = String(env.GAME_SECRET || env.ADMIN_PIN || 'dev-secret');
   let cache = null; // { t, players: Map(pid -> player), cfg }
 
@@ -64,11 +75,16 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
   }
   async function loadAll(force) {
     if (!force && cache && now() - cache.t < CACHE_MS) return cache;
-    const paths = (await store.list('players/')).filter(p => p.endsWith('.json'));
     const players = new Map();
-    for (let i = 0; i < paths.length; i += 10) {
-      const chunk = await Promise.all(paths.slice(i, i + 10).map(p => store.get(p)));
-      chunk.forEach((pl, j) => { if (pl && pl.pid) players.set(pl.pid, pl); });
+    if (store.listAll) {
+      // Una sola consulta trae a todos los jugadores.
+      for (const row of await store.listAll('players/')) if (row.data && row.data.pid) players.set(row.data.pid, row.data);
+    } else {
+      const paths = (await store.list('players/')).filter(p => p.endsWith('.json'));
+      for (let i = 0; i < paths.length; i += 10) {
+        const chunk = await Promise.all(paths.slice(i, i + 10).map(p => store.get(p)));
+        chunk.forEach(pl => { if (pl && pl.pid) players.set(pl.pid, pl); });
+      }
     }
     cache = { t: now(), players, cfg: await loadCfg() };
     return cache;
@@ -183,6 +199,26 @@ export function createGame(store, env = process.env, now = () => Date.now()) {
       await store.del('players/' + target.pid + '.json');
       c.players.delete(target.pid);
       return { ok: true };
+    },
+    // Recupera los puntos guardados en el almacén anterior (Vercel Blob). Solo copia lo que falta o mejora lo que hay.
+    async admin_import(b) {
+      checkAdmin(b);
+      if (!legacy) throw new HttpError(409, 'No hay un almacén anterior conectado.', 'no_legacy');
+      let paths;
+      try { paths = (await legacy.list('players/')).filter(p => p.endsWith('.json')); }
+      catch (e) { throw new HttpError(502, 'No se pudo leer el almacén anterior: ' + String(e.message || e).slice(0, 160), 'legacy_unreadable'); }
+      let copied = 0, merged = 0, failed = 0;
+      for (const p of paths) {
+        try {
+          const old = await legacy.get(p);
+          if (!old || !old.pid) continue;
+          const cur = await store.get('players/' + old.pid + '.json');
+          if (!cur) { await store.put('players/' + old.pid + '.json', old); copied++; }
+          else { await store.put('players/' + old.pid + '.json', mergePlayers(cur, old)); merged++; }
+        } catch (e) { failed++; }
+      }
+      cache = null;
+      return { ok: failed === 0, found: paths.length, copied, merged, failed };
     },
     async admin_reset(b) {
       checkAdmin(b);

@@ -138,6 +138,33 @@ await ok({ a: 'admin_remove', pin: '123456', id: rm.id });
 await err({ a: 'admin_remove', pin: '123456', id: rm.id }, 404, 'no_player');
 assert.equal((await ok({ a: 'admin_players', pin: '123456' })).players.length, 2);
 
+// recuperar puntos del almacén anterior (importación)
+{
+  const legacy = getStore({ PD_STORE: 'memory' });
+  const main = getStore({ PD_STORE: 'memory' });
+  const g2 = createGame(main, env, () => clock, legacy);
+  const c2 = async body => { const r = await g2.handle(body); assert.equal(r.status, 200, JSON.stringify(r)); return r.json; };
+  const pidX = 'x'.repeat(24), pidY = 'y'.repeat(24);
+  const it = (ok, pts) => ({ ok, pick: 'p', sec: 3, pts, to: 0, st: 1, att: 1, la: { ok, pts } });
+  // Y existe en el almacén anterior con 2 preguntas; X solo en el anterior
+  await legacy.put('players/' + pidY + '.json', { pid: pidY, name: 'Yesenia', team: 't2', pts: 250, n: 2, t: 10, items: { a: it(1, 150), b: it(1, 100) } });
+  await legacy.put('players/' + pidX + '.json', { pid: pidX, name: 'Xiomara', team: 't3', pts: 150, n: 1, t: 11, items: { a: it(1, 150) } });
+  // Y ya volvió a entrar en el almacén nuevo y respondió otra pregunta
+  await main.put('players/' + pidY + '.json', { pid: pidY, name: 'Yesenia', team: 't2', pts: 90, n: 2, t: 20, items: { b: it(0, 0), c: it(1, 90) } });
+  assert.equal((await g2.handle({ a: 'admin_import', pin: 'mala' })).status, 401);
+  const imp = await c2({ a: 'admin_import', pin: '123456' });
+  assert.deepEqual([imp.found, imp.copied, imp.merged, imp.failed], [2, 1, 1, 0]);
+  const y = await main.get('players/' + pidY + '.json');
+  assert.equal(y.pts, 150 + 100 + 90, 'se juntan los puntos de las dos copias'); assert.equal(y.n, 3);
+  assert.equal(y.items.b.ok, 1, 'una pregunta que antes estaba bien no se pierde');
+  const x = await main.get('players/' + pidX + '.json'); assert.equal(x.pts, 150);
+  const imp2 = await c2({ a: 'admin_import', pin: '123456' });   // repetirlo no duplica puntos
+  assert.equal((await main.get('players/' + pidY + '.json')).pts, 340);
+  // sin almacén anterior conectado
+  const g3 = createGame(main, env, () => clock);
+  assert.equal((await g3.handle({ a: 'admin_import', pin: '123456' })).json.code, 'no_legacy');
+}
+
 // acciones inválidas
 await err({ a: 'nada' }, 400, 'bad_action');
 console.log('OK: todas las pruebas del servidor pasaron');
