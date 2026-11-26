@@ -1,5 +1,6 @@
 {
-  "functions": { "api/game.js": { "maxDuration": 15 } },
+  "functions": { "api/game.js": { "maxDuration": 15 }, "api/recover.js": { "maxDuration": 30 } },
+  "crons": [{ "path": "/api/recover", "schedule": "0 12 * * *" }],
   "headers": [
     { "source": "/(.*)", "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },

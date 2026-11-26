@@ -165,6 +165,30 @@ assert.equal((await ok({ a: 'admin_players', pin: '123456' })).players.length, 2
   assert.equal((await g3.handle({ a: 'admin_import', pin: '123456' })).json.code, 'no_legacy');
 }
 
+// recuperación automática diaria
+{
+  const mk = () => ({ legacy: getStore({ PD_STORE: 'memory' }), main: getStore({ PD_STORE: 'memory' }) });
+  const it = { ok: 1, pick: 'p', sec: 2, pts: 150, to: 0, st: 1, att: 1, la: { ok: 1, pts: 150 } };
+  const old = { pid: 'z'.repeat(24), name: 'Zoila', team: 't1', pts: 150, n: 1, t: 5, items: { a: it } };
+  // 1) almacén anterior bloqueado: espera y no marca nada
+  let { legacy, main } = mk(); await legacy.put('players/z.json', old);
+  const blocked = { ...legacy, get: async () => { throw new Error('403 Forbidden'); } };
+  let ga = createGame(main, env, () => clock, blocked);
+  let r1 = (await ga.autoImport()).json; assert.equal(r1.state, 'waiting'); assert.equal(r1.code, 'legacy_unreadable');
+  assert.equal(await main.get('meta/import.json'), null);
+  // 2) ya se puede leer: importa una vez y luego no repite
+  ga = createGame(main, env, () => clock, legacy);
+  r1 = (await ga.autoImport()).json; assert.equal(r1.state, 'imported'); assert.equal(r1.copied, 1);
+  assert.equal((await main.get('players/' + old.pid + '.json')).pts, 150);
+  assert.equal((await ga.autoImport()).json.state, 'done');
+  // 3) si la organizadora reinicia antes de que se pueda leer, ya no importa solo
+  ({ legacy, main } = mk()); await legacy.put('players/z.json', old);
+  ga = createGame(main, env, () => clock, legacy);
+  await ga.handle({ a: 'admin_reset', pin: '123456' });
+  assert.equal((await ga.autoImport()).json.state, 'skipped');
+  assert.equal(await main.get('players/' + old.pid + '.json'), null);
+}
+
 // acciones inválidas
 await err({ a: 'nada' }, 400, 'bad_action');
 console.log('OK: todas las pruebas del servidor pasaron');

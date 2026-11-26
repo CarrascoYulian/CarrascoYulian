@@ -142,6 +142,28 @@ export function createGame(store, env = process.env, now = () => Date.now(), leg
     return { item: la, correct: key.a, reveal, me: meView(pl) };
   }
 
+  // Copia los puntos del almacén anterior (Vercel Blob) sin pisar lo nuevo. Marca la tarea como hecha al terminar.
+  async function runImport() {
+    if (!legacy) throw new HttpError(409, 'No hay un almacén anterior conectado.', 'no_legacy');
+    let paths;
+    try { paths = (await legacy.list('players/')).filter(p => p.endsWith('.json')); }
+    catch (e) { throw new HttpError(502, 'No se pudo leer el almacén anterior: ' + String(e.message || e).slice(0, 160), 'legacy_unreadable'); }
+    let copied = 0, merged = 0, failed = 0;
+    for (const p of paths) {
+      try {
+        const old = await legacy.get(p);
+        if (!old || !old.pid) continue;
+        const cur = await store.get('players/' + old.pid + '.json');
+        if (!cur) { await store.put('players/' + old.pid + '.json', old); copied++; }
+        else { await store.put('players/' + old.pid + '.json', mergePlayers(cur, old)); merged++; }
+      } catch (e) { failed++; }
+    }
+    if (paths.length && failed === paths.length) throw new HttpError(502, 'El almacén anterior sigue bloqueado: sus datos todavía no se pueden leer.', 'legacy_unreadable');
+    cache = null;
+    if (failed === 0) await store.put('meta/import.json', { done: true, at: now(), found: paths.length, copied, merged });
+    return { ok: failed === 0, found: paths.length, copied, merged, failed };
+  }
+
   const actions = {
     async state(b) { return stateFor(b.pid ? needPid(b.pid) : null); },
 
@@ -203,26 +225,13 @@ export function createGame(store, env = process.env, now = () => Date.now(), leg
     // Recupera los puntos guardados en el almacén anterior (Vercel Blob). Solo copia lo que falta o mejora lo que hay.
     async admin_import(b) {
       checkAdmin(b);
-      if (!legacy) throw new HttpError(409, 'No hay un almacén anterior conectado.', 'no_legacy');
-      let paths;
-      try { paths = (await legacy.list('players/')).filter(p => p.endsWith('.json')); }
-      catch (e) { throw new HttpError(502, 'No se pudo leer el almacén anterior: ' + String(e.message || e).slice(0, 160), 'legacy_unreadable'); }
-      let copied = 0, merged = 0, failed = 0;
-      for (const p of paths) {
-        try {
-          const old = await legacy.get(p);
-          if (!old || !old.pid) continue;
-          const cur = await store.get('players/' + old.pid + '.json');
-          if (!cur) { await store.put('players/' + old.pid + '.json', old); copied++; }
-          else { await store.put('players/' + old.pid + '.json', mergePlayers(cur, old)); merged++; }
-        } catch (e) { failed++; }
-      }
-      if (paths.length && failed === paths.length) throw new HttpError(502, 'El almacén anterior sigue bloqueado: sus datos todavía no se pueden leer.', 'legacy_unreadable');
-      cache = null;
-      return { ok: failed === 0, found: paths.length, copied, merged, failed };
+      return runImport();
     },
     async admin_reset(b) {
       checkAdmin(b);
+      // Si la organizadora empieza de cero, ya no se importan automáticamente los puntos viejos.
+      const meta = (await store.get('meta/import.json')) || {};
+      if (!meta.done) await store.put('meta/import.json', { ...meta, skip: true, at: now() });
       const c = await loadAll(true);
       const list = [...c.players.values()];
       for (let i = 0; i < list.length; i += 10) {
@@ -243,6 +252,14 @@ export function createGame(store, env = process.env, now = () => Date.now(), leg
         console.error(e);
         return { status: 500, json: { error: 'Error del servidor. Inténtalo de nuevo.', code: 'server' } };
       }
+    },
+    /** Lo llama la tarea diaria de Vercel: reintenta la recuperación hasta que funcione una vez. */
+    async autoImport() {
+      const meta = (await store.get('meta/import.json')) || {};
+      if (meta.done) return { status: 200, json: { state: 'done', ...meta } };
+      if (meta.skip) return { status: 200, json: { state: 'skipped' } };
+      try { return { status: 200, json: { state: 'imported', ...(await runImport()) } }; }
+      catch (e) { return { status: 200, json: { state: 'waiting', code: e.code || 'error', error: String(e.message || e).slice(0, 160) } }; }
     },
     _cacheReset() { cache = null; },
   };
