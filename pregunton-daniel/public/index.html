@@ -741,6 +741,10 @@ function renderPanelControls(){
         <div class="swatches" role="group" aria-label="Color del equipo ${i+1}">${PALETTE.map(c=>`<button class="sw" type="button" style="--c:${c}" data-i="${i}" data-c="${c}" aria-pressed="${safeColor(t.color).toLowerCase()===c}" aria-label="Color ${c}"></button>`).join('')}</div></div>`).join('')}
       <div class="row"><button class="btn ghost small" id="addTeam" type="button" ${cfg.teams.length>=8?'disabled':''}>Agregar equipo</button></div>
     </div>
+    <div class="stack" style="gap:10px;border-top:1px solid var(--line-soft);padding-top:16px"><b>Recuperar puntos anteriores</b>
+      <p class="muted small">Copia los puntos guardados antes de la falla. Solo suma lo que falta y no pisa los puntos nuevos. Hazlo antes de «Reiniciar puntajes».</p>
+      <div class="row"><button class="btn ghost small" id="importBtn" type="button">Recuperar puntos</button><span id="importMsg" class="muted small" role="status"></span></div>
+    </div>
     <div class="stack" style="gap:10px;border-top:1px solid var(--line-soft);padding-top:16px"><b>Empezar de nuevo</b>
       <p class="muted small">Pone todos los puntos en cero. Los jugadores y sus equipos se quedan.</p>
       <div class="row">${resetAsk ? '<button class="btn danger small" id="resetYes" type="button">Sí, reiniciar</button><button class="btn ghost small" id="resetNo" type="button">Cancelar</button>' : '<button class="btn ghost small" id="resetAsk" type="button">Reiniciar puntajes</button>'}</div>
@@ -761,6 +765,12 @@ function renderPanelControls(){
   $('#addTeam').addEventListener('click', () => {
     const teams = state.cfg.teams.map(t=>Object.assign({},t)); let n=teams.length+1; while (teams.some(t=>t.id==='t'+n)) n++;
     teams.push({ id:'t'+n, name:'Equipo '+(teams.length+1), color:PALETTE[teams.length%PALETTE.length] }); save({ teams });
+  });
+  const ib=$('#importBtn'); if (ib) ib.addEventListener('click', async () => {
+    ib.disabled = true; const msg = $('#importMsg'); msg.textContent = 'Recuperando…';
+    try { const j = await api('admin_import'); msg.textContent = j.found+' jugadores encontrados: '+j.copied+' copiados, '+j.merged+' unidos'+(j.failed?', '+j.failed+' con error':'')+'.'; await refreshAdmin(); }
+    catch(e){ msg.textContent = e.code==='legacy_unreadable' ? 'Todavía no se pueden leer: el almacén anterior sigue bloqueado por Vercel.' : (e.network ? 'Sin internet.' : (e.message||'Error')); }
+    ib.disabled = false;
   });
   const ra=$('#resetAsk'); if (ra) ra.addEventListener('click', () => { resetAsk=true; renderPanelControls(); });
   const rn=$('#resetNo'); if (rn) rn.addEventListener('click', () => { resetAsk=false; renderPanelControls(); });

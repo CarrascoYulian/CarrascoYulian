@@ -217,6 +217,7 @@ export function createGame(store, env = process.env, now = () => Date.now(), leg
           else { await store.put('players/' + old.pid + '.json', mergePlayers(cur, old)); merged++; }
         } catch (e) { failed++; }
       }
+      if (paths.length && failed === paths.length) throw new HttpError(502, 'El almacén anterior sigue bloqueado: sus datos todavía no se pueden leer.', 'legacy_unreadable');
       cache = null;
       return { ok: failed === 0, found: paths.length, copied, merged, failed };
     },
